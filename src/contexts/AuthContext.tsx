@@ -1,6 +1,21 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
-import { auth, googleProvider } from '../lib/firebase'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, googleProvider, db } from '../lib/firebase'
+
+async function ensureUserProfile(user: User) {
+  const ref = doc(db, 'users', user.uid)
+  const snap = await getDoc(ref)
+  if (snap.exists()) return
+  await setDoc(ref, {
+    displayName: user.displayName,
+    photoURL: user.photoURL,
+    email: user.email,
+    createdAt: serverTimestamp(),
+    weeklyArtistVotes: {},
+    activeUploadCount: 0,
+  })
+}
 
 interface AuthContextValue {
   user: User | null
@@ -19,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return onAuthStateChanged(auth, (u) => {
       setUser(u)
       setLoading(false)
+      if (u) void ensureUserProfile(u)
     })
   }, [])
 

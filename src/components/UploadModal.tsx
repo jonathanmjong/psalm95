@@ -1,0 +1,112 @@
+import { useState } from 'react'
+import type { Member } from '../types'
+import { useAuth } from '../contexts/AuthContext'
+import { uploadArtistPicture } from '../lib/storage'
+import { createPictureDoc } from '../lib/callables'
+
+interface Props {
+  artistId: string
+  members: Member[]
+  onClose: () => void
+  onUploaded: () => void
+}
+
+export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
+  const { user } = useAuth()
+  const [file, setFile] = useState<File | null>(null)
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [confirmedRights, setConfirmedRights] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const toggleMember = (memberId: string) => {
+    setSelectedMembers((prev) =>
+      prev.includes(memberId) ? prev.filter((m) => m !== memberId) : [...prev, memberId],
+    )
+  }
+
+  const handleSubmit = async () => {
+    if (!user || !file || !confirmedRights) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const storagePath = await uploadArtistPicture(artistId, user.uid, file)
+      await createPictureDoc({
+        artistId,
+        storagePath,
+        taggedMembers: selectedMembers.map((memberId) => ({ artistId, memberId })),
+      })
+      onUploaded()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md space-y-4 rounded-2xl bg-[var(--color-surface)] p-6 dark:bg-[var(--color-surface-dark)]">
+        <h2 className="text-lg font-semibold">Upload a picture</h2>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="block w-full text-sm"
+        />
+
+        {members.length > 0 && (
+          <div>
+            <p className="mb-2 text-sm font-medium">Which members are in this picture?</p>
+            <div className="flex flex-wrap gap-2">
+              {members.map((member) => (
+                <button
+                  key={member.memberId}
+                  type="button"
+                  onClick={() => toggleMember(member.memberId)}
+                  className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                    selectedMembers.includes(member.memberId)
+                      ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white'
+                      : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
+                  }`}
+                >
+                  {member.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={confirmedRights}
+            onChange={(e) => setConfirmedRights(e.target.checked)}
+            className="mt-0.5"
+          />
+          I confirm I have the rights to share this image.
+        </label>
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!file || !confirmedRights || submitting}
+            className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            {submitting ? 'Uploading…' : 'Upload'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

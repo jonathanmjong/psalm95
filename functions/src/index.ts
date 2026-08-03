@@ -6,3 +6,7 @@ initializeApp()
 export const ping = onCall(() => {
   return { ok: true, time: new Date().toISOString() }
 })
+
+export { castArtistVote } from './votes'
+export { votePicture } from './pictureVotes'
+export { createPictureDoc, deletePicture } from './pictures'

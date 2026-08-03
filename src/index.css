@@ -17,6 +17,23 @@
   --color-surface-dark: #000000;
   --color-surface-sunken-dark: #1d1d1f;
   --color-hairline-dark: rgba(255, 255, 255, 0.12);
+
+  /* Categorical data-viz slots (5 ranking factors), fixed order per the dataviz skill palette. */
+  --series-1: #2a78d6;
+  --series-2: #1baf7a;
+  --series-3: #eda100;
+  --series-4: #008300;
+  --series-5: #4a3aa7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --series-1: #3987e5;
+    --series-2: #199e70;
+    --series-3: #c98500;
+    --series-4: #008300;
+    --series-5: #9085e9;
+  }
 }
 
 :root {
