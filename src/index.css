@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+
+  --color-accent: #ff375f;
+  --color-ink: #1d1d1f;
+  --color-ink-soft: #6e6e73;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f5f5f7;
+  --color-hairline: rgba(0, 0, 0, 0.08);
+
+  --color-ink-dark: #f5f5f7;
+  --color-ink-soft-dark: #a1a1a6;
+  --color-surface-dark: #000000;
+  --color-surface-sunken-dark: #1d1d1f;
+  --color-hairline-dark: rgba(255, 255, 255, 0.12);
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: var(--color-surface-dark);
+    color: var(--color-ink-dark);
+  }
+}
+
+.glass-header {
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-header {
+    background: color-mix(in srgb, var(--color-surface-dark) 72%, transparent);
+  }
+}

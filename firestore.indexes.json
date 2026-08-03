@@ -1,0 +1,36 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "artists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "region", "order": "ASCENDING" },
+        { "fieldPath": "compositeScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "artists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "generationId", "order": "ASCENDING" },
+        { "fieldPath": "compositeScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pictures",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "taggedMemberKeys", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "uploadedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pictures",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "taggedMemberKeys", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "voteCount", "order": "DESCENDING" }
+      ]
+    }
+  ]
+}
