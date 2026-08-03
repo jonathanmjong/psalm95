@@ -22,6 +22,7 @@ firestore-debug.log
 ui-debug.log
 functions/lib/
 functions/node_modules/
+functions/tsconfig.tsbuildinfo
 
 # Editor directories and files
 .vscode/*

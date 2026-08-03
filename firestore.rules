@@ -25,6 +25,13 @@ service cloud.firestore {
         // Edits (vote counts) and deletes go through callable functions only.
         allow update, delete: if false;
       }
+
+      // Daily ranking snapshots that power the week/month/year trend graphs — written
+      // only by the scheduled Cloud Function.
+      match /rankingHistory/{dateId} {
+        allow read: if true;
+        allow write: if false;
+      }
     }
 
     match /users/{uid} {

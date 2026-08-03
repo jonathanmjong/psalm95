@@ -58,14 +58,12 @@ export interface ArtistPicture {
   voteCount: number
 }
 
-export type RankingPeriod = 'week' | 'month' | 'year'
-
 export interface RankingSnapshot {
-  periodType: RankingPeriod
-  periodId: string
-  capturedAt: string
+  date: string
   compositeScore: number
   rank: number
-  votes: number
   popularity: number
+  weeklyVotes: number
+  monthlyVotes: number
+  yearlyVotes: number
 }

@@ -9,6 +9,7 @@ import { PictureGrid } from '../components/PictureGrid'
 import { Pagination } from '../components/Pagination'
 import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
+import { RankingTrend } from '../components/RankingTrend'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -68,6 +69,10 @@ export function ArtistPage() {
           <ScoreBreakdown artist={artist} />
         </div>
       </header>
+
+      <section>
+        <RankingTrend artistId={artist.id} />
+      </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
