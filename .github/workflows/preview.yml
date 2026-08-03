@@ -1,0 +1,48 @@
+name: Preview Deploy
+
+on:
+  pull_request:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: jj-psalm95
+          workload_identity_provider: projects/883447693683/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-actions-deployer@jj-psalm95.iam.gserviceaccount.com
+
+      - name: Deploy preview channel
+        id: deploy
+        run: |
+          CHANNEL="pr-${{ github.event.number }}"
+          npx firebase-tools hosting:channel:deploy "$CHANNEL" \
+            --project jj-psalm95 --expires 7d --non-interactive --json > deploy-output.json
+          URL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('deploy-output.json')).result['jj-psalm95'].url)")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} \
+            --body "🔗 Preview deployed: ${{ steps.deploy.outputs.url }}"
