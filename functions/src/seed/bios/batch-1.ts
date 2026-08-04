@@ -1,0 +1,168 @@
+import type { ArtistBio } from './types'
+
+export const batch1Bios: ArtistBio[] = [
+  {
+    artistId: 'hot',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'moon-heejun', birthdate: '1978-03-14', zodiacSign: 'Pisces', heightCm: 173, weightKg: 62, interests: ['listening to music', 'singing', 'dancing', 'writing music'], favoriteFoods: ['pizza'] },
+      { memberId: 'jang-woohyuk', birthdate: '1978-05-08', zodiacSign: 'Taurus', heightCm: 176, weightKg: 60, interests: ['biking', 'soccer', 'table tennis', 'scuba diving', 'weight training'] },
+      { memberId: 'tony-ahn', birthdate: '1978-06-07', zodiacSign: 'Gemini', heightCm: 175, weightKg: 57, interests: ['photography'] },
+      { memberId: 'kangta', birthdate: '1979-10-10', zodiacSign: 'Libra', heightCm: 178, weightKg: 65, interests: ['listening to music', 'singing', 'dancing', 'collecting CDs'], favoriteFoods: ['nakji bokkeum', 'bulgogi'] },
+      { memberId: 'lee-jaewon', birthdate: '1980-04-05', zodiacSign: 'Aries', heightCm: 184, weightKg: 65, interests: ['playing computer games', 'dancing', 'listening to music', 'singing'] },
+    ],
+  },
+  {
+    artistId: 'sechskies',
+    agency: 'YG Entertainment',
+    members: [
+      { memberId: 'eun-jiwon', birthdate: '1978-06-08', zodiacSign: 'Gemini', heightCm: 174, weightKg: 60, interests: ['watching movies', 'listening to music'] },
+      { memberId: 'kim-jaeduck', birthdate: '1979-08-07', zodiacSign: 'Leo', heightCm: 174, weightKg: 55, interests: ['reading fan mail'] },
+      { memberId: 'lee-jaijin', birthdate: '1979-07-13', zodiacSign: 'Cancer', heightCm: 175, weightKg: 64, interests: ['collecting things'] },
+      { memberId: 'ko-jiyong', birthdate: '1980-07-01', zodiacSign: 'Cancer', heightCm: 180, weightKg: 66, interests: ['skiing'] },
+      { memberId: 'jang-suwon', birthdate: '1980-07-16', zodiacSign: 'Cancer', heightCm: 176, weightKg: 52, interests: ['watching movies'] },
+      { memberId: 'kim-jiwon', birthdate: '1980-02-22', zodiacSign: 'Pisces', heightCm: 175, weightKg: 60, interests: ['listening to music'] },
+    ],
+  },
+  {
+    artistId: 'ses',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'bada', birthdate: '1980-02-28', zodiacSign: 'Pisces', heightCm: 164, weightKg: 47 },
+      { memberId: 'eugene', birthdate: '1981-03-03', zodiacSign: 'Pisces', heightCm: 160, weightKg: 47, interests: ['playing sports', 'drawing'] },
+      { memberId: 'shoo', birthdate: '1981-10-23', zodiacSign: 'Scorpio', heightCm: 160, weightKg: 44, interests: ['baseball', 'basketball', 'swimming'] },
+    ],
+  },
+  {
+    artistId: 'shinhwa',
+    agency: 'Shinhwa Company',
+    members: [
+      { memberId: 'eric-mun', birthdate: '1979-02-16', zodiacSign: 'Aquarius', heightCm: 180, weightKg: 70, interests: ['snowboarding', 'rapping', 'basketball', 'driving', 'fishing'] },
+      { memberId: 'lee-minwoo', birthdate: '1979-07-28', zodiacSign: 'Leo', heightCm: 172, weightKg: 60, interests: ['drawing', 'listening to music', 'breakdancing', 'beatboxing'] },
+      { memberId: 'kim-dongwan', birthdate: '1979-11-21', zodiacSign: 'Scorpio', heightCm: 173, weightKg: 68, interests: ['internet chatting', 'traveling', 'photography', 'mountain climbing', 'snowboarding'] },
+      { memberId: 'shin-hyesung', birthdate: '1979-11-27', zodiacSign: 'Sagittarius', heightCm: 179, weightKg: 65, interests: ['listening to music'] },
+      { memberId: 'jun-jin', birthdate: '1980-08-19', zodiacSign: 'Leo', heightCm: 183, weightKg: 75, favoriteFoods: ['mandoo'] },
+      { memberId: 'andy-lee', birthdate: '1981-01-21', zodiacSign: 'Aquarius', heightCm: 175, weightKg: 62, interests: ['volleyball', 'basketball'] },
+    ],
+  },
+  {
+    artistId: 'tvxq',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'u-know-yunho', birthdate: '1986-02-06', zodiacSign: 'Aquarius', heightCm: 184, weightKg: 66, interests: ['music', 'reading', 'sports', 'composing'] },
+      { memberId: 'max-changmin', birthdate: '1988-02-18', zodiacSign: 'Aquarius', heightCm: 186, weightKg: 61, interests: ['music', 'singing', 'eating'] },
+    ],
+  },
+  {
+    artistId: 'super-junior',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'leeteuk', birthdate: '1983-07-01', zodiacSign: 'Cancer', heightCm: 174, weightKg: 58, interests: ['piano', 'composing', 'listening to music', 'singing'], favoriteAnimal: 'bird' },
+      { memberId: 'heechul', birthdate: '1983-07-10', zodiacSign: 'Cancer', heightCm: 174.8, weightKg: 60, interests: ['writing poems', 'writing fairy tales', 'computer games'], favoriteAnimal: 'cat' },
+      { memberId: 'yesung', birthdate: '1984-08-24', zodiacSign: 'Virgo', heightCm: 175, weightKg: 64, interests: ['singing', 'listening to music', 'exercise'], favoriteAnimal: 'turtle' },
+      { memberId: 'kangin', birthdate: '1985-01-17', zodiacSign: 'Capricorn', heightCm: 178, weightKg: 70, interests: ['swimming', 'kickboxing'] },
+      { memberId: 'shindong', birthdate: '1985-09-28', zodiacSign: 'Libra', heightCm: 175, weightKg: 79, interests: ['making facial expressions', 'making jokes', 'dancing'], favoriteAnimal: 'bear' },
+      { memberId: 'sungmin', birthdate: '1986-01-01', zodiacSign: 'Capricorn', heightCm: 171, weightKg: 57 },
+      { memberId: 'eunhyuk', birthdate: '1986-04-04', zodiacSign: 'Aries', heightCm: 174, weightKg: 61, interests: ['dancing', 'exercising', 'composing', 'listening to music'], favoriteAnimal: 'monkey' },
+      { memberId: 'donghae', birthdate: '1986-10-15', zodiacSign: 'Libra', heightCm: 174, weightKg: 60, interests: ['dancing', 'exercise', 'singing', 'watching movies'], favoriteAnimal: 'fish' },
+      { memberId: 'siwon', birthdate: '1986-04-07', zodiacSign: 'Aries', heightCm: 183, weightKg: 65, interests: ['singing', 'dancing', 'acting', 'taekwondo', 'playing drums'], favoriteAnimal: 'horse' },
+      { memberId: 'ryeowook', birthdate: '1987-06-21', zodiacSign: 'Gemini', heightCm: 170, weightKg: 58, interests: ['singing', 'composing'], favoriteAnimal: 'puppy' },
+      { memberId: 'kyuhyun', birthdate: '1988-02-03', zodiacSign: 'Aquarius', heightCm: 178, weightKg: 68, interests: ['singing', 'listening to music', 'watching movies'], favoriteAnimal: 'penguin' },
+    ],
+  },
+  {
+    artistId: 'snsd',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'taeyeon', birthdate: '1989-03-09', zodiacSign: 'Pisces', heightCm: 160, weightKg: 45, interests: ['listening to music', 'watching movies'], favoriteFoods: ['red bean paste'] },
+      { memberId: 'sunny', birthdate: '1989-05-15', zodiacSign: 'Taurus', heightCm: 158, weightKg: 46, interests: ['listening to music', 'shopping'] },
+      { memberId: 'tiffany', birthdate: '1989-08-01', zodiacSign: 'Leo', heightCm: 162.6, weightKg: 48, interests: ['watching movies', 'listening to music'], favoriteFoods: ['meat'] },
+      { memberId: 'hyoyeon', birthdate: '1989-09-22', zodiacSign: 'Virgo', heightCm: 161.4, weightKg: 46, interests: ['listening to music', 'watching movies'] },
+      { memberId: 'yuri', birthdate: '1989-12-05', zodiacSign: 'Sagittarius', heightCm: 167, weightKg: 49, interests: ['studying', 'swimming', 'exercising'] },
+      { memberId: 'sooyoung', birthdate: '1990-02-10', zodiacSign: 'Aquarius', heightCm: 172, weightKg: 48, interests: ['watching movies', 'listening to music', 'dancing'], favoriteFoods: ['spicy cabbage'] },
+      { memberId: 'yoona', birthdate: '1990-05-30', zodiacSign: 'Gemini', heightCm: 168, weightKg: 48, interests: ['watching movies'], favoriteFoods: ['cereal'] },
+      { memberId: 'seohyun', birthdate: '1991-06-28', zodiacSign: 'Cancer', heightCm: 170, weightKg: 52, interests: ['listening to music'], favoriteFoods: ['sweet potatoes'] },
+    ],
+  },
+  {
+    artistId: 'bigbang',
+    agency: 'YG Entertainment',
+    members: [
+      { memberId: 'gdragon', birthdate: '1988-08-18', zodiacSign: 'Leo', heightCm: 177, weightKg: 58, interests: ['music composition', 'production', 'fashion'] },
+      { memberId: 'taeyang', birthdate: '1988-05-18', zodiacSign: 'Taurus', heightCm: 174, weightKg: 56, interests: ['piano', 'vocal performance', 'dancing'] },
+      { memberId: 'daesung', birthdate: '1989-04-26', zodiacSign: 'Taurus', heightCm: 178, weightKg: 63 },
+      { memberId: 'seungri', birthdate: '1990-12-12', zodiacSign: 'Sagittarius', heightCm: 177, weightKg: 60 },
+    ],
+  },
+  {
+    artistId: 'shinee',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'onew', birthdate: '1989-12-14', zodiacSign: 'Sagittarius', heightCm: 177, weightKg: 61, interests: ['listening to music', 'playing piano', 'eating chicken'], favoriteFoods: ['chicken'] },
+      { memberId: 'key', birthdate: '1991-09-23', zodiacSign: 'Libra', heightCm: 175, weightKg: 62, interests: ['rapping', 'dancing', 'water skiing'] },
+      { memberId: 'minho', birthdate: '1991-12-09', zodiacSign: 'Sagittarius', heightCm: 181, weightKg: 60, interests: ['soccer', 'basketball'] },
+      { memberId: 'taemin', birthdate: '1993-07-18', zodiacSign: 'Cancer', heightCm: 175, weightKg: 58, interests: ['listening to music', 'dancing', 'playing piano'] },
+    ],
+  },
+  {
+    artistId: '2ne1',
+    agency: 'YG Entertainment',
+    members: [
+      { memberId: 'cl', birthdate: '1991-02-26', zodiacSign: 'Pisces', heightCm: 162, weightKg: 48, interests: ['rap', 'dance', 'songwriting'] },
+      { memberId: 'dara', birthdate: '1984-11-12', zodiacSign: 'Scorpio', heightCm: 162, weightKg: 45, interests: ['dancing', 'singing', 'acting', 'guitar'], favoriteFoods: ['chicken'], favoriteAnimal: 'cat' },
+      { memberId: 'bom', birthdate: '1984-03-24', zodiacSign: 'Aries', heightCm: 165, weightKg: 59, interests: ['singing', 'dancing', 'piano', 'flute', 'cello'], favoriteAnimal: 'dog' },
+      { memberId: 'minzy', birthdate: '1994-01-18', zodiacSign: 'Capricorn', heightCm: 161, weightKg: 49, interests: ['dancing', 'rapping', 'photography'] },
+    ],
+  },
+  {
+    artistId: 'wonder-girls',
+    agency: 'JYP Entertainment',
+    members: [
+      { memberId: 'yeeun', birthdate: '1989-05-26', zodiacSign: 'Gemini', heightCm: 165, weightKg: 47, favoriteFoods: ['chobap', 'egg tarts'] },
+      { memberId: 'sunmi', birthdate: '1992-05-02', zodiacSign: 'Taurus', heightCm: 166, weightKg: 50 },
+      { memberId: 'yubin', birthdate: '1988-10-04', zodiacSign: 'Libra', heightCm: 161, weightKg: 45, interests: ['scuba diving', 'swimming'] },
+      { memberId: 'hyerim', birthdate: '1992-09-01', zodiacSign: 'Virgo', heightCm: 165, weightKg: 50 },
+      { memberId: 'sohee', birthdate: '1992-06-27', zodiacSign: 'Cancer', heightCm: 163, weightKg: 43 },
+    ],
+  },
+  {
+    artistId: 'kara',
+    agency: 'RBW (formerly DSP Media)',
+    members: [
+      { memberId: 'park-gyuri', birthdate: '1988-05-21', zodiacSign: 'Gemini', heightCm: 160, weightKg: 45 },
+      { memberId: 'han-seungyeon', birthdate: '1988-07-24', zodiacSign: 'Leo', heightCm: 160, weightKg: 43, interests: ['watching movies'] },
+      { memberId: 'goo-hara', birthdate: '1991-01-03', zodiacSign: 'Capricorn', heightCm: 164, weightKg: 43 },
+      { memberId: 'kang-jiyoung', birthdate: '1994-01-18', zodiacSign: 'Capricorn', heightCm: 167 },
+      { memberId: 'nicole', birthdate: '1991-10-07', zodiacSign: 'Libra', heightCm: 165, weightKg: 45, interests: ['cooking', 'watching movies'] },
+    ],
+  },
+  {
+    artistId: 'bts',
+    agency: 'HYBE (Big Hit Music)',
+    influences: ['Seo Taiji and Boys', 'Nas', 'Eminem', 'Kanye West', 'Jay-Z', 'Epik High'],
+    members: [
+      { memberId: 'rm', birthdate: '1994-09-12', zodiacSign: 'Virgo', heightCm: 181, weightKg: 76 },
+      { memberId: 'jin', birthdate: '1992-12-04', zodiacSign: 'Sagittarius', heightCm: 180, weightKg: 66, interests: ['cooking', 'video games'] },
+      { memberId: 'suga', birthdate: '1993-03-09', zodiacSign: 'Pisces', heightCm: 174, weightKg: 61, interests: ['music production'] },
+      { memberId: 'j-hope', birthdate: '1994-02-18', zodiacSign: 'Aquarius', heightCm: 177, weightKg: 59, interests: ['dancing'] },
+      { memberId: 'jimin', birthdate: '1995-10-13', zodiacSign: 'Libra', heightCm: 174, weightKg: 65, interests: ['contemporary dance'] },
+      { memberId: 'v', birthdate: '1995-12-30', zodiacSign: 'Capricorn', heightCm: 179, weightKg: 75, interests: ['photography', 'jazz music', 'acting'] },
+      { memberId: 'jungkook', birthdate: '1997-09-01', zodiacSign: 'Virgo', heightCm: 177, weightKg: 70, interests: ['singing', 'drawing', 'sports'] },
+    ],
+  },
+  {
+    artistId: 'exo',
+    agency: 'SM Entertainment',
+    members: [
+      { memberId: 'xiumin', birthdate: '1990-03-26', zodiacSign: 'Aries', heightCm: 172, weightKg: 57, favoriteAnimal: 'cat' },
+      { memberId: 'suho', birthdate: '1991-05-22', zodiacSign: 'Gemini', heightCm: 173, weightKg: 60, interests: ['cycling', 'acting', 'golf'], favoriteAnimal: 'rabbit' },
+      { memberId: 'lay', birthdate: '1991-10-07', zodiacSign: 'Libra', heightCm: 176, weightKg: 60, interests: ['guitar', 'dancing', 'piano'], favoriteAnimal: 'sheep' },
+      { memberId: 'baekhyun', birthdate: '1992-05-06', zodiacSign: 'Taurus', heightCm: 174, weightKg: 64, interests: ['aikido', 'piano', 'listening to music', 'watching movies', 'singing'], favoriteAnimal: 'dog' },
+      { memberId: 'chen', birthdate: '1992-09-21', zodiacSign: 'Virgo', heightCm: 172.5, weightKg: 60, favoriteAnimal: 'dragon' },
+      { memberId: 'chanyeol', birthdate: '1992-11-27', zodiacSign: 'Sagittarius', heightCm: 186, weightKg: 70, interests: ['playing musical instruments', 'rap', 'acting'], favoriteAnimal: 'tiger' },
+      { memberId: 'do', birthdate: '1993-01-12', zodiacSign: 'Capricorn', heightCm: 172, weightKg: 60, interests: ['cooking'], favoriteAnimal: 'penguin' },
+      { memberId: 'kai', birthdate: '1994-01-14', zodiacSign: 'Capricorn', heightCm: 182, weightKg: 67, interests: ['video games'], favoriteAnimal: 'bear' },
+      { memberId: 'sehun', birthdate: '1994-04-12', zodiacSign: 'Aries', heightCm: 183, weightKg: 66, favoriteFoods: ['meat', 'sushi'], favoriteAnimal: 'chick' },
+    ],
+  },
+]

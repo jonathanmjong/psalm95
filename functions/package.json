@@ -10,7 +10,9 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx src/seed/run.ts"
+    "seed": "tsx src/seed/run.ts",
+    "seed:verify-bios": "tsx src/seed/bios/verify.ts",
+    "seed:apply-bios": "tsx src/seed/bios/apply.ts"
   },
   "main": "lib/index.js",
   "dependencies": {
