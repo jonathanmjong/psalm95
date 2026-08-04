@@ -1,6 +1,6 @@
 const API = 'https://commons.wikimedia.org/w/api.php'
 const COMPATIBLE_LICENSE = /^(cc0|cc-by|cc by|public domain|pd)/i
-const MAX_IMAGES_PER_ARTIST = 5
+const MAX_IMAGES_PER_ARTIST = 15
 const MIN_WIDTH = 400
 const USER_AGENT = 'psalm95-seed-script/1.0 (https://github.com/jonathanmjong/psalm95)'
 
@@ -62,7 +62,7 @@ export async function fetchWikimediaImages(artistName: string): Promise<Wikimedi
   try {
     const searchUrl = `${API}?action=query&list=search&srsearch=${encodeURIComponent(
       artistName,
-    )}&srnamespace=6&srlimit=15&format=json&origin=*`
+    )}&srnamespace=6&srlimit=40&format=json&origin=*`
     const searchRes = await fetchWithRetry(searchUrl)
     if (!searchRes?.ok) return []
     const searchJson = (await searchRes.json()) as SearchResult

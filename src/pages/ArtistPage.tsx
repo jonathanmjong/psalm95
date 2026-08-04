@@ -10,6 +10,7 @@ import { Pagination } from '../components/Pagination'
 import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
 import { RankingTrend } from '../components/RankingTrend'
+import { ArtistAbout } from '../components/ArtistAbout'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -72,6 +73,11 @@ export function ArtistPage() {
 
       <section>
         <RankingTrend artistId={artist.id} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">About</h2>
+        <ArtistAbout artist={artist} />
       </section>
 
       <section className="space-y-4">

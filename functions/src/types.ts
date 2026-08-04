@@ -4,6 +4,13 @@ export type ArtistType = 'group' | 'solo'
 export interface Member {
   memberId: string
   name: string
+  birthdate?: string // ISO date, YYYY-MM-DD
+  zodiacSign?: string
+  heightCm?: number
+  weightKg?: number
+  interests?: string[]
+  favoriteFoods?: string[]
+  favoriteAnimal?: string
 }
 
 export interface GenerationConfig {
@@ -28,4 +35,6 @@ export interface ArtistSeed {
   generationId: string
   members: Member[]
   spotifyArtistId?: string
+  agency?: string
+  influences?: string[]
 }

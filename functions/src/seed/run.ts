@@ -21,25 +21,41 @@ async function seedGenerations() {
 
 async function seedArtist(artist: (typeof artistSeeds)[number]) {
   const ref = db.collection('artists').doc(artist.id)
-  await ref.set({
+  const existing = await ref.get()
+
+  // Structural fields (name/members/agency/etc.) are always kept in sync with the
+  // source-of-truth list. Live data (metrics/votes/compositeScore/rank) is only
+  // initialized for brand-new artists — re-running seed must never wipe real
+  // Spotify popularity, cast votes, or the computed ranking for existing artists.
+  const structural = {
     name: artist.name,
     region: artist.region,
     type: artist.type,
     generationId: artist.generationId,
     members: artist.members,
     spotifyArtistId: artist.spotifyArtistId ?? null,
-    metrics: {
-      popularity: emptyMetric('spotify'),
-      albumsSold: emptyMetric('unassigned'),
-      ticketSales: emptyMetric('unassigned'),
-    },
-    weeklyVotes: 0,
-    monthlyVotes: 0,
-    yearlyVotes: 0,
-    compositeScore: 0,
-    rank: 0,
-    createdAt: FieldValue.serverTimestamp(),
-  })
+    agency: artist.agency ?? null,
+    influences: artist.influences ?? [],
+  }
+
+  if (existing.exists) {
+    await ref.set(structural, { merge: true })
+  } else {
+    await ref.set({
+      ...structural,
+      metrics: {
+        popularity: emptyMetric('spotify'),
+        albumsSold: emptyMetric('unassigned'),
+        ticketSales: emptyMetric('unassigned'),
+      },
+      weeklyVotes: 0,
+      monthlyVotes: 0,
+      yearlyVotes: 0,
+      compositeScore: 0,
+      rank: 0,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+  }
 
   const picturesRef = ref.collection('pictures')
 

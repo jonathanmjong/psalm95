@@ -4,6 +4,13 @@ export type ArtistType = 'group' | 'solo'
 export interface Member {
   memberId: string
   name: string
+  birthdate?: string
+  zodiacSign?: string
+  heightCm?: number
+  weightKg?: number
+  interests?: string[]
+  favoriteFoods?: string[]
+  favoriteAnimal?: string
 }
 
 export interface GenerationConfig {
@@ -40,6 +47,8 @@ export interface Artist {
   compositeScore: number
   rank: number
   spotifyArtistId?: string
+  agency?: string
+  influences?: string[]
 }
 
 export interface ArtistPicture {
