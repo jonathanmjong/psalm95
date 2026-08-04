@@ -11,6 +11,7 @@ import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
 import { RankingTrend } from '../components/RankingTrend'
 import { ArtistAbout } from '../components/ArtistAbout'
+import { NotFound } from './NotFound'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -40,11 +41,7 @@ export function ArtistPage() {
   }
 
   if (!artist) {
-    return (
-      <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-        Artist not found.
-      </p>
-    )
+    return <NotFound />
   }
 
   return (
