@@ -44,7 +44,8 @@ export const spotifyPopularityProvider: MetricProvider = {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return { value: 0, stale: true }
-      const json = (await res.json()) as { popularity: number; name: string }
+      const json = (await res.json()) as { popularity?: number; name?: string }
+      if (typeof json.popularity !== 'number') return { value: 0, stale: true }
       return { value: json.popularity, stale: false }
     } catch {
       return { value: 0, stale: true }

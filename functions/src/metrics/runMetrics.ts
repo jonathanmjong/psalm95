@@ -18,6 +18,7 @@ export const refreshArtistMetrics = onSchedule(
     const artistsSnap = await db.collection('artists').get()
     const now = new Date().toISOString()
 
+    let failures = 0
     for (const doc of artistsSnap.docs) {
       const artist = { id: doc.id, ...doc.data() } as {
         id: string
@@ -25,18 +26,23 @@ export const refreshArtistMetrics = onSchedule(
         spotifyArtistId?: string | null
       }
 
-      const results = await Promise.all(
-        PROVIDERS.map(async ({ field, provider }) => {
-          const { value, stale } = await provider.fetch(artist)
-          return [field, { value, stale, source: provider.id, updatedAt: now }] as const
-        }),
-      )
+      try {
+        const results = await Promise.all(
+          PROVIDERS.map(async ({ field, provider }) => {
+            const { value, stale } = await provider.fetch(artist)
+            return [field, { value, stale, source: provider.id, updatedAt: now }] as const
+          }),
+        )
 
-      // .update() (not .set + merge) so dotted keys are interpreted as nested field paths.
-      const metricsUpdate = Object.fromEntries(results.map(([field, result]) => [`metrics.${field}`, result]))
-      await doc.ref.update(metricsUpdate)
+        // .update() (not .set + merge) so dotted keys are interpreted as nested field paths.
+        const metricsUpdate = Object.fromEntries(results.map(([field, result]) => [`metrics.${field}`, result]))
+        await doc.ref.update(metricsUpdate)
+      } catch (err) {
+        failures++
+        console.error(`Failed to refresh metrics for artist ${artist.id}:`, err)
+      }
     }
 
-    console.log(`Refreshed metrics for ${artistsSnap.size} artists.`)
+    console.log(`Refreshed metrics for ${artistsSnap.size - failures}/${artistsSnap.size} artists.`)
   },
 )
