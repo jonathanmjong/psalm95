@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { Logo } from './Logo'
 
 export function Header() {
   const { user, loading, signInWithGoogle, logOut } = useAuth()
@@ -7,8 +8,8 @@ export function Header() {
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link to="/" className="text-lg font-semibold tracking-tight">
-          psalm95
+        <Link to="/">
+          <Logo />
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           {!loading && user ? (
