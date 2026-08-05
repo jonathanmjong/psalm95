@@ -17,6 +17,9 @@ export const refreshArtistMetrics = onSchedule(
   {
     schedule: 'every 6 hours',
     secrets: [spotifyClientId, spotifyClientSecret, lastfmApiKey, ticketmasterApiKey],
+    // Default 60s timeout isn't enough: MusicBrainz alone imposes a ~1.1s throttle per
+    // artist, and this runs across the whole roster sequentially (currently 107 artists).
+    timeoutSeconds: 540,
   },
   async () => {
     const db = getFirestore()
