@@ -8,7 +8,7 @@ const SEGMENTS: {
   cssVar: string
 }[] = [
   { key: 'popularity', label: 'Online popularity', cssVar: 'var(--series-1)' },
-  { key: 'albumsSold', label: 'Albums sold', cssVar: 'var(--series-2)' },
+  { key: 'discography', label: 'Discography', cssVar: 'var(--series-2)' },
   { key: 'ticketSales', label: 'Ticket sales', cssVar: 'var(--series-3)' },
   { key: 'weeklyVotes', label: 'Weekly votes', cssVar: 'var(--series-4)' },
   { key: 'monthlyVotes', label: 'Monthly votes', cssVar: 'var(--series-5)' },

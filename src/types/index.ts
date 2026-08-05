@@ -30,7 +30,7 @@ export interface MetricValue {
 
 export interface ArtistMetrics {
   popularity: MetricValue
-  albumsSold: MetricValue
+  discography: MetricValue
   ticketSales: MetricValue
 }
 

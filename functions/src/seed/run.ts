@@ -44,8 +44,8 @@ async function seedArtist(artist: (typeof artistSeeds)[number]) {
     await ref.set({
       ...structural,
       metrics: {
-        popularity: emptyMetric('spotify'),
-        albumsSold: emptyMetric('unassigned'),
+        popularity: emptyMetric('unassigned'),
+        discography: emptyMetric('unassigned'),
         ticketSales: emptyMetric('unassigned'),
       },
       weeklyVotes: 0,

@@ -1,7 +1,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore } from 'firebase-admin/firestore'
 
-const FACTORS = ['popularity', 'albumsSold', 'ticketSales', 'weeklyVotes', 'monthlyVotes'] as const
+const FACTORS = ['popularity', 'discography', 'ticketSales', 'weeklyVotes', 'monthlyVotes'] as const
 const WEIGHT = 0.2
 const BATCH_SIZE = 400
 

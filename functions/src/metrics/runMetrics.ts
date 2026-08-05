@@ -4,12 +4,12 @@ import { popularityProvider } from './providers/popularity'
 import { spotifyClientId, spotifyClientSecret } from './providers/spotifyPopularity'
 import { lastfmApiKey } from './providers/lastfmPopularity'
 import { ticketmasterEventsProvider, ticketmasterApiKey } from './providers/ticketmasterEvents'
-import { albumsSoldUnassignedProvider } from './providers/albumsSoldUnassigned'
+import { musicbrainzDiscographyProvider } from './providers/musicbrainzDiscography'
 import type { MetricProvider } from './types'
 
-const PROVIDERS: { field: 'popularity' | 'albumsSold' | 'ticketSales'; provider: MetricProvider }[] = [
+const PROVIDERS: { field: 'popularity' | 'discography' | 'ticketSales'; provider: MetricProvider }[] = [
   { field: 'popularity', provider: popularityProvider },
-  { field: 'albumsSold', provider: albumsSoldUnassignedProvider },
+  { field: 'discography', provider: musicbrainzDiscographyProvider },
   { field: 'ticketSales', provider: ticketmasterEventsProvider },
 ]
 
