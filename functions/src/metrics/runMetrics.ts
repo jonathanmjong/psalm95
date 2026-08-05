@@ -1,18 +1,23 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore } from 'firebase-admin/firestore'
-import { spotifyPopularityProvider, spotifyClientId, spotifyClientSecret } from './providers/spotifyPopularity'
-import { ticketSalesBandsintownProvider } from './providers/ticketSalesBandsintown'
+import { popularityProvider } from './providers/popularity'
+import { spotifyClientId, spotifyClientSecret } from './providers/spotifyPopularity'
+import { lastfmApiKey } from './providers/lastfmPopularity'
+import { ticketmasterEventsProvider, ticketmasterApiKey } from './providers/ticketmasterEvents'
 import { albumsSoldUnassignedProvider } from './providers/albumsSoldUnassigned'
 import type { MetricProvider } from './types'
 
 const PROVIDERS: { field: 'popularity' | 'albumsSold' | 'ticketSales'; provider: MetricProvider }[] = [
-  { field: 'popularity', provider: spotifyPopularityProvider },
+  { field: 'popularity', provider: popularityProvider },
   { field: 'albumsSold', provider: albumsSoldUnassignedProvider },
-  { field: 'ticketSales', provider: ticketSalesBandsintownProvider },
+  { field: 'ticketSales', provider: ticketmasterEventsProvider },
 ]
 
 export const refreshArtistMetrics = onSchedule(
-  { schedule: 'every 6 hours', secrets: [spotifyClientId, spotifyClientSecret] },
+  {
+    schedule: 'every 6 hours',
+    secrets: [spotifyClientId, spotifyClientSecret, lastfmApiKey, ticketmasterApiKey],
+  },
   async () => {
     const db = getFirestore()
     const artistsSnap = await db.collection('artists').get()
@@ -29,8 +34,8 @@ export const refreshArtistMetrics = onSchedule(
       try {
         const results = await Promise.all(
           PROVIDERS.map(async ({ field, provider }) => {
-            const { value, stale } = await provider.fetch(artist)
-            return [field, { value, stale, source: provider.id, updatedAt: now }] as const
+            const { value, stale, source } = await provider.fetch(artist)
+            return [field, { value, stale, source: source ?? provider.id, updatedAt: now }] as const
           }),
         )
 
