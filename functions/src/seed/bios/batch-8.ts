@@ -4,6 +4,7 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'kingandprince',
     agency: 'Starto Entertainment (formerly Johnny & Associates)',
+    debutDate: '2018-05-23',
     members: [
       {
         memberId: 'hirano',
@@ -12,6 +13,7 @@ export const batch8Bios: ArtistBio[] = [
         heightCm: 170,
         weightKg: 63,
         interests: ['dancing', 'acrobatics', 'badminton'],
+        position: 'Center',
       },
       {
         memberId: 'kishi',
@@ -20,6 +22,7 @@ export const batch8Bios: ArtistBio[] = [
         heightCm: 167,
         weightKg: 55,
         interests: ['working out', 'cooking', 'fishing'],
+        position: 'Leader',
       },
       {
         memberId: 'nagase',
@@ -42,6 +45,8 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'jo1',
     agency: 'LAPONE Entertainment',
+    debutDate: '2020-03-04',
+    fandomName: 'JAM',
     members: [
       {
         memberId: 'shion',
@@ -63,6 +68,7 @@ export const batch8Bios: ArtistBio[] = [
         zodiacSign: 'Pisces',
         heightCm: 173,
         interests: ['watching games', 'comedy', 'magic'],
+        position: 'Performance Leader',
       },
       {
         memberId: 'sho',
@@ -70,6 +76,7 @@ export const batch8Bios: ArtistBio[] = [
         zodiacSign: 'Scorpio',
         heightCm: 180,
         interests: ['muscle training', 'movies'],
+        position: 'Leader',
       },
       {
         memberId: 'syoya',
@@ -87,6 +94,7 @@ export const batch8Bios: ArtistBio[] = [
         heightCm: 174,
         interests: ['muscle training', 'travel', 'running'],
         favoriteFoods: ['pasta carbonara'],
+        position: 'Vocal Leader',
       },
       {
         memberId: 'ruki',
@@ -112,6 +120,7 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'ado',
     agency: 'Virgin Music (Universal Music Japan)',
     influences: ['Hatsune Miku / Vocaloid culture', 'Shiina Ringo'],
+    debutDate: '2020-10-23',
     members: [
       {
         memberId: 'ado',
@@ -126,6 +135,7 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'kenshi-yonezu',
     agency: 'Sony Music Japan (Sony Music Records)',
     influences: ['Bump of Chicken', 'Asian Kung-Fu Generation', 'Radwimps', 'Susumu Hirasawa'],
+    debutDate: '2013-05-29',
     members: [
       {
         memberId: 'kenshi-yonezu',
@@ -142,6 +152,7 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'lisa',
     agency: 'Sony Music Artists / Sacra Music',
     influences: ['Avril Lavigne', 'Oasis', 'Green Day', 'Paramore'],
+    debutDate: '2011-04-20',
     members: [
       {
         memberId: 'lisa',
@@ -157,6 +168,8 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'she',
     agency: 'HIM International Music',
+    debutDate: '2001-09-11',
+    fandomName: '三叶草 (Clover)',
     members: [
       {
         memberId: 'selina',
@@ -193,6 +206,7 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'fahrenheit',
     agency: 'HIM International Music',
+    debutDate: '2005-12-28',
     members: [
       {
         memberId: 'wu-chun',
@@ -232,6 +246,8 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'jolin-tsai',
     agency: 'Warner Music Taiwan',
     influences: ['Madonna', 'Whitney Houston', 'Mariah Carey', "Destiny's Child"],
+    debutDate: '1999-07-16',
+    fandomName: "Jolin's Fans Club (蔡依林國際歌友會)",
     members: [
       {
         memberId: 'jolin-tsai',
@@ -246,6 +262,8 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'jj-lin',
     agency: 'JFJ Productions',
+    debutDate: '2003-04-10',
+    fandomName: 'JJ Federation (林俊杰国际歌友会)',
     members: [
       {
         memberId: 'jj-lin',
@@ -260,6 +278,7 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'wang-leehom',
     agency: 'Homeboy Music',
+    debutDate: '1995-12-19',
     members: [
       {
         memberId: 'wang-leehom',
@@ -274,6 +293,8 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'eric-chou',
     agency: 'Warner Music Taiwan',
     influences: ['Jay Chou'],
+    debutDate: '2014-08-01',
+    fandomName: 'Starics (小興星)',
     members: [
       {
         memberId: 'eric-chou',
@@ -287,6 +308,9 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'into1',
     agency: 'Wajijiwa Entertainment',
+    debutDate: '2021-04-24',
+    fandomName: 'INsider',
+    fandomColorName: '紫耀蓝 (Purple Glow Blue)',
     members: [
       {
         memberId: 'liu-yu',
@@ -294,6 +318,7 @@ export const batch8Bios: ArtistBio[] = [
         zodiacSign: 'Virgo',
         heightCm: 175,
         interests: ['dance', 'traveling'],
+        position: 'Center, Leader',
       },
       {
         memberId: 'zhou-keyu',
@@ -328,11 +353,14 @@ export const batch8Bios: ArtistBio[] = [
   {
     artistId: 'snh48',
     agency: 'STAR48 (Shanghai Star48 Culture Media Group)',
+    debutDate: '2012-10-14',
+    fandomName: '河粉 (He Fen)',
     members: [{ memberId: 'rotating-lineup-snh48' }],
   },
   {
     artistId: 'zhou-shen',
     agency: 'Independent (personal studio, under Shanghai Jinyan Culture Media)',
+    debutDate: '2014-07-25',
     members: [
       {
         memberId: 'zhou-shen',

@@ -7,11 +7,16 @@ export interface MemberBio {
   interests?: string[]
   favoriteFoods?: string[]
   favoriteAnimal?: string
+  position?: string // e.g. "Leader, Main Vocalist"
 }
 
 export interface ArtistBio {
   artistId: string
   agency?: string
   influences?: string[]
+  debutDate?: string // YYYY-MM-DD
+  fandomName?: string
+  fandomColorName?: string
+  fandomColorHex?: string
   members: MemberBio[]
 }

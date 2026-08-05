@@ -11,6 +11,7 @@ export interface Member {
   interests?: string[]
   favoriteFoods?: string[]
   favoriteAnimal?: string
+  position?: string
 }
 
 export interface GenerationConfig {
@@ -49,6 +50,10 @@ export interface Artist {
   spotifyArtistId?: string
   agency?: string
   influences?: string[]
+  debutDate?: string
+  fandomName?: string
+  fandomColorName?: string
+  fandomColorHex?: string
 }
 
 export interface ArtistPicture {

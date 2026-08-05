@@ -45,6 +45,10 @@ async function applyBio(bio: (typeof allBios)[number]) {
   const update: Record<string, unknown> = { members: mergedMembers }
   if (bio.agency) update.agency = bio.agency
   if (bio.influences && bio.influences.length > 0) update.influences = bio.influences
+  if (bio.debutDate) update.debutDate = bio.debutDate
+  if (bio.fandomName) update.fandomName = bio.fandomName
+  if (bio.fandomColorName) update.fandomColorName = bio.fandomColorName
+  if (bio.fandomColorHex) update.fandomColorHex = bio.fandomColorHex
 
   await ref.update(update)
   console.log(`Applied bio for ${bio.artistId} (${bio.members.length} member(s) with data).`)

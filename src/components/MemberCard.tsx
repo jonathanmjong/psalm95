@@ -26,6 +26,9 @@ export function MemberCard({ member }: { member: Member }) {
   return (
     <div className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
       <h3 className="font-semibold">{member.name}</h3>
+      {member.position && (
+        <p className="text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
+      )}
       {hasBio ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
           {member.birthdate && <Field label="Birthdate" value={formatBirthdate(member.birthdate)} />}

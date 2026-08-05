@@ -4,6 +4,10 @@ export const batch2Bios: ArtistBio[] = [
   {
     artistId: 'twice',
     agency: 'JYP Entertainment',
+    debutDate: '2015-10-20',
+    fandomName: 'ONCE',
+    fandomColorName: 'Apricot & Neon Magenta',
+    fandomColorHex: '#FCC89B',
     members: [
       {
         memberId: 'nayeon',
@@ -13,6 +17,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 47,
         interests: ['badminton'],
         favoriteFoods: ['sweet foods and jellies', 'salmon sushi', 'spicy foods', 'marinated soy sauce crabs'],
+        position: 'Lead Vocalist, Lead Dancer, Center',
       },
       {
         memberId: 'jeongyeon',
@@ -22,6 +27,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 50,
         interests: ['collecting Nanoblocks and Legos', 'cleaning', 'playing saxophone and guitar'],
         favoriteFoods: ['Ddeokbokki', 'meat', 'golbangee muchim'],
+        position: 'Lead Vocalist',
       },
       {
         memberId: 'momo',
@@ -31,6 +37,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 48.5,
         interests: ['watching dramas', 'collecting dolls and stuffed toys', 'urban/hip-hop dancing'],
         favoriteFoods: ['jokbal', 'budae jjigae'],
+        position: 'Main Dancer, Sub-Vocalist, Sub-Rapper',
       },
       {
         memberId: 'sana',
@@ -40,6 +47,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 47,
         interests: ['collecting perfumes and body mists', 'shopping', 'watching horror films', 'calligraphy'],
         favoriteFoods: ['yogurt smoothies', 'spicy foods'],
+        position: 'Sub-Vocalist',
       },
       {
         memberId: 'jihyo',
@@ -49,6 +57,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 56,
         interests: ['reading webtoons', 'karaoke', 'classical/R&B music'],
         favoriteFoods: ['yogurt smoothies', 'chicken', 'meat'],
+        position: 'Leader, Main Vocalist',
       },
       {
         memberId: 'mina',
@@ -59,6 +68,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['ballet', 'looking up restaurants online', 'shopping'],
         favoriteFoods: ['egg with ketchup', 'Heinz ketchup', 'Americano'],
         favoriteAnimal: 'Great white shark',
+        position: 'Main Dancer, Sub-Vocalist',
       },
       {
         memberId: 'dahyun',
@@ -68,6 +78,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 48.9,
         interests: ['watching TV', 'playing piano', 'dancing'],
         favoriteFoods: ['chocolate milk', 'chocolate'],
+        position: 'Lead Rapper, Sub-Vocalist',
       },
       {
         memberId: 'chaeyoung',
@@ -77,6 +88,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 46,
         interests: ['drawing', 'basketball', 'songwriting', 'singing'],
         favoriteFoods: ['vegetables/healthy foods'],
+        position: 'Main Rapper, Sub-Vocalist',
       },
       {
         memberId: 'tzuyu',
@@ -87,12 +99,15 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['watching performances', 'skateboarding', 'singing Disney songs'],
         favoriteFoods: ['tonkatsu', 'kimbap', 'choco-ae-mong', 'cookies and cream ice cream'],
         favoriteAnimal: 'Puppies',
+        position: 'Lead Dancer, Sub-Vocalist, Visual, Maknae',
       },
     ],
   },
   {
     artistId: 'blackpink',
     agency: 'YG Entertainment',
+    debutDate: '2016-08-08',
+    fandomName: 'BLINK',
     members: [
       {
         memberId: 'jisoo',
@@ -103,6 +118,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['the color purple', 'Pikachu merchandise', 'playing drums and piano'],
         favoriteFoods: ['rice'],
         favoriteAnimal: 'Bunny',
+        position: 'Lead Vocalist, Visual',
       },
       {
         memberId: 'jennie',
@@ -113,6 +129,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['photography', 'fashion and styling', 'playing guitar, piano and flute'],
         favoriteFoods: ['Korean cuisine', 'soybean paste stew', 'milk-flavored ice cream'],
         favoriteAnimal: 'Chinchilla',
+        position: 'Main Rapper, Lead Vocalist',
       },
       {
         memberId: 'rose',
@@ -123,6 +140,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['playing guitar', 'drawing', 'riding bicycle'],
         favoriteFoods: ['kimchi stew'],
         favoriteAnimal: 'Squirrel',
+        position: 'Main Vocalist, Lead Dancer',
       },
       {
         memberId: 'lisa',
@@ -133,12 +151,16 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['dancing', 'playing guitar, piano and ukulele'],
         favoriteFoods: ['gamjatang'],
         favoriteAnimal: 'Chick',
+        position: 'Main Dancer, Lead Rapper, Sub-Vocalist, Maknae',
       },
     ],
   },
   {
     artistId: 'red-velvet',
     agency: 'SM Entertainment',
+    debutDate: '2014-08-01',
+    fandomName: 'ReVeluv',
+    fandomColorName: 'Pastel Coral',
     members: [
       {
         memberId: 'irene',
@@ -148,6 +170,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 44,
         interests: ['dancing', "cooking (seaweed soup for members' birthdays)"],
         favoriteAnimal: 'Rabbit',
+        position: 'Leader, Main Rapper, Lead Dancer, Sub-Vocalist, Visual, Center',
       },
       {
         memberId: 'seulgi',
@@ -157,6 +180,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 44,
         interests: ['drawing', 'playing guitar'],
         favoriteAnimal: 'Brown Bear',
+        position: 'Main Dancer, Lead Vocalist',
       },
       {
         memberId: 'wendy',
@@ -166,6 +190,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 47,
         interests: ['finding rare songs', 'cooking', 'singing', 'playing piano, guitar, flute and saxophone'],
         favoriteAnimal: 'Squirrel',
+        position: 'Main Vocalist',
       },
       {
         memberId: 'joy',
@@ -175,6 +200,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 49,
         interests: ['watching movies', 'singing'],
         favoriteAnimal: 'Chick',
+        position: 'Lead Rapper, Sub-Vocalist',
       },
       {
         memberId: 'yeri',
@@ -184,12 +210,17 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 49,
         favoriteFoods: ['tuna kimchi fried rice'],
         favoriteAnimal: 'Turtle',
+        position: 'Sub-Vocalist, Sub-Rapper, Maknae',
       },
     ],
   },
   {
     artistId: 'seventeen',
     agency: 'Pledis Entertainment',
+    debutDate: '2015-05-26',
+    fandomName: 'CARAT',
+    fandomColorName: 'Rose Quartz & Serenity',
+    fandomColorHex: '#F7CAC9',
     members: [
       {
         memberId: 's-coups',
@@ -198,6 +229,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 178,
         weightKg: 65,
         interests: ['acting (dream career)', 'taekwondo (black belt, 7 years)'],
+        position: 'Leader, Hip-Hop Team Leader, Rapper, Sub-Vocalist',
       },
       {
         memberId: 'jeonghan',
@@ -207,6 +239,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 62,
         interests: ['playing bass guitar'],
         favoriteFoods: ['pasta', 'Korean stews', 'chicken'],
+        position: 'Lead Vocalist, Visual',
       },
       {
         memberId: 'joshua',
@@ -215,6 +248,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 177,
         weightKg: 60,
         interests: ['reading', 'sleeping', 'singing', 'playing guitar', 'watching movies', 'anime (One Piece, Naruto, Bleach)'],
+        position: 'Lead Vocalist, Visual',
       },
       {
         memberId: 'jun',
@@ -224,6 +258,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 66,
         interests: ['reading fantasy novels', 'playing games', 'playing piano', 'martial arts'],
         favoriteFoods: ['spicy foods'],
+        position: 'Lead Dancer, Sub-Vocalist',
       },
       {
         memberId: 'hoshi',
@@ -233,6 +268,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 61,
         interests: ['choreography'],
         favoriteFoods: ['Japanese food'],
+        position: 'Performance Team Leader, Main Dancer, Lead Vocalist, Sub-Rapper',
       },
       {
         memberId: 'wonwoo',
@@ -240,6 +276,7 @@ export const batch2Bios: ArtistBio[] = [
         zodiacSign: 'Cancer',
         heightCm: 182,
         weightKg: 63,
+        position: 'Rapper, Sub-Vocalist',
       },
       {
         memberId: 'woozi',
@@ -249,6 +286,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 60,
         interests: ['classical music', 'playing clarinet', 'music production'],
         favoriteFoods: ['jjajangmyeon mixed with spicy ramen'],
+        position: 'Vocal Team Leader, Lead Vocalist, Producer',
       },
       {
         memberId: 'the8',
@@ -257,6 +295,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 180,
         weightKg: 58,
         interests: ['Chinese Wushu (martial arts, since age 5)', 'nunchucks', 'reading', 'fashion'],
+        position: 'Lead Dancer, Sub-Vocalist, Sub-Rapper',
       },
       {
         memberId: 'mingyu',
@@ -265,6 +304,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 187,
         weightKg: 76,
         interests: ['hairstyling'],
+        position: 'Rapper, Sub-Vocalist, Visual, Face of the Group',
       },
       {
         memberId: 'dk',
@@ -273,6 +313,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 179,
         weightKg: 66,
         favoriteFoods: ['doenjang jjigae', 'pizza'],
+        position: 'Main Vocalist',
       },
       {
         memberId: 'seungkwan',
@@ -282,6 +323,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 58,
         interests: ['volleyball', 'calligraphy', 'basketball', 'singing'],
         favoriteFoods: ['hamburgers'],
+        position: 'Main Vocalist, Face of the Group',
       },
       {
         memberId: 'vernon',
@@ -291,6 +333,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 62,
         interests: ['Harry Potter'],
         favoriteFoods: ['chocolate'],
+        position: 'Rapper, Sub-Vocalist, Visual, Face of the Group',
       },
       {
         memberId: 'dino',
@@ -300,12 +343,16 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 56,
         interests: ["choreography (made 'Jam Jam' and 'Flower')"],
         favoriteFoods: ['apples', 'grapes', 'fried squid with spicy sauce'],
+        position: 'Main Dancer, Sub-Vocalist, Sub-Rapper, Maknae',
       },
     ],
   },
   {
     artistId: 'mamamoo',
     agency: 'RBW',
+    debutDate: '2014-06-18',
+    fandomName: 'MOOMOO',
+    fandomColorName: 'Green',
     members: [
       {
         memberId: 'solar',
@@ -315,6 +362,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 45,
         interests: ['swimming', 'playing piano'],
         favoriteAnimal: 'Dog (owns two dogs, Yongkeey and Yongdoong)',
+        position: 'Leader, Vocalist',
       },
       {
         memberId: 'moonbyul',
@@ -324,6 +372,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 45,
         interests: ['songwriting/rap lyrics'],
         favoriteAnimal: 'Dog (owns four corgis)',
+        position: 'Rapper, Performer',
       },
       {
         memberId: 'wheein',
@@ -333,6 +382,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 42,
         interests: ['watching mukbang', 'drawing'],
         favoriteAnimal: 'Cat (owns a Scottish Fold named Ggomo)',
+        position: 'Vocalist, Performer',
       },
       {
         memberId: 'hwasa',
@@ -342,12 +392,16 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 44,
         interests: ['cooking', 'listening to old jazz music'],
         favoriteAnimal: 'Lion',
+        position: 'Vocalist, Rapper, Maknae',
       },
     ],
   },
   {
     artistId: 'got7',
     agency: 'Kakao Entertainment',
+    debutDate: '2014-01-16',
+    fandomName: 'I GOT7 (Ahgase)',
+    fandomColorName: 'Green & White',
     members: [
       {
         memberId: 'jb',
@@ -358,6 +412,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['watching movies', 'taking pictures', 'traveling', 'eating out'],
         favoriteFoods: ['soondubu jjigae'],
         favoriteAnimal: 'Cat',
+        position: 'Leader, Main Vocalist, Lead Dancer, Center',
       },
       {
         memberId: 'mark',
@@ -367,6 +422,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 60,
         interests: ['skateboarding', 'snowboarding'],
         favoriteFoods: ['hamburger', 'meat'],
+        position: 'Lead Rapper, Visual',
       },
       {
         memberId: 'jackson',
@@ -376,6 +432,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 67,
         interests: ['fencing'],
         favoriteFoods: ['chocolate', 'dim sum', 'spaghetti carbonara', 'chicken', 'hamburgers'],
+        position: 'Main Rapper, Lead Dancer, Face of the Group',
       },
       {
         memberId: 'jinyoung',
@@ -385,6 +442,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 63,
         interests: ['dancing', 'choreography'],
         favoriteFoods: ['hamburger', 'pizza', 'meat'],
+        position: 'Sub-Vocalist, Visual, Center, Face of the Group',
       },
       {
         memberId: 'youngjae',
@@ -393,6 +451,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 177,
         weightKg: 65,
         interests: ['playing piano'],
+        position: 'Main Vocalist',
       },
       {
         memberId: 'bambam',
@@ -403,6 +462,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['listening to music'],
         favoriteFoods: ['cheeseburger', 'tom yum kung'],
         favoriteAnimal: 'Cat (owns four cats)',
+        position: 'Sub-Rapper',
       },
       {
         memberId: 'yugyeom',
@@ -412,12 +472,15 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 68,
         interests: ['playing piano', 'street dancing (krumping, house, popping)'],
         favoriteFoods: ['samgyupsal', 'bulgogi', 'chicken', 'kimbap'],
+        position: 'Main Dancer, Sub-Vocalist, Maknae',
       },
     ],
   },
   {
     artistId: 'stray-kids',
     agency: 'JYP Entertainment',
+    debutDate: '2018-03-25',
+    fandomName: 'STAY',
     members: [
       {
         memberId: 'bang-chan',
@@ -427,6 +490,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['working out', 'playing sports', 'composing/producing music', 'gaming'],
         favoriteFoods: ['chicken'],
         favoriteAnimal: 'Wolf',
+        position: 'Leader, Producer, Vocalist, Dancer, Rapper',
       },
       {
         memberId: 'lee-know',
@@ -436,6 +500,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['dancing', 'reading books', 'painting', 'sports', 'hiking', 'choreographing', 'watching movies', 'watching anime'],
         favoriteFoods: ['mint chocolate ice cream', 'strawberry ice cream', 'ramen'],
         favoriteAnimal: 'Rabbit',
+        position: 'Dance Leader, Vocalist, Rapper',
       },
       {
         memberId: 'changbin',
@@ -444,6 +509,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 167,
         interests: ['writing lyrics', 'rap/producing', 'listening to music', 'shopping'],
         favoriteFoods: ['french fries', 'chicken breast'],
+        position: 'Rapper, Vocalist, Producer',
       },
       {
         memberId: 'hyunjin',
@@ -453,6 +519,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['dancing', 'reading books', 'playing sports', 'drawing/visual art'],
         favoriteFoods: ['sushi', 'watermelon'],
         favoriteAnimal: 'Ferret',
+        position: 'Dancer, Rapper, Vocalist, Visual',
       },
       {
         memberId: 'han',
@@ -462,6 +529,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['playing guitar', 'drawing characters', 'watching movies'],
         favoriteFoods: ['cheesecake', 'chocolate cake'],
         favoriteAnimal: 'Quokka',
+        position: 'Rapper, Vocalist, Producer',
       },
       {
         memberId: 'felix',
@@ -471,6 +539,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['listening to music', 'dancing', 'shopping', 'traveling', 'beatboxing'],
         favoriteFoods: ['rice cakes', 'spicy food'],
         favoriteAnimal: 'Chick',
+        position: 'Dancer, Rapper, Vocalist',
       },
       {
         memberId: 'seungmin',
@@ -481,6 +550,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['writing in diary', 'listening to music', 'baseball', 'basketball'],
         favoriteFoods: ['eggs', 'oranges', 'strawberries'],
         favoriteAnimal: 'Puppy',
+        position: 'Main Vocalist',
       },
       {
         memberId: 'i-n',
@@ -490,12 +560,16 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['listening to rock/pop music', 'watching mukbang'],
         favoriteFoods: ['fried chicken', 'kalguksu with geotjeori'],
         favoriteAnimal: 'Fennec Fox',
+        position: 'Lead Vocalist, Maknae',
       },
     ],
   },
   {
     artistId: 'itzy',
     agency: 'JYP Entertainment',
+    debutDate: '2019-02-11',
+    fandomName: 'MIDZY',
+    fandomColorName: 'Magenta',
     members: [
       {
         memberId: 'yeji',
@@ -506,6 +580,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['rap', 'dance', 'singing'],
         favoriteFoods: ['snacks', 'chocolate'],
         favoriteAnimal: 'Cat',
+        position: 'Leader, Main Dancer, Lead Vocalist, Sub-Rapper',
       },
       {
         memberId: 'lia',
@@ -516,6 +591,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['shopping', 'listening to music', 'watching dramas'],
         favoriteFoods: ['fruits', 'pasta', 'Korean and Western food'],
         favoriteAnimal: 'Sloth',
+        position: 'Main Vocalist, Sub-Rapper',
       },
       {
         memberId: 'ryujin',
@@ -526,6 +602,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['cooking (galbijjim)', 'watching movies', 'taking pictures'],
         favoriteFoods: ['mocha bread', 'spicy/savory food'],
         favoriteAnimal: 'Monkey',
+        position: 'Main Rapper, Lead Dancer, Sub-Vocalist, Center',
       },
       {
         memberId: 'chaeryeong',
@@ -536,6 +613,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['watching movies/dramas', 'sleeping', 'eating'],
         favoriteFoods: ['chocolate'],
         favoriteAnimal: 'Fox',
+        position: 'Main Dancer, Sub-Vocalist, Sub-Rapper',
       },
       {
         memberId: 'yuna',
@@ -546,12 +624,15 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['walking', 'shopping', 'going to restaurants', 'floorball'],
         favoriteFoods: ['pizza'],
         favoriteAnimal: 'Rabbit',
+        position: 'Lead Rapper, Lead Dancer, Sub-Vocalist, Visual, Maknae',
       },
     ],
   },
   {
     artistId: 'ateez',
     agency: 'KQ Entertainment',
+    debutDate: '2018-10-24',
+    fandomName: 'ATINY',
     members: [
       {
         memberId: 'hongjoong',
@@ -560,6 +641,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 172,
         interests: ['listening to music', 'composing'],
         favoriteAnimal: 'Squirrel',
+        position: 'Leader, Main Rapper, Vocalist, Composer, Center',
       },
       {
         memberId: 'seonghwa',
@@ -570,6 +652,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['cleaning', 'cooking', 'watching ASMR videos', 'dramas', 'building action figures', 'playing games'],
         favoriteFoods: ['jalapeno-flavor potato chips'],
         favoriteAnimal: 'Rabbit',
+        position: 'Vocalist, Rapper, Performer, Visual',
       },
       {
         memberId: 'yunho',
@@ -579,6 +662,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['playing with members', 'gaming', 'sports', 'Harry Potter fan'],
         favoriteFoods: ['potato chips'],
         favoriteAnimal: 'Dog',
+        position: 'Main Dancer, Vocalist',
       },
       {
         memberId: 'yeosang',
@@ -587,6 +671,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 174,
         interests: ['playing video games', 'drones', 'skateboarding'],
         favoriteFoods: ['home run ball snacks'],
+        position: 'Vocalist, Performer, Rapper, Visual',
       },
       {
         memberId: 'san',
@@ -595,6 +680,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 178,
         interests: ['watching TV', 'playing games', 'reading thriller/mystery novels', 'writing poetry', 'watching mukbang'],
         favoriteFoods: ['chocolate', 'meat'],
+        position: 'Main Dancer, Lead Vocalist',
       },
       {
         memberId: 'mingi',
@@ -603,6 +689,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 184,
         interests: ['sleeping', 'staying home'],
         favoriteAnimal: 'Wolf',
+        position: 'Main Dancer, Main Rapper, Vocalist',
       },
       {
         memberId: 'wooyoung',
@@ -612,6 +699,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['dancing', 'listening to music', 'collecting clothes', 'gaming'],
         favoriteFoods: ['meat', 'honey butter chips'],
         favoriteAnimal: 'Fox',
+        position: 'Main Dancer, Vocalist',
       },
       {
         memberId: 'jongho',
@@ -621,12 +709,15 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['soccer/football', 'working out', 'listening to ballads'],
         favoriteFoods: ['ramen', 'pizza', 'steak'],
         favoriteAnimal: 'Bear',
+        position: 'Main Vocalist, Maknae',
       },
     ],
   },
   {
     artistId: 'txt',
     agency: 'BIGHIT MUSIC',
+    debutDate: '2019-03-04',
+    fandomName: 'MOA',
     members: [
       {
         memberId: 'soobin',
@@ -637,6 +728,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['reading', 'listening to music'],
         favoriteFoods: ['tteokbokki', 'ice cream', 'bingsu'],
         favoriteAnimal: 'Raccoon',
+        position: 'Leader',
       },
       {
         memberId: 'yeonjun',
@@ -657,6 +749,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['playing guitar'],
         favoriteFoods: ['strawberries', 'garlic bread'],
         favoriteAnimal: 'Bear',
+        position: 'Visual',
       },
       {
         memberId: 'taehyun',
@@ -676,12 +769,16 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['playing instruments (drums, guitar, piano, flute)'],
         favoriteFoods: ['seafood', 'pizza', 'pasta'],
         favoriteAnimal: 'Penguin',
+        position: 'Maknae',
       },
     ],
   },
   {
     artistId: 'aespa',
     agency: 'SM Entertainment',
+    debutDate: '2020-11-17',
+    fandomName: 'MY',
+    fandomColorName: 'Aurora',
     members: [
       {
         memberId: 'karina',
@@ -692,6 +789,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['taekwondo (black belt)'],
         favoriteFoods: ['green tea', 'barley tea'],
         favoriteAnimal: 'Whale',
+        position: 'Leader, Main Dancer, Lead Rapper, Sub-Vocalist, Visual, Center',
       },
       {
         memberId: 'giselle',
@@ -701,6 +799,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['guitar', 'singing/choir', 'photography', 'shopping'],
         favoriteFoods: ['sweet and salty foods', 'mint chocolate + pineapple pizza', 'seaweed soup', 'caramel latte'],
         favoriteAnimal: 'Dog',
+        position: 'Main Rapper, Sub-Vocalist',
       },
       {
         memberId: 'winter',
@@ -710,6 +809,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['watching movies (action/war films)', 'roller coasters'],
         favoriteFoods: ['chocolate', 'taro smoothie', 'bean noodles', 'lasagna', 'cake', 'bread', 'cookies'],
         favoriteAnimal: 'Siberian Husky',
+        position: 'Main Vocalist, Lead Dancer, Visual',
       },
       {
         memberId: 'ningning',
@@ -720,12 +820,15 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['cooking', 'piano', 'listening to hip-hop', 'buying vintage clothing'],
         favoriteFoods: ['watermelon', 'strawberries', 'pork back-bone stew', 'sundae soup', 'hot pot', 'mint chocolate pineapple pizza'],
         favoriteAnimal: 'Tiger',
+        position: 'Main Vocalist, Maknae',
       },
     ],
   },
   {
     artistId: 'enhypen',
     agency: 'BELIFT LAB',
+    debutDate: '2020-11-30',
+    fandomName: 'ENGENE',
     members: [
       {
         memberId: 'jungwon',
@@ -735,6 +838,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['watching movies', 'walking in the rain', 'swimming', 'taekwondo'],
         favoriteFoods: ['curry'],
         favoriteAnimal: 'Dog',
+        position: 'Leader',
       },
       {
         memberId: 'heeseung',
@@ -744,6 +848,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 64,
         interests: ['songwriting', 'composing'],
         favoriteAnimal: 'Hamster',
+        position: 'Main Vocalist',
       },
       {
         memberId: 'jay',
@@ -770,6 +875,7 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['figure skating', 'fashion', 'shoes', 'coffee', 'contemporary dance'],
         favoriteFoods: ['coffee ice cream', 'samgyeopsal'],
         favoriteAnimal: 'Penguin',
+        position: 'Visual',
       },
       {
         memberId: 'sunoo',
@@ -789,12 +895,15 @@ export const batch2Bios: ArtistBio[] = [
         interests: ['soccer', 'dancing', 'watching movies/sports'],
         favoriteFoods: ['mint chocolate ice cream', 'dumplings', 'sushi'],
         favoriteAnimal: 'Dog',
+        position: 'Main Dancer, Maknae',
       },
     ],
   },
   {
     artistId: 'ive',
     agency: 'Starship Entertainment',
+    debutDate: '2021-12-01',
+    fandomName: 'DIVE',
     members: [
       {
         memberId: 'yujin',
@@ -804,6 +913,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 48,
         interests: ['sports', 'shopping in Gangnam', 'piano', 'hip-hop dance'],
         favoriteFoods: ['green tea ice cream'],
+        position: 'Leader, Main Vocalist, Main Dancer',
       },
       {
         memberId: 'gaeul',
@@ -812,6 +922,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 164,
         weightKg: 46,
         interests: ['reading mystery novels', 'watching horror movies', 'writing rap lyrics'],
+        position: 'Main Dancer, Lead Rapper, Sub-Vocalist',
       },
       {
         memberId: 'rei',
@@ -819,6 +930,7 @@ export const batch2Bios: ArtistBio[] = [
         zodiacSign: 'Aquarius',
         heightCm: 170,
         interests: ['drawing', 'making jewelry', 'collecting pretty items'],
+        position: 'Main Rapper, Sub-Vocalist',
       },
       {
         memberId: 'wonyoung',
@@ -827,6 +939,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 173,
         weightKg: 47,
         interests: ['piano', 'flute', 'violin'],
+        position: 'Vocalist, Dancer, Visual',
       },
       {
         memberId: 'liz',
@@ -835,6 +948,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 170,
         interests: ['playing sports', 'cuddling with animals', 'singing', 'playing piano'],
         favoriteAnimal: 'Cat',
+        position: 'Main Vocalist',
       },
       {
         memberId: 'leeseo',
@@ -843,12 +957,17 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 166,
         interests: ['swimming', 'playing piano', 'watching anime and K-dramas', 'ballet'],
         favoriteFoods: ['scones', 'cheesecake', 'chocolate cake', 'strawberry/grape candies'],
+        position: 'Lead Dancer, Sub-Vocalist, Visual, Maknae',
       },
     ],
   },
   {
     artistId: 'le-sserafim',
     agency: 'Source Music',
+    debutDate: '2022-05-02',
+    fandomName: 'FEARNOT',
+    fandomColorName: 'Fearless Blue',
+    fandomColorHex: '#81A5F9',
     members: [
       {
         memberId: 'sakura',
@@ -858,6 +977,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 46,
         interests: ['drawing', 'gaming', 'writing'],
         favoriteFoods: ['sushi'],
+        position: 'Vocalist, Rapper, Dancer',
       },
       {
         memberId: 'kim-chaewon',
@@ -867,6 +987,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 42,
         interests: ['watching dramas and movies', 'studying choreography videos', 'listening to ballads'],
         favoriteFoods: ['mandarins', 'blueberries', 'mint chocolate ice cream', 'bubble tea'],
+        position: 'Leader, Vocalist, Dancer',
       },
       {
         memberId: 'huh-yunjin',
@@ -876,6 +997,7 @@ export const batch2Bios: ArtistBio[] = [
         weightKg: 53,
         interests: ['guitar', 'piano', 'ukulele', 'watching anime', 'composing music'],
         favoriteFoods: ['roasted sweet potatoes', 'yogurt', 'seaweed', 'cheese', 'pizza'],
+        position: 'Vocalist, Rapper',
       },
       {
         memberId: 'kazuha',
@@ -884,6 +1006,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 169.9,
         interests: ['watching YouTube videos', 'internet shopping', 'ballet'],
         favoriteFoods: ['Hawaiian pizza'],
+        position: 'Sub-Vocalist, Rapper, Dancer',
       },
       {
         memberId: 'hong-eunchae',
@@ -892,6 +1015,7 @@ export const batch2Bios: ArtistBio[] = [
         heightCm: 169,
         interests: ['watching performance/stage videos', 'watching mukbang videos'],
         favoriteAnimal: 'Black cat',
+        position: 'Vocalist, Lead Dancer, Maknae',
       },
     ],
   },
