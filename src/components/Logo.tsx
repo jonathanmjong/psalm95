@@ -24,7 +24,7 @@ export function Logo({ size = 24 }: { size?: number }) {
   return (
     <span className="inline-flex items-center gap-2">
       <LogoMark size={size} />
-      <span className="text-lg font-semibold tracking-tight">psalm95</span>
+      <span className="text-lg font-semibold tracking-tight">PsalmTune</span>
     </span>
   )
 }

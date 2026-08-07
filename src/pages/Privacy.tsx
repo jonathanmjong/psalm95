@@ -2,8 +2,8 @@ import { usePageMeta } from '../hooks/usePageMeta'
 
 export function Privacy() {
   usePageMeta({
-    title: 'Privacy Policy | psalm95',
-    description: 'How psalm95 handles your data — Google sign-in, votes, uploads, and cookies.',
+    title: 'Privacy Policy | PsalmTune',
+    description: 'How PsalmTune handles your data — Google sign-in, votes, uploads, and cookies.',
     path: '/privacy',
   })
 
@@ -16,7 +16,7 @@ export function Privacy() {
 
       <section className="space-y-3 text-sm leading-relaxed">
         <p>
-          psalm95 is a fan-driven ranking platform for Korean, Chinese, and Japanese pop artists. This
+          PsalmTune is a fan-driven ranking platform for Korean, Chinese, and Japanese pop artists. This
           policy explains what we collect and why.
         </p>
 

@@ -8,7 +8,7 @@ interface PageMeta {
 }
 
 const SITE = 'https://psalmtune.com'
-const DEFAULT_TITLE = "psalm95 — Rank & explore K-pop, C-pop & J-pop artists"
+const DEFAULT_TITLE = "PsalmTune — Rank & explore K-pop, C-pop & J-pop artists"
 
 function setMeta(selector: string, attr: 'name' | 'property', key: string, content: string) {
   let el = document.head.querySelector<HTMLMetaElement>(selector)

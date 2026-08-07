@@ -36,11 +36,11 @@ export function ArtistPage() {
   const region = artist ? REGION_LABEL[artist.region] : ''
   const memberNames = artist?.members.map((m) => m.name).join(', ')
   usePageMeta({
-    title: artist ? `${artist.name} — ${region} profile, ranking & pictures | psalm95` : 'Artist | psalm95',
+    title: artist ? `${artist.name} — ${region} profile, ranking & pictures | PsalmTune` : 'Artist | PsalmTune',
     description: artist
       ? `Vote for ${artist.name} and follow their popularity, discography and concerts. Explore ${
           artist.type === 'group' ? `member profiles (${memberNames})` : 'their profile'
-        }, fandom and rank on psalm95 — the fan-driven ${region} ranking platform.`
+        }, fandom and rank on PsalmTune — the fan-driven ${region} ranking platform.`
       : undefined,
     path: artistId ? `/artist/${artistId}` : undefined,
   })

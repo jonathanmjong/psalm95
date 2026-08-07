@@ -63,10 +63,10 @@ function structuredData(a, url, region) {
 function renderArtist(a) {
   const region = REGION_LABEL[a.region]
   const url = `${SITE}/artist/${a.id}`
-  const title = `${a.name} — ${region} profile, ranking & pictures | psalm95`
+  const title = `${a.name} — ${region} profile, ranking & pictures | PsalmTune`
   const memberList =
     a.type === 'group' && a.members.length ? ` Explore member profiles (${a.members.join(', ')}).` : ''
-  const description = `Vote for ${a.name} and follow their popularity, discography and concerts on psalm95 — the fan-driven ${region} ranking platform.${memberList}`
+  const description = `Vote for ${a.name} and follow their popularity, discography and concerts on PsalmTune — the fan-driven ${region} ranking platform.${memberList}`
 
   let html = template
 
@@ -115,7 +115,7 @@ function renderArtist(a) {
       <h1>${htmlEscape(a.name)} — ${region}</h1>
       ${a.type === 'group' && a.members.length ? `<p>Members: ${htmlEscape(a.members.join(', '))}</p>` : ''}
       <p>${htmlEscape(description)}</p>
-      <p><a href="/">Back to all psalm95 rankings</a></p>
+      <p><a href="/">Back to all PsalmTune rankings</a></p>
     </noscript>`
   html = html.replace('<div id="root"></div>', `<div id="root"></div>\n    ${noscript}`)
 

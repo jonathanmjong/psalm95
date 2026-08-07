@@ -4,6 +4,7 @@ import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
 import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
+import { VoteHoverCard } from './VoteHoverCard'
 import { castArtistVote } from '../lib/callables'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
@@ -37,7 +38,13 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--color-hairline)] transition dark:border-[var(--color-hairline-dark)]">
+    <div className="group relative rounded-2xl border border-[var(--color-hairline)] transition dark:border-[var(--color-hairline-dark)]">
+      {/* Hover graphic: weekly/monthly/yearly votes (desktop only; mobile users expand the row). */}
+      {!expanded && (
+        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden md:group-hover:block">
+          <VoteHoverCard artist={artist} />
+        </div>
+      )}
       <button
         onClick={() => setExpanded((e) => !e)}
         className="flex w-full items-center gap-4 px-4 py-3 text-left"

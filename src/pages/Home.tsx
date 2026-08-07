@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useArtists } from '../hooks/useArtists'
+import { useAllArtists } from '../hooks/useAllArtists'
 import { GenerationFilter } from '../components/GenerationFilter'
+import { SearchBar } from '../components/SearchBar'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
@@ -8,33 +10,70 @@ import { usePageMeta } from '../hooks/usePageMeta'
 
 export function Home() {
   const [generationId, setGenerationId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
   const { artists, loading, page, hasMore, nextPage, prevPage } = useArtists(generationId)
+  const { artists: allArtists, loading: allLoading } = useAllArtists()
 
   usePageMeta({
-    title: "psalm95 — Rank & explore K-pop, C-pop & J-pop artists",
+    title: 'PsalmTune — Rank & explore K-pop, C-pop & J-pop artists',
     description:
       'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles, popularity, discography and concerts on a fan-driven ranking platform.',
     path: '/',
   })
 
+  const query = search.trim().toLowerCase()
+  const searching = query.length > 0
+
+  // Instant client-side search over the full roster — matches artist name or any
+  // member name, and respects the generation filter if one is selected.
+  const results = useMemo(() => {
+    if (!searching) return []
+    return allArtists.filter((a) => {
+      if (generationId && a.generationId !== generationId) return false
+      if (a.name.toLowerCase().includes(query)) return true
+      return a.members.some((m) => m.name.toLowerCase().includes(query))
+    })
+  }, [searching, allArtists, generationId, query])
+
   return (
     <div className="space-y-8">
       <section className="py-12 text-center">
-        <h1 className="text-5xl font-semibold tracking-tight">
-          The people's ranking.
-        </h1>
+        <h1 className="text-5xl font-semibold tracking-tight">The people's ranking.</h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          Vote for your favorite K-pop, C-pop, and J-pop artists. Every week,
-          every vote moves the board — make it count.
+          Vote for your favorite K-pop, C-pop, and J-pop artists. Every week, every vote moves the board —
+          make it count.
         </p>
       </section>
+
+      <SearchBar value={search} onChange={setSearch} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <GenerationFilter value={generationId} onChange={setGenerationId} />
         <ScoreLegend />
       </div>
 
-      {loading ? (
+      {searching ? (
+        // --- Search results ---
+        allLoading ? (
+          <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Searching…
+          </p>
+        ) : results.length === 0 ? (
+          <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            No artists or members match “{search.trim()}”.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+              {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim()}”
+            </p>
+            {results.map((artist) => (
+              <ArtistRow key={artist.id} artist={artist} rank={artist.rank} />
+            ))}
+          </div>
+        )
+      ) : loading ? (
+        // --- Ranked, paginated list ---
         <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           Loading rankings…
         </p>
@@ -50,7 +89,9 @@ export function Home() {
         </div>
       )}
 
-      <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
+      {!searching && (
+        <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
+      )}
     </div>
   )
 }
