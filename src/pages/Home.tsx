@@ -4,10 +4,19 @@ import { GenerationFilter } from '../components/GenerationFilter'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
+import { AdSlot } from '../components/AdSlot'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export function Home() {
   const [generationId, setGenerationId] = useState<string | null>(null)
   const { artists, loading, page, hasMore, nextPage, prevPage } = useArtists(generationId)
+
+  usePageMeta({
+    title: "psalm95 — Rank & explore K-pop, C-pop & J-pop artists",
+    description:
+      'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles, popularity, discography and concerts on a fan-driven ranking platform.',
+    path: '/',
+  })
 
   return (
     <div className="space-y-8">
@@ -43,6 +52,8 @@ export function Home() {
       )}
 
       <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
+
+      <AdSlot slot="1234567890" className="min-h-24" />
     </div>
   )
 }
