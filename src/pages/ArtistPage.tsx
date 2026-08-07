@@ -98,7 +98,7 @@ export function ArtistPage() {
             <SortControl value={sort} onChange={setSort} />
             <button
               onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
-              className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+              className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold"
             >
               Upload picture
             </button>

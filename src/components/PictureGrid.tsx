@@ -28,7 +28,7 @@ function PictureCard({ picture }: { picture: ArtistPicture }) {
   }
 
   return (
-    <figure className="overflow-hidden rounded-2xl border border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]">
+    <figure className="lift overflow-hidden rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
       <img src={picture.url} alt="" className="aspect-square w-full object-cover" />
       <figcaption className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
         <span className="truncate">

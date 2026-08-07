@@ -38,7 +38,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   }
 
   return (
-    <div className="group relative rounded-2xl border border-[var(--color-hairline)] transition dark:border-[var(--color-hairline-dark)]">
+    <div className="lift group relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
       {/* Hover graphic: weekly/monthly/yearly votes (desktop only; mobile users expand the row). */}
       {!expanded && (
         <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden md:group-hover:block">
@@ -49,7 +49,17 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
         onClick={() => setExpanded((e) => !e)}
         className="flex w-full items-center gap-4 px-4 py-3 text-left"
       >
-        <span className="w-8 shrink-0 text-center text-lg font-semibold tabular-nums text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        <span
+          className={`w-8 shrink-0 text-center tabular-nums ${
+            rank === 1
+              ? 'text-xl font-extrabold text-yellow-400'
+              : rank === 2
+                ? 'text-xl font-extrabold text-slate-400'
+                : rank === 3
+                  ? 'text-xl font-extrabold text-amber-600'
+                  : 'text-lg font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'
+          }`}
+        >
           {rank}
         </span>
         {pictures[0] ? (
@@ -89,13 +99,25 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleVote}
-              disabled={voteState === 'voting'}
-              className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
-            >
-              {user ? 'Vote for this week' : 'Sign in to vote'}
-            </button>
+            <div className="group/vote relative">
+              <button
+                onClick={handleVote}
+                disabled={voteState === 'voting'}
+                className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold"
+              >
+                {user ? 'Vote for this week' : 'Sign in to vote'}
+              </button>
+              {/* Hover explainer: how artist voting works */}
+              <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-60 rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-left text-xs leading-snug shadow-lg group-hover/vote:block dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  How artist voting works
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Vote for up to 3 different artists each week. Each vote counts toward their weekly, monthly
+                  and yearly totals and pushes them up the board. Sign in with Google to vote.
+                </p>
+              </div>
+            </div>
             <Link
               to={`/artist/${artist.id}`}
               className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"

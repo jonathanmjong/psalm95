@@ -11,7 +11,7 @@ export function Login() {
       </p>
       <button
         onClick={() => signInWithGoogle()}
-        className="rounded-full bg-[var(--color-accent)] px-6 py-2.5 font-medium text-white transition hover:opacity-90"
+        className="btn-gradient rounded-full px-6 py-2.5 font-semibold"
       >
         Sign in with Google
       </button>
