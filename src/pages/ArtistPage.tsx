@@ -110,7 +110,7 @@ export function ArtistPage() {
             Loading pictures…
           </p>
         ) : (
-          <PictureGrid pictures={pictures} />
+          <PictureGrid pictures={pictures} artistName={artist.name} />
         )}
 
         <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />

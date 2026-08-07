@@ -3,7 +3,7 @@ import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { votePicture } from '../lib/callables'
 
-function PictureCard({ picture }: { picture: ArtistPicture }) {
+function PictureCard({ picture, artistName }: { picture: ArtistPicture; artistName: string }) {
   const { user, signInWithGoogle } = useAuth()
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
@@ -29,7 +29,12 @@ function PictureCard({ picture }: { picture: ArtistPicture }) {
 
   return (
     <figure className="lift overflow-hidden rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
-      <img src={picture.url} alt="" className="aspect-square w-full object-cover" />
+      <img
+        src={picture.url}
+        alt={`${artistName} fan photo`}
+        loading="lazy"
+        className="aspect-square w-full object-cover"
+      />
       <figcaption className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
         <span className="truncate">
           {picture.source === 'wikimedia-seed' && picture.attribution
@@ -77,7 +82,7 @@ function PictureCard({ picture }: { picture: ArtistPicture }) {
   )
 }
 
-export function PictureGrid({ pictures }: { pictures: ArtistPicture[] }) {
+export function PictureGrid({ pictures, artistName }: { pictures: ArtistPicture[]; artistName: string }) {
   if (pictures.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
@@ -89,7 +94,7 @@ export function PictureGrid({ pictures }: { pictures: ArtistPicture[] }) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
       {pictures.map((picture) => (
-        <PictureCard key={picture.id} picture={picture} />
+        <PictureCard key={picture.id} picture={picture} artistName={artistName} />
       ))}
     </div>
   )

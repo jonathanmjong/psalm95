@@ -104,10 +104,19 @@ function renderArtist(a) {
     /<meta\s+name="twitter:description"[\s\S]*?\/>/,
     `<meta name="twitter:description" content="${htmlEscape(description)}" />`,
   )
-  // Swap the site-level WebSite JSON-LD for artist-level structured data.
+  // Swap the site-level WebSite JSON-LD for artist structured data + a breadcrumb
+  // (Home › Artist). The Organization block (second ld+json) is left intact.
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'PsalmTune', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: a.name, item: url },
+    ],
+  }
   html = html.replace(
     /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    `<script type="application/ld+json">\n${JSON.stringify(structuredData(a, url, region), null, 2)}\n</script>`,
+    `<script type="application/ld+json">\n${JSON.stringify([structuredData(a, url, region), breadcrumb], null, 2)}\n</script>`,
   )
 
   // Indexable content for non-JS crawlers; invisible to real (JS) users.

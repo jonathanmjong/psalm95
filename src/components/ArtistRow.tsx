@@ -65,7 +65,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
         {pictures[0] ? (
           <img
             src={pictures[0].url}
-            alt=""
+            alt={artist.name}
             className="h-12 w-12 shrink-0 rounded-full object-cover"
           />
         ) : (
@@ -84,7 +84,12 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
         </div>
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
           {pictures.slice(0, 5).map((pic) => (
-            <img key={pic.id} src={pic.url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+            <img
+              key={pic.id}
+              src={pic.url}
+              alt={`${artist.name} photo`}
+              className="h-10 w-10 rounded-lg object-cover"
+            />
           ))}
         </div>
       </button>
