@@ -1,7 +1,5 @@
 import { usePageMeta } from '../hooks/usePageMeta'
 
-const ADSENSE_CLIENT = import.meta.env.VITE_ADSENSE_CLIENT as string | undefined
-
 export function Privacy() {
   usePageMeta({
     title: 'Privacy Policy | psalm95',
@@ -48,10 +46,18 @@ export function Privacy() {
 
         <h2 className="pt-2 text-lg font-semibold">Cookies and advertising</h2>
         <p>
-          We use cookies to keep you signed in.{' '}
-          {ADSENSE_CLIENT
-            ? 'We also display ads through Google AdSense. Google and its partners may use cookies to serve ads based on your prior visits to this and other websites. You can opt out of personalized advertising via Google Ads Settings (adsettings.google.com).'
-            : 'If we introduce advertising in the future, third-party vendors such as Google may use cookies to serve ads based on your visits; this policy will be updated accordingly.'}
+          We use cookies to keep you signed in. We also display ads through Google AdSense. Google and its
+          partners may use cookies to serve ads based on your prior visits to this and other websites. You can
+          opt out of personalized advertising via{' '}
+          <a
+            className="text-[var(--color-accent)] hover:underline"
+            href="https://adssettings.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Google Ads Settings
+          </a>
+          .
         </p>
 
         <h2 className="pt-2 text-lg font-semibold">Your choices</h2>

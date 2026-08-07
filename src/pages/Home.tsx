@@ -4,7 +4,6 @@ import { GenerationFilter } from '../components/GenerationFilter'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
-import { AdSlot } from '../components/AdSlot'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 export function Home() {
@@ -52,8 +51,6 @@ export function Home() {
       )}
 
       <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
-
-      <AdSlot slot="1234567890" className="min-h-24" />
     </div>
   )
 }
