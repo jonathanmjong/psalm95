@@ -25,3 +25,8 @@ export const deletePicture = httpsCallable<{ artistId: string; pictureId: string
   functions,
   'deletePicture',
 )
+
+export const voteBattle = httpsCallable<
+  { choiceArtistId: string },
+  { aVotes: number; bVotes: number; choice: string }
+>(functions, 'voteBattle')

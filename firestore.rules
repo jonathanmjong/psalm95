@@ -9,6 +9,25 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Weekly winners archive — public read, written only by the scheduled function.
+    match /hallOfFame/{weekId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Weekly head-to-head battle — public read; vote counts only via callable.
+    match /battles/{battleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /battleVotes/{voteId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && voteId == request.auth.uid + '_' + request.resource.data.weekId;
+      allow update, delete: if false;
+    }
+
     match /artists/{artistId} {
       allow read: if true;
       // metrics, votes, compositeScore, rank are only ever written by Cloud Functions

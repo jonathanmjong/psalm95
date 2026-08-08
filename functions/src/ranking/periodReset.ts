@@ -1,5 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { getFirestore } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { currentWeekId } from '../dates'
 
 const BATCH_SIZE = 400
 
@@ -14,13 +15,40 @@ async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearlyVotes')
   console.log(`Reset ${field} to 0 for ${snap.size} artists.`)
 }
 
+/** Before wiping weekly votes, crown the week's most-voted artist into the Hall of Fame.
+ * Runs at the start of the new ISO week, so the week that just ended is "yesterday's" week. */
+async function captureWeeklyWinner() {
+  const db = getFirestore()
+  const endedWeekId = currentWeekId(new Date(Date.now() - 86_400_000))
+  const top = await db.collection('artists').orderBy('weeklyVotes', 'desc').limit(1).get()
+  if (top.empty) return
+  const winner = top.docs[0]
+  const votes = (winner.data().weeklyVotes as number) ?? 0
+  if (votes <= 0) {
+    console.log(`No weekly winner to crown for ${endedWeekId} (no votes).`)
+    return
+  }
+  await db.doc(`hallOfFame/${endedWeekId}`).set({
+    weekId: endedWeekId,
+    artistId: winner.id,
+    artistName: winner.data().name,
+    region: winner.data().region,
+    votes,
+    capturedAt: FieldValue.serverTimestamp(),
+  })
+  console.log(`Hall of Fame: ${winner.data().name} won ${endedWeekId} with ${votes} votes.`)
+}
+
 // The daily ranking-history snapshot (dailySnapshot.ts) runs shortly before each of
 // these, so the last data point in an artist's trend chart before a reset is that
 // period's final tally — these jobs only need to zero the live counter.
 
 export const resetWeeklyVotes = onSchedule(
   { schedule: '0 0 * * 1', timeZone: 'UTC' }, // every Monday 00:00 UTC
-  () => resetField('weeklyVotes'),
+  async () => {
+    await captureWeeklyWinner()
+    await resetField('weeklyVotes')
+  },
 )
 
 export const resetMonthlyVotes = onSchedule(

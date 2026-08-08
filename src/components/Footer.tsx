@@ -8,9 +8,15 @@ export function Footer() {
           PsalmTune — a fan-driven ranking platform for K-pop, C-pop &amp; J-pop. Seed images are CC-licensed
           via Wikimedia Commons.
         </p>
-        <nav className="flex items-center gap-4">
+        <nav className="flex flex-wrap items-center gap-4">
           <Link to="/" className="hover:underline">
             Home
+          </Link>
+          <Link to="/fandoms" className="hover:underline">
+            Fandoms
+          </Link>
+          <Link to="/hall-of-fame" className="hover:underline">
+            Hall of Fame
           </Link>
           <Link to="/privacy" className="hover:underline">
             Privacy

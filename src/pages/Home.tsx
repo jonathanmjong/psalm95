@@ -4,6 +4,7 @@ import { useAllArtists } from '../hooks/useAllArtists'
 import { GenerationFilter } from '../components/GenerationFilter'
 import { SearchBar } from '../components/SearchBar'
 import { BirthdaysStrip } from '../components/BirthdaysStrip'
+import { BattleCard } from '../components/BattleCard'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
@@ -50,6 +51,7 @@ export function Home() {
 
       <SearchBar value={search} onChange={setSearch} />
 
+      {!searching && <BattleCard />}
       {!searching && <BirthdaysStrip artists={allArtists} />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

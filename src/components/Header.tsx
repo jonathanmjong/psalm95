@@ -10,9 +10,19 @@ export function Header() {
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link to="/">
-          <Logo />
-        </Link>
+        <div className="flex items-center gap-5">
+          <Link to="/">
+            <Logo />
+          </Link>
+          <nav className="hidden items-center gap-4 text-sm font-medium text-[var(--color-ink-soft)] md:flex dark:text-[var(--color-ink-soft-dark)]">
+            <Link to="/fandoms" className="transition hover:text-[var(--color-ink)] dark:hover:text-[var(--color-ink-dark)]">
+              Fandoms
+            </Link>
+            <Link to="/hall-of-fame" className="transition hover:text-[var(--color-ink)] dark:hover:text-[var(--color-ink-dark)]">
+              Hall of Fame
+            </Link>
+          </nav>
+        </div>
         <nav className="flex items-center gap-4 text-sm">
           {!loading && user ? (
             <>

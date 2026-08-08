@@ -16,3 +16,4 @@ export { resetWeeklyVotes, resetMonthlyVotes, resetYearlyVotes } from './ranking
 export { captureDailySnapshot } from './ranking/dailySnapshot'
 export { createCheckoutSession } from './stripe/checkout'
 export { stripeWebhook } from './stripe/webhook'
+export { voteBattle, createWeeklyBattle } from './battles'
