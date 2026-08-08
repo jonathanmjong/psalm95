@@ -1,5 +1,6 @@
 import type { Member } from '../types'
 import { formatBirthdate, zodiacFromDate } from '../lib/zodiac'
+import { birthdayStatus, birthdayLabel } from '../lib/birthdays'
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -14,6 +15,8 @@ function Field({ label, value }: { label: string; value: string }) {
 
 export function MemberCard({ member }: { member: Member }) {
   const zodiac = member.zodiacSign ?? (member.birthdate ? zodiacFromDate(member.birthdate) : null)
+  const bday = member.birthdate ? birthdayStatus(member.birthdate) : null
+  const bdaySoon = bday && bday.daysUntil <= 30
   const hasBio =
     member.birthdate ||
     zodiac ||
@@ -28,6 +31,17 @@ export function MemberCard({ member }: { member: Member }) {
       <h3 className="font-semibold">{member.name}</h3>
       {member.position && (
         <p className="text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
+      )}
+      {bdaySoon && (
+        <p
+          className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+            bday.isToday
+              ? 'bg-[var(--color-accent)] text-white'
+              : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink)] dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-dark)]'
+          }`}
+        >
+          {birthdayLabel(bday)}
+        </p>
       )}
       {hasBio ? (
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">

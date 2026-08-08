@@ -3,6 +3,7 @@ import { useArtists } from '../hooks/useArtists'
 import { useAllArtists } from '../hooks/useAllArtists'
 import { GenerationFilter } from '../components/GenerationFilter'
 import { SearchBar } from '../components/SearchBar'
+import { BirthdaysStrip } from '../components/BirthdaysStrip'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
@@ -48,6 +49,8 @@ export function Home() {
       </section>
 
       <SearchBar value={search} onChange={setSearch} />
+
+      {!searching && <BirthdaysStrip artists={allArtists} />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <GenerationFilter value={generationId} onChange={setGenerationId} />

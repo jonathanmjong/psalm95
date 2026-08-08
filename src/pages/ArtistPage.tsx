@@ -11,8 +11,10 @@ import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
 import { RankingTrend } from '../components/RankingTrend'
 import { ArtistAbout } from '../components/ArtistAbout'
+import { ShareButton } from '../components/ShareButton'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { birthdayStatus } from '../lib/birthdays'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -57,6 +59,9 @@ export function ArtistPage() {
     return <NotFound />
   }
 
+  // Members with a birthday today → celebration banner.
+  const birthdayToday = artist.members.filter((m) => m.birthdate && birthdayStatus(m.birthdate)?.isToday)
+
   return (
     <div className="space-y-8">
       <Link
@@ -66,12 +71,44 @@ export function ArtistPage() {
         ← Back to rankings
       </Link>
 
+      {birthdayToday.length > 0 && (
+        <div className="btn-gradient rounded-2xl px-5 py-4 text-center font-semibold">
+          🎉 Happy Birthday {birthdayToday.map((m) => m.name).join(' & ')}! Celebrate {artist.name} today.
+        </div>
+      )}
+
       <header className="space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-4xl font-semibold tracking-tight">{artist.name}</h1>
           <span className="rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-medium dark:bg-[var(--color-surface-sunken-dark)]">
             {REGION_LABEL[artist.region]}
           </span>
+          {artist.fandomName && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold"
+              style={
+                artist.fandomColorHex
+                  ? { backgroundColor: `${artist.fandomColorHex}22`, borderColor: `${artist.fandomColorHex}66` }
+                  : undefined
+              }
+            >
+              {artist.fandomColorHex && (
+                <span
+                  className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10"
+                  style={{ backgroundColor: artist.fandomColorHex }}
+                  aria-hidden
+                />
+              )}
+              {artist.fandomName}
+            </span>
+          )}
+          <div className="ml-auto">
+            <ShareButton
+              title={`${artist.name} on PsalmTune`}
+              text={`Vote for ${artist.name} on PsalmTune — the fan-driven ${REGION_LABEL[artist.region]} ranking.`}
+              url={`https://psalmtune.com/artist/${artist.id}`}
+            />
+          </div>
         </div>
         <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {artist.members.map((m) => m.name).join(', ')}
