@@ -42,14 +42,16 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
 
   return (
     <div
-      className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
+      className={`relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)] ${
+        hovered ? 'z-40' : ''
+      }`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Hover graphic: popularity ranking trend (desktop only; mobile users expand the row).
-          Rendered only while hovered and lazily fetched, so it never shifts layout. */}
+          The hovered row is lifted to z-40 so this popover sits above the rows below it. */}
       {!expanded && hovered && (
-        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden md:block">
+        <div className="pointer-events-none absolute right-3 top-full z-40 mt-1 hidden md:block">
           <ArtistMiniGraph artist={artist} />
         </div>
       )}
