@@ -14,6 +14,9 @@ async function ensureUserProfile(user: User) {
     createdAt: serverTimestamp(),
     weeklyArtistVotes: {},
     activeUploadCount: 0,
+    totalVotes: 0,
+    currentStreak: 0,
+    longestStreak: 0,
   })
 }
 

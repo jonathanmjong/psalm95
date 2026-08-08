@@ -30,7 +30,9 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
     try {
       const result = await castArtistVote({ artistId: artist.id })
       setVoteState('voted')
-      setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.`)
+      const streak = result.data.currentStreak
+      const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
+      setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
     } catch (err) {
       setVoteState('error')
       setVoteMessage(err instanceof Error ? err.message : 'Could not cast vote.')

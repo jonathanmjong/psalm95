@@ -39,11 +39,15 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == uid
         && request.resource.data.weeklyArtistVotes == {}
         && request.resource.data.activeUploadCount == 0;
-      // Only non-quota fields (displayName, photoURL) may change client-side;
-      // vote/upload counters are only mutated by callable functions.
+      // Only non-quota fields (displayName, photoURL) may change client-side; vote/upload
+      // counters and streak/achievement stats are only mutated by callable functions.
       allow update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.weeklyArtistVotes == resource.data.weeklyArtistVotes
-        && request.resource.data.activeUploadCount == resource.data.activeUploadCount;
+        && request.resource.data.activeUploadCount == resource.data.activeUploadCount
+        && request.resource.data.get('totalVotes', 0) == resource.data.get('totalVotes', 0)
+        && request.resource.data.get('currentStreak', 0) == resource.data.get('currentStreak', 0)
+        && request.resource.data.get('longestStreak', 0) == resource.data.get('longestStreak', 0)
+        && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '');
       allow delete: if false;
     }
 

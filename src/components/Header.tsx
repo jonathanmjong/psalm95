@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { Logo } from './Logo'
 
 export function Header() {
   const { user, loading, signInWithGoogle, logOut } = useAuth()
+  const { profile } = useUserProfile()
 
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]">
@@ -14,12 +16,31 @@ export function Header() {
         <nav className="flex items-center gap-4 text-sm">
           {!loading && user ? (
             <>
-              <span className="text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-                {user.displayName}
-              </span>
+              {profile && profile.currentStreak > 0 && (
+                <Link
+                  to="/profile"
+                  title={`${profile.currentStreak}-day voting streak`}
+                  className="hidden rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-semibold sm:inline dark:bg-[var(--color-surface-sunken-dark)]"
+                >
+                  🔥 {profile.currentStreak}
+                </Link>
+              )}
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="" className="h-7 w-7 rounded-full object-cover" />
+                ) : (
+                  <span className="h-7 w-7 rounded-full bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]" />
+                )}
+                <span className="hidden text-[var(--color-ink-soft)] sm:inline dark:text-[var(--color-ink-soft-dark)]">
+                  {user.displayName}
+                </span>
+              </Link>
               <button
                 onClick={() => logOut()}
-                className="rounded-full px-4 py-1.5 font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+                className="rounded-full px-3 py-1.5 font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
               >
                 Sign out
               </button>

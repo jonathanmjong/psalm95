@@ -6,6 +6,7 @@ import { Footer } from './components/Footer'
 const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })))
 const ArtistPage = lazy(() => import('./pages/ArtistPage').then((m) => ({ default: m.ArtistPage })))
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
+const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })))
 const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.Privacy })))
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/artist/:artistId" element={<ArtistPage />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

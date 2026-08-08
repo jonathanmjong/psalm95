@@ -15,3 +15,8 @@ export function currentMonthId(date = new Date()): string {
 export function currentYearId(date = new Date()): string {
   return String(date.getUTCFullYear())
 }
+
+/** UTC day id, e.g. "2026-08-08" — used for daily voting streaks. */
+export function currentDayId(date = new Date()): string {
+  return date.toISOString().slice(0, 10)
+}

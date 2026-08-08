@@ -1,10 +1,10 @@
 import { httpsCallable } from 'firebase/functions'
 import { functions } from './firebase'
 
-export const castArtistVote = httpsCallable<{ artistId: string }, { weeklyVotesRemaining: number }>(
-  functions,
-  'castArtistVote',
-)
+export const castArtistVote = httpsCallable<
+  { artistId: string },
+  { weeklyVotesRemaining: number; currentStreak: number }
+>(functions, 'castArtistVote')
 
 export const votePicture = httpsCallable<{ pictureId: string; artistId: string }, { voteCount: number }>(
   functions,
