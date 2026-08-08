@@ -3,11 +3,17 @@ import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { ArtistPicture } from '../types'
 
-/** Maps each member to their best (most-voted) photo that fans have tagged them in.
- * Seed images are tagged to the whole group, so this only fills in once members get
- * individually-tagged uploads — members without one fall back to a placeholder. */
-export function useMemberPhotos(artistId: string) {
-  const [photos, setPhotos] = useState<Record<string, string>>({})
+interface MemberPhotos {
+  /** memberId → best (most-voted) photo the member is individually tagged in. */
+  byMember: Record<string, string>
+  /** The artist's top pictures, used as fallback avatars for untagged members. */
+  groupUrls: string[]
+}
+
+/** Loads member-tagged photos plus the artist's top group photos. Seed images are
+ * group-tagged, so member cards fall back to a group photo until members get tagged. */
+export function useMemberPhotos(artistId: string): MemberPhotos {
+  const [result, setResult] = useState<MemberPhotos>({ byMember: {}, groupUrls: [] })
 
   useEffect(() => {
     const q = query(
@@ -16,18 +22,20 @@ export function useMemberPhotos(artistId: string) {
       limit(100),
     )
     getDocs(q).then((snap) => {
-      const map: Record<string, string> = {}
+      const byMember: Record<string, string> = {}
+      const groupUrls: string[] = []
       snap.docs.forEach((d) => {
         const pic = d.data() as ArtistPicture
+        if (pic.url) groupUrls.push(pic.url)
         for (const tag of pic.taggedMembers ?? []) {
-          if (tag.artistId === artistId && !map[tag.memberId]) {
-            map[tag.memberId] = pic.url
+          if (tag.artistId === artistId && !byMember[tag.memberId]) {
+            byMember[tag.memberId] = pic.url
           }
         }
       })
-      setPhotos(map)
+      setResult({ byMember, groupUrls })
     })
   }, [artistId])
 
-  return photos
+  return result
 }

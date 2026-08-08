@@ -4,7 +4,7 @@ import { formatBirthdate } from '../lib/zodiac'
 import { useMemberPhotos } from '../hooks/useMemberPhotos'
 
 export function ArtistAbout({ artist }: { artist: Artist }) {
-  const memberPhotos = useMemberPhotos(artist.id)
+  const { byMember, groupUrls } = useMemberPhotos(artist.id)
   const hasFacts =
     artist.debutDate || artist.agency || artist.fandomName || (artist.influences && artist.influences.length > 0)
 
@@ -54,8 +54,12 @@ export function ArtistAbout({ artist }: { artist: Artist }) {
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {artist.members.map((member) => (
-          <MemberCard key={member.memberId} member={member} photoUrl={memberPhotos[member.memberId]} />
+        {artist.members.map((member, i) => (
+          <MemberCard
+            key={member.memberId}
+            member={member}
+            photoUrl={byMember[member.memberId] ?? (groupUrls.length ? groupUrls[i % groupUrls.length] : undefined)}
+          />
         ))}
       </div>
     </section>

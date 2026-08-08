@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Member } from '../types'
 import { formatBirthdate, zodiacFromDate } from '../lib/zodiac'
 import { birthdayStatus, birthdayLabel } from '../lib/birthdays'
@@ -14,6 +15,7 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: string }) {
+  const [imgOk, setImgOk] = useState(true)
   const zodiac = member.zodiacSign ?? (member.birthdate ? zodiacFromDate(member.birthdate) : null)
   const bday = member.birthdate ? birthdayStatus(member.birthdate) : null
   const bdaySoon = bday && bday.daysUntil <= 30
@@ -29,8 +31,13 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
   return (
     <div className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
       <div className="flex items-center gap-3">
-        {photoUrl ? (
-          <img src={photoUrl} alt={member.name} className="h-11 w-11 shrink-0 rounded-full object-cover" />
+        {photoUrl && imgOk ? (
+          <img
+            src={photoUrl}
+            alt={member.name}
+            onError={() => setImgOk(false)}
+            className="h-11 w-11 shrink-0 rounded-full object-cover"
+          />
         ) : (
           <span
             className="btn-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold"

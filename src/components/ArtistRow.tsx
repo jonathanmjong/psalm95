@@ -4,7 +4,7 @@ import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
 import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
-import { VoteHoverCard } from './VoteHoverCard'
+import { ArtistMiniGraph } from './ArtistMiniGraph'
 import { castArtistVote } from '../lib/callables'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
@@ -15,6 +15,7 @@ const REGION_LABEL: Record<Artist['region'], string> = {
 
 export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   const [expanded, setExpanded] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const { pictures } = useTopPictures(artist.id)
   const { user, signInWithGoogle } = useAuth()
   const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
@@ -40,11 +41,16 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   }
 
   return (
-    <div className="lift group relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
-      {/* Hover graphic: weekly/monthly/yearly votes (desktop only; mobile users expand the row). */}
-      {!expanded && (
-        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden opacity-0 transition-opacity duration-150 group-hover:opacity-100 md:block">
-          <VoteHoverCard artist={artist} />
+    <div
+      className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Hover graphic: popularity ranking trend (desktop only; mobile users expand the row).
+          Rendered only while hovered and lazily fetched, so it never shifts layout. */}
+      {!expanded && hovered && (
+        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden md:block">
+          <ArtistMiniGraph artist={artist} />
         </div>
       )}
       <button
