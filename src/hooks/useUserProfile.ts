@@ -11,7 +11,6 @@ export interface UserProfile {
   totalVotes: number
   activeUploadCount: number
   referralCount: number
-  emailOptIn: boolean
   weeklyArtistVotes: Record<string, string[]>
   uid: string
 }
@@ -40,7 +39,6 @@ export function useUserProfile() {
         totalVotes: d.totalVotes ?? 0,
         activeUploadCount: d.activeUploadCount ?? 0,
         referralCount: d.referralCount ?? 0,
-        emailOptIn: d.emailOptIn ?? false,
         weeklyArtistVotes: d.weeklyArtistVotes ?? {},
       })
       setLoading(false)

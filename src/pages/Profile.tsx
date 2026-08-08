@@ -1,37 +1,9 @@
 import { useState } from 'react'
-import { doc, updateDoc } from 'firebase/firestore'
-import { db } from '../lib/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { currentWeekId } from '../lib/dates'
-
-function EmailToggle({ uid, optIn }: { uid: string; optIn: boolean }) {
-  const toggle = () => updateDoc(doc(db, 'users', uid), { emailOptIn: !optIn }).catch(() => {})
-  return (
-    <section className="flex items-center justify-between rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
-      <div>
-        <h2 className="text-sm font-semibold">Weekly recap email</h2>
-        <p className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          A Sunday summary: your streak, and how your biases moved this week.
-        </p>
-      </div>
-      <button
-        role="switch"
-        aria-checked={optIn}
-        onClick={toggle}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-          optIn ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${optIn ? 'left-[22px]' : 'left-0.5'}`}
-        />
-      </button>
-    </section>
-  )
-}
 
 function InviteCard({ uid, referralCount }: { uid: string; referralCount: number }) {
   const [copied, setCopied] = useState(false)
@@ -137,7 +109,6 @@ export function Profile() {
       </div>
 
       <InviteCard uid={profile.uid} referralCount={profile.referralCount} />
-      <EmailToggle uid={profile.uid} optIn={profile.emailOptIn} />
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Achievements</h2>
