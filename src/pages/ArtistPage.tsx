@@ -11,6 +11,7 @@ import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
 import { RankingTrend } from '../components/RankingTrend'
 import { ArtistAbout } from '../components/ArtistAbout'
+import { Comments } from '../components/Comments'
 import { ShareButton } from '../components/ShareButton'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -152,6 +153,8 @@ export function ArtistPage() {
 
         <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
       </section>
+
+      <Comments artistId={artist.id} />
 
       {uploadOpen && (
         <UploadModal

@@ -51,6 +51,19 @@ service cloud.firestore {
         allow read: if true;
         allow write: if false;
       }
+
+      // Fan comments — public read; signed-in users post their own (≤500 chars) and
+      // may delete their own. No edits.
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+        allow update: if false;
+      }
     }
 
     match /users/{uid} {
@@ -66,7 +79,9 @@ service cloud.firestore {
         && request.resource.data.get('totalVotes', 0) == resource.data.get('totalVotes', 0)
         && request.resource.data.get('currentStreak', 0) == resource.data.get('currentStreak', 0)
         && request.resource.data.get('longestStreak', 0) == resource.data.get('longestStreak', 0)
-        && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '');
+        && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '')
+        && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
+        && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0);
       allow delete: if false;
     }
 

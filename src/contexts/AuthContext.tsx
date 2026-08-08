@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, googleProvider, db } from '../lib/firebase'
+import { claimReferral } from '../lib/callables'
 
 async function ensureUserProfile(user: User) {
   const ref = doc(db, 'users', user.uid)
@@ -17,7 +18,19 @@ async function ensureUserProfile(user: User) {
     totalVotes: 0,
     currentStreak: 0,
     longestStreak: 0,
+    referralCount: 0,
   })
+
+  // Brand-new user: if they arrived via an invite link, credit the referrer.
+  const refUid = localStorage.getItem('psalmtune_ref')
+  if (refUid && refUid !== user.uid) {
+    try {
+      await claimReferral({ refUid })
+    } catch {
+      // best-effort — a failed referral claim shouldn't block sign-in
+    }
+  }
+  localStorage.removeItem('psalmtune_ref')
 }
 
 interface AuthContextValue {

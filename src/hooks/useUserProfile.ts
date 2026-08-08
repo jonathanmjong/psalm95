@@ -10,7 +10,9 @@ export interface UserProfile {
   longestStreak: number
   totalVotes: number
   activeUploadCount: number
+  referralCount: number
   weeklyArtistVotes: Record<string, string[]>
+  uid: string
 }
 
 /** Live subscription to the signed-in user's profile doc (streak, votes, uploads). */
@@ -29,12 +31,14 @@ export function useUserProfile() {
     return onSnapshot(doc(db, 'users', user.uid), (snap) => {
       const d = snap.data() ?? {}
       setProfile({
+        uid: user.uid,
         displayName: d.displayName ?? user.displayName,
         photoURL: d.photoURL ?? user.photoURL,
         currentStreak: d.currentStreak ?? 0,
         longestStreak: d.longestStreak ?? 0,
         totalVotes: d.totalVotes ?? 0,
         activeUploadCount: d.activeUploadCount ?? 0,
+        referralCount: d.referralCount ?? 0,
         weeklyArtistVotes: d.weeklyArtistVotes ?? {},
       })
       setLoading(false)

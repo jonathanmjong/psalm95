@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'
@@ -13,6 +13,17 @@ const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.P
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
 function App() {
+  useEffect(() => {
+    // Capture an invite ref (?ref=UID) so it can credit the referrer on first sign-up.
+    const ref = new URLSearchParams(window.location.search).get('ref')
+    if (ref) {
+      localStorage.setItem('psalmtune_ref', ref)
+      const url = new URL(window.location.href)
+      url.searchParams.delete('ref')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [])
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

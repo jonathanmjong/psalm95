@@ -30,3 +30,5 @@ export const voteBattle = httpsCallable<
   { choiceArtistId: string },
   { aVotes: number; bVotes: number; choice: string }
 >(functions, 'voteBattle')
+
+export const claimReferral = httpsCallable<{ refUid: string }, { ok: boolean }>(functions, 'claimReferral')

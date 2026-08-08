@@ -1,8 +1,46 @@
+import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { currentWeekId } from '../lib/dates'
+
+function InviteCard({ uid, referralCount }: { uid: string; referralCount: number }) {
+  const [copied, setCopied] = useState(false)
+  const link = `https://psalmtune.com/?ref=${uid}`
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // clipboard blocked
+    }
+  }
+  return (
+    <section className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
+      <h2 className="text-lg font-semibold">Invite friends</h2>
+      <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        Grow your fandom’s voting power. You’ve invited{' '}
+        <span className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+          {referralCount}
+        </span>{' '}
+        {referralCount === 1 ? 'friend' : 'friends'}.
+      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          readOnly
+          value={link}
+          onFocus={(e) => e.currentTarget.select()}
+          className="min-w-0 flex-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-sunken)] px-4 py-2 text-sm dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-sunken-dark)]"
+        />
+        <button onClick={copy} className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold">
+          {copied ? 'Copied!' : 'Copy link'}
+        </button>
+      </div>
+    </section>
+  )
+}
 
 function Stat({ value, label, accent }: { value: string | number; label: string; accent?: boolean }) {
   return (
@@ -69,6 +107,8 @@ export function Profile() {
         <Stat value={`${weekVotes}/3`} label="Votes this week" />
         <Stat value={profile.totalVotes} label="Total votes" />
       </div>
+
+      <InviteCard uid={profile.uid} referralCount={profile.referralCount} />
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Achievements</h2>
