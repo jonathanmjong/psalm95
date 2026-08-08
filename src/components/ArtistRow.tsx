@@ -15,7 +15,7 @@ const REGION_LABEL: Record<Artist['region'], string> = {
 
 export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   const [expanded, setExpanded] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
   const { pictures } = useTopPictures(artist.id)
   const { user, signInWithGoogle } = useAuth()
   const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
@@ -42,16 +42,20 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
 
   return (
     <div
-      className={`relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)] ${
-        hovered ? 'z-40' : ''
-      }`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
+      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setCursor(null)}
     >
-      {/* Hover graphic: popularity ranking trend (desktop only; mobile users expand the row).
-          The hovered row is lifted to z-40 so this popover sits above the rows below it. */}
-      {!expanded && hovered && (
-        <div className="pointer-events-none absolute right-3 top-full z-40 mt-1 hidden md:block">
+      {/* Popularity ranking trend that follows the cursor (desktop only; mobile users expand
+          the row). position:fixed + high z keeps it above everything, instantly. */}
+      {!expanded && cursor && (
+        <div
+          className="pointer-events-none fixed z-50 hidden md:block"
+          style={{
+            left: Math.min(cursor.x + 18, window.innerWidth - 252),
+            top: Math.min(cursor.y + 18, window.innerHeight - 168),
+          }}
+        >
           <ArtistMiniGraph artist={artist} />
         </div>
       )}
