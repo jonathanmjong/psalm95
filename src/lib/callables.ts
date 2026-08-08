@@ -32,3 +32,8 @@ export const voteBattle = httpsCallable<
 >(functions, 'voteBattle')
 
 export const claimReferral = httpsCallable<{ refUid: string }, { ok: boolean }>(functions, 'claimReferral')
+
+export const createCheckoutSession = httpsCallable<
+  { amount: number; origin: string },
+  { url: string | null }
+>(functions, 'createCheckoutSession')
