@@ -43,7 +43,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
     <div className="lift group relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
       {/* Hover graphic: weekly/monthly/yearly votes (desktop only; mobile users expand the row). */}
       {!expanded && (
-        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden md:group-hover:block">
+        <div className="pointer-events-none absolute right-3 top-full z-20 mt-1 hidden opacity-0 transition-opacity duration-150 group-hover:opacity-100 md:block">
           <VoteHoverCard artist={artist} />
         </div>
       )}

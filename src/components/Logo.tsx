@@ -7,15 +7,19 @@ export function LogoMark({ size = 24 }: { size?: number }) {
           <stop offset="55%" stopColor="#c026d3" />
           <stop offset="100%" stopColor="#7c3aed" />
         </linearGradient>
+        <mask id="logo-heart">
+          <path
+            transform="scale(21.333)"
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+            fill="#fff"
+          />
+          <rect x="196" y="205" width="30" height="120" rx="15" fill="#000" />
+          <rect x="241" y="175" width="30" height="180" rx="15" fill="#000" />
+          <rect x="286" y="205" width="30" height="120" rx="15" fill="#000" />
+        </mask>
       </defs>
       <rect width="512" height="512" rx="112" ry="112" fill="url(#logo-grad)" />
-      <g fill="#ffffff">
-        <rect x="88" y="166" width="48" height="180" rx="24" />
-        <rect x="160" y="106" width="48" height="300" rx="24" />
-        <rect x="232" y="56" width="48" height="400" rx="24" />
-        <rect x="304" y="126" width="48" height="260" rx="24" />
-        <rect x="376" y="86" width="48" height="340" rx="24" />
-      </g>
+      <rect width="512" height="512" fill="#ffffff" mask="url(#logo-heart)" />
     </svg>
   )
 }

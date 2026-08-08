@@ -13,7 +13,7 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function MemberCard({ member }: { member: Member }) {
+export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: string }) {
   const zodiac = member.zodiacSign ?? (member.birthdate ? zodiacFromDate(member.birthdate) : null)
   const bday = member.birthdate ? birthdayStatus(member.birthdate) : null
   const bdaySoon = bday && bday.daysUntil <= 30
@@ -28,10 +28,24 @@ export function MemberCard({ member }: { member: Member }) {
 
   return (
     <div className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
-      <h3 className="font-semibold">{member.name}</h3>
-      {member.position && (
-        <p className="text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
-      )}
+      <div className="flex items-center gap-3">
+        {photoUrl ? (
+          <img src={photoUrl} alt={member.name} className="h-11 w-11 shrink-0 rounded-full object-cover" />
+        ) : (
+          <span
+            className="btn-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold"
+            aria-hidden
+          >
+            {member.name.charAt(0)}
+          </span>
+        )}
+        <div className="min-w-0">
+          <h3 className="truncate font-semibold">{member.name}</h3>
+          {member.position && (
+            <p className="truncate text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
+          )}
+        </div>
+      </div>
       {bdaySoon && (
         <p
           className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
