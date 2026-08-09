@@ -37,3 +37,8 @@ export const createCheckoutSession = httpsCallable<
   { amount: number; origin: string },
   { url: string | null }
 >(functions, 'createCheckoutSession')
+
+export const joinFandom = httpsCallable<{ artistId: string | null }, { ok: boolean; biasArtistId: string | null }>(
+  functions,
+  'joinFandom',
+)

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBattle } from '../hooks/useBattle'
+import { useAllArtists } from '../hooks/useAllArtists'
 import { useAuth } from '../contexts/AuthContext'
 import { voteBattle } from '../lib/callables'
 
@@ -8,10 +9,13 @@ const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = { KR: 'K-pop', CN: 'C-p
 
 export function BattleCard() {
   const { battle, loading, votedChoice, setVotedChoice } = useBattle()
+  const { artists } = useAllArtists()
   const { user, signInWithGoogle } = useAuth()
   const [pending, setPending] = useState<string | null>(null)
 
   if (loading || !battle) return null
+
+  const fandomOf = (id: string) => artists.find((a) => a.id === id)?.fandomName ?? null
 
   const decided = votedChoice !== null
   const total = battle.aVotes + battle.bVotes
@@ -48,6 +52,7 @@ export function BattleCard() {
     align: 'left' | 'right'
   }) => {
     const chosen = votedChoice === id
+    const fandom = fandomOf(id)
     return (
       <button
         onClick={() => cast(id)}
@@ -62,7 +67,7 @@ export function BattleCard() {
       >
         <div className="font-bold">{name}</div>
         <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          {REGION_LABEL[region]}
+          {fandom ? `${fandom} · ${REGION_LABEL[region]}` : REGION_LABEL[region]}
         </div>
         {decided && (
           <>
@@ -79,9 +84,9 @@ export function BattleCard() {
   return (
     <section className="rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">⚔️ This week's battle</h2>
+        <h2 className="text-sm font-semibold">⚔️ Fandom face-off</h2>
         <span className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          {decided ? `${total.toLocaleString()} votes` : user ? 'Pick a side' : 'Sign in to pick a side'}
+          {decided ? `${total.toLocaleString()} votes` : user ? 'Pick your fandom' : 'Sign in to pick a side'}
         </span>
       </div>
       <div className="flex items-stretch gap-3">

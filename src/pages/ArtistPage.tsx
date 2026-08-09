@@ -13,6 +13,7 @@ import { RankingTrend } from '../components/RankingTrend'
 import { ArtistAbout } from '../components/ArtistAbout'
 import { Comments } from '../components/Comments'
 import { ShareButton } from '../components/ShareButton'
+import { JoinFandomButton } from '../components/JoinFandomButton'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
@@ -114,6 +115,7 @@ export function ArtistPage() {
         <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {artist.members.map((m) => m.name).join(', ')}
         </p>
+        <JoinFandomButton artist={artist} />
         <div className="max-w-sm">
           <ScoreBreakdown artist={artist} />
         </div>

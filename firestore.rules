@@ -15,6 +15,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Fandom member counts — public read, maintained only by the joinFandom callable.
+    match /fandomStats/{artistId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Weekly head-to-head battle — public read; vote counts only via callable.
     match /battles/{battleId} {
       allow read: if true;
@@ -81,7 +87,8 @@ service cloud.firestore {
         && request.resource.data.get('longestStreak', 0) == resource.data.get('longestStreak', 0)
         && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '')
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
-        && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0);
+        && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
+        && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '');
       allow delete: if false;
     }
 
