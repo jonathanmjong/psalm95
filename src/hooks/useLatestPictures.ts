@@ -3,7 +3,8 @@ import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { ArtistPicture } from '../types'
 
-export function useTopPictures(artistId: string, count = 5, refreshKey = 0) {
+/** The N most recently uploaded pictures for an artist (newest first). */
+export function useLatestPictures(artistId: string, count = 10, refreshKey = 0) {
   const [pictures, setPictures] = useState<ArtistPicture[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -11,13 +12,11 @@ export function useTopPictures(artistId: string, count = 5, refreshKey = 0) {
     setLoading(true)
     const q = query(
       collection(db, 'artists', artistId, 'pictures'),
-      orderBy('voteCount', 'desc'),
+      orderBy('uploadedAt', 'desc'),
       limit(count),
     )
     getDocs(q)
-      .then((snap) => {
-        setPictures(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ArtistPicture))
-      })
+      .then((snap) => setPictures(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ArtistPicture)))
       .finally(() => setLoading(false))
   }, [artistId, count, refreshKey])
 

@@ -3,7 +3,15 @@ import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { votePicture } from '../lib/callables'
 
-function PictureCard({ picture, artistName }: { picture: ArtistPicture; artistName: string }) {
+function PictureCard({
+  picture,
+  artistName,
+  onOpen,
+}: {
+  picture: ArtistPicture
+  artistName: string
+  onOpen?: (picture: ArtistPicture) => void
+}) {
   const { user, signInWithGoogle } = useAuth()
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
@@ -29,12 +37,19 @@ function PictureCard({ picture, artistName }: { picture: ArtistPicture; artistNa
 
   return (
     <figure className="lift overflow-hidden rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
-      <img
-        src={picture.url}
-        alt={`${artistName} fan photo`}
-        loading="lazy"
-        className="aspect-square w-full object-cover"
-      />
+      <button
+        type="button"
+        onClick={() => onOpen?.(picture)}
+        className="block w-full"
+        aria-label={`Open ${artistName} picture`}
+      >
+        <img
+          src={picture.url}
+          alt={`${artistName} fan photo`}
+          loading="lazy"
+          className="aspect-square w-full object-cover transition hover:opacity-90"
+        />
+      </button>
       <figcaption className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
         <span className="truncate">
           {picture.source === 'wikimedia-seed' && picture.attribution
@@ -82,7 +97,15 @@ function PictureCard({ picture, artistName }: { picture: ArtistPicture; artistNa
   )
 }
 
-export function PictureGrid({ pictures, artistName }: { pictures: ArtistPicture[]; artistName: string }) {
+export function PictureGrid({
+  pictures,
+  artistName,
+  onOpen,
+}: {
+  pictures: ArtistPicture[]
+  artistName: string
+  onOpen?: (picture: ArtistPicture) => void
+}) {
   if (pictures.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
@@ -94,7 +117,7 @@ export function PictureGrid({ pictures, artistName }: { pictures: ArtistPicture[
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
       {pictures.map((picture) => (
-        <PictureCard key={picture.id} picture={picture} artistName={artistName} />
+        <PictureCard key={picture.id} picture={picture} artistName={artistName} onOpen={onOpen} />
       ))}
     </div>
   )

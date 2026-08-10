@@ -2,10 +2,15 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useArtist } from '../hooks/useArtist'
 import { useArtistPictures, type PictureSort } from '../hooks/useArtistPictures'
+import { useTopPictures } from '../hooks/useTopPictures'
+import { useLatestPictures } from '../hooks/useLatestPictures'
+import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { MemberFilter } from '../components/MemberFilter'
 import { SortControl } from '../components/SortControl'
 import { PictureGrid } from '../components/PictureGrid'
+import { PictureStrip } from '../components/PictureStrip'
+import { PictureLightbox } from '../components/PictureLightbox'
 import { Pagination } from '../components/Pagination'
 import { ScoreBreakdown } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
@@ -31,11 +36,22 @@ export function ArtistPage() {
   const [sort, setSort] = useState<PictureSort>('date')
   const [memberId, setMemberId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [lightboxPic, setLightboxPic] = useState<ArtistPicture | null>(null)
+  const [picRefresh, setPicRefresh] = useState(0)
   const { pictures, loading, page, hasMore, nextPage, prevPage, refresh } = useArtistPictures(
     artistId ?? '',
     sort,
     memberId,
   )
+  const { pictures: topPictures } = useTopPictures(artistId ?? '', 10, picRefresh)
+  const { pictures: latestPictures } = useLatestPictures(artistId ?? '', 10, picRefresh)
+  const heroPicture = topPictures[0] ?? null
+
+  // Re-query the curated strips (and the paginated grid) after a vote or a new upload.
+  const refreshPictures = () => {
+    setPicRefresh((n) => n + 1)
+    refresh()
+  }
 
   const region = artist ? REGION_LABEL[artist.region] : ''
   const memberNames = artist?.members.map((m) => m.name).join(', ')
@@ -79,7 +95,30 @@ export function ArtistPage() {
         </div>
       )}
 
-      <header className="space-y-3">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-start">
+        {heroPicture && (
+          <button
+            type="button"
+            onClick={() => setLightboxPic(heroPicture)}
+            className="group relative mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-3xl border border-[var(--color-hairline)] sm:mx-0 dark:border-[var(--color-hairline-dark)]"
+            aria-label={`Open ${artist.name}'s most-loved picture`}
+          >
+            <img
+              src={heroPicture.url}
+              alt={`${artist.name} — fan favorite`}
+              className="h-full w-full object-cover transition group-hover:scale-105"
+            />
+            {heroPicture.voteCount > 0 && (
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums">
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {heroPicture.voteCount}
+              </span>
+            )}
+          </button>
+        )}
+        <div className="min-w-0 flex-1 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-4xl font-semibold tracking-tight">{artist.name}</h1>
           <span className="rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-medium dark:bg-[var(--color-surface-sunken-dark)]">
@@ -119,6 +158,7 @@ export function ArtistPage() {
         <div className="max-w-sm">
           <ScoreBreakdown artist={artist} />
         </div>
+        </div>
       </header>
 
       <section>
@@ -130,9 +170,23 @@ export function ArtistPage() {
         <ArtistAbout artist={artist} />
       </section>
 
+      {topPictures.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">❤️ Most loved</h2>
+          <PictureStrip pictures={topPictures} artistName={artist.name} onOpen={setLightboxPic} showVotes />
+        </section>
+      )}
+
+      {latestPictures.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">🆕 Latest uploads</h2>
+          <PictureStrip pictures={latestPictures} artistName={artist.name} onOpen={setLightboxPic} />
+        </section>
+      )}
+
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Pictures</h2>
+          <h2 className="text-lg font-semibold">All pictures</h2>
           <div className="flex flex-wrap items-center gap-3">
             <MemberFilter members={artist.members} value={memberId} onChange={setMemberId} />
             <SortControl value={sort} onChange={setSort} />
@@ -150,7 +204,7 @@ export function ArtistPage() {
             Loading pictures…
           </p>
         ) : (
-          <PictureGrid pictures={pictures} artistName={artist.name} />
+          <PictureGrid pictures={pictures} artistName={artist.name} onOpen={setLightboxPic} />
         )}
 
         <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
@@ -158,12 +212,26 @@ export function ArtistPage() {
 
       <Comments artistId={artist.id} />
 
+      {lightboxPic && (
+        <PictureLightbox
+          picture={lightboxPic}
+          artistName={artist.name}
+          onClose={() => setLightboxPic(null)}
+          onVoted={refreshPictures}
+          onUploadClick={() => {
+            setLightboxPic(null)
+            if (user) setUploadOpen(true)
+            else signInWithGoogle()
+          }}
+        />
+      )}
+
       {uploadOpen && (
         <UploadModal
           artistId={artist.id}
           members={artist.members}
           onClose={() => setUploadOpen(false)}
-          onUploaded={refresh}
+          onUploaded={refreshPictures}
         />
       )}
     </div>
