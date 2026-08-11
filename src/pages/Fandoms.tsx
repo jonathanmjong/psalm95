@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { useLiveFandomRace } from '../hooks/useLiveFandomRace'
 import { useFandomStats } from '../hooks/useFandomStats'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -23,11 +23,60 @@ function useCountdown() {
   return ms
 }
 
+const prefersMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+
+/**
+ * FLIP re-order for the board: remembers each row's offset, and when live counters
+ * re-sort the list, starts the row at its old offset and lets CSS glide it to the new
+ * one. Rows keep their DOM identity (keyed by artist id) and every row is the same
+ * fixed height, so nothing reflows — only transforms animate.
+ *
+ * `resetKey` (the selected period) wipes the remembered offsets, so switching period
+ * re-orders instantly instead of animating a whole-board reshuffle.
+ */
+function useRowSlide(resetKey: string) {
+  const listRef = useRef<HTMLDivElement>(null)
+  const offsets = useRef(new Map<string, number>())
+
+  useLayoutEffect(() => {
+    offsets.current.clear()
+  }, [resetKey])
+
+  useLayoutEffect(() => {
+    const list = listRef.current
+    if (!list) return
+    const animate = prefersMotion()
+    const next = new Map<string, number>()
+    for (const row of list.querySelectorAll<HTMLElement>('[data-row-id]')) {
+      const id = row.dataset.rowId
+      if (!id) continue
+      const top = row.offsetTop
+      next.set(id, top)
+      const previous = offsets.current.get(id)
+      if (!animate || previous === undefined || previous === top) continue
+      row.classList.remove('row-slide')
+      row.style.transform = `translateY(${previous - top}px)`
+      requestAnimationFrame(() => {
+        row.classList.add('row-slide')
+        row.style.transform = ''
+      })
+    }
+    offsets.current = next
+    // No dependency array on purpose: the row order can change on any commit of this
+    // page, and the number tweens live in child state so they never re-run this.
+  })
+
+  return listRef
+}
+
 export function Fandoms() {
-  const { artists, loading } = useAllArtists()
-  const stats = useFandomStats()
   const { profile } = useUserProfile()
   const [periodKey, setPeriodKey] = useState<(typeof PERIODS)[number]['key']>('weeklyVotes')
+  // Live raw vote counters — these do move the instant a vote is cast, unlike the
+  // hourly composite score, which is never animated.
+  const { artists, loading } = useLiveFandomRace(periodKey)
+  const stats = useFandomStats()
   const resetMs = useCountdown()
   const finalHours = resetMs < 6 * 3_600_000
 
@@ -50,6 +99,8 @@ export function Fandoms() {
   const myIndex = profile?.biasArtistId ? ranked.findIndex((r) => r.artist.id === profile.biasArtistId) : -1
   const mine = myIndex >= 0 ? ranked[myIndex] : null
   const myGapToNext = mine && myIndex > 0 ? ranked[myIndex - 1].votes - mine.votes : 0
+
+  const listRef = useRowSlide(periodKey)
 
   const medal = (rank: number) =>
     rank === 1
@@ -94,9 +145,14 @@ export function Fandoms() {
               <span className="text-[var(--color-accent)]">#{myIndex + 1}</span>
             </div>
             <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-              {myIndex === 0
-                ? '👑 On top — defend the crown before the weekly reset.'
-                : `${myGapToNext.toLocaleString()} votes to overtake #${myIndex}. Rally your fandom.`}
+              {myIndex === 0 ? (
+                '👑 On top — defend the crown before the weekly reset.'
+              ) : (
+                <>
+                  <AnimatedNumber key={periodKey} value={myGapToNext} className="tabular-nums" /> votes to
+                  overtake #{myIndex}. Rally your fandom.
+                </>
+              )}
             </div>
           </div>
           <ShareButton
@@ -149,12 +205,13 @@ export function Fandoms() {
           Loading fandoms…
         </p>
       ) : (
-        <div className="space-y-2">
+        <div ref={listRef} className="space-y-2">
           {ranked.map(({ artist, votes }, i) => (
             <FandomRow
               key={artist.id}
               artist={artist}
               votes={votes}
+              periodKey={periodKey}
               rank={i + 1}
               medalClass={medal(i + 1)}
               members={stats[artist.id]?.memberCount ?? 0}
@@ -169,9 +226,51 @@ export function Fandoms() {
   )
 }
 
+/**
+ * A raw counter that tweens to its new value when the live listener delivers a change,
+ * with a brief accent flash. Reduced motion gets the new value immediately, no flash.
+ * Only ever used for counters that genuinely move per vote — never for rank.
+ */
+function AnimatedNumber({ value, className }: { value: number; className?: string }) {
+  const [display, setDisplay] = useState(value)
+  // Remount key for the flash: bumping it restarts the CSS animation from scratch.
+  const [pulse, setPulse] = useState(0)
+  const from = useRef(value)
+
+  useEffect(() => {
+    const start = from.current
+    if (start === value) return
+    from.current = value
+    setPulse((p) => p + 1)
+    if (!prefersMotion()) {
+      setDisplay(value)
+      return
+    }
+    const t0 = performance.now()
+    let raf = 0
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / 480)
+      const eased = 1 - (1 - t) ** 3
+      setDisplay(Math.round(start + (value - start) * eased))
+      if (t < 1) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+
+  // The flash class is withheld until the first change, so a freshly loaded board
+  // doesn't light up every row at once.
+  return (
+    <span key={pulse} className={`${pulse > 0 ? 'count-flash' : ''} ${className ?? ''}`}>
+      {display.toLocaleString()}
+    </span>
+  )
+}
+
 function FandomRow({
   artist,
   votes,
+  periodKey,
   rank,
   medalClass,
   members,
@@ -181,6 +280,9 @@ function FandomRow({
 }: {
   artist: Artist
   votes: number
+  /** Remounts the tweening numbers on a period switch, so the wholesale value change
+   * isn't animated as if votes had been cast. */
+  periodKey: string
   rank: number
   medalClass: string
   members: number
@@ -192,7 +294,11 @@ function FandomRow({
   return (
     <Link
       to={`/artist/${artist.id}`}
-      className={`flex items-center gap-4 rounded-2xl border px-4 py-3 transition duration-200 hover:shadow-md ${
+      data-row-id={artist.id}
+      // Stable height: both lines are single-line truncated, so every row is exactly the
+      // same height no matter what the live counters say — updates and re-sorts never
+      // reflow the list, only the FLIP transform moves rows. min-h pins that invariant.
+      className={`flex min-h-[66px] items-center gap-4 rounded-2xl border px-4 py-3 transition-shadow duration-200 hover:shadow-md ${
         isMine
           ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
           : 'border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]'
@@ -219,11 +325,18 @@ function FandomRow({
           {artist.name}
           {members > 0 && ` · ${members.toLocaleString()} ${members === 1 ? 'member' : 'members'}`}
           {hearts > 0 && ` · 💗 ${hearts.toLocaleString()} this week`}
-          {rank > 1 && gapToNext > 0 && ` · ${gapToNext.toLocaleString()} behind #${rank - 1}`}
+          {rank > 1 && gapToNext > 0 && (
+            <>
+              {' · '}
+              <AnimatedNumber key={periodKey} value={gapToNext} className="tabular-nums" /> behind #{rank - 1}
+            </>
+          )}
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <div className="text-lg font-bold tabular-nums">{votes.toLocaleString()}</div>
+        <div className="text-lg font-bold tabular-nums">
+          <AnimatedNumber key={periodKey} value={votes} />
+        </div>
         <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">votes</div>
       </div>
     </Link>

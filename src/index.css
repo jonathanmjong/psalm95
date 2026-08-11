@@ -141,4 +141,44 @@ input[type="search"]::-webkit-search-cancel-button {
     transform: translateY(-2px);
     box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.5);
   }
+
+  /* "+1" receipt that floats off the vote button the moment a vote is accepted.
+     It confirms the vote itself — never a rank change, which only moves hourly. */
+  @keyframes vote-float {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(0.9);
+    }
+    18% {
+      opacity: 1;
+      transform: translate(-50%, -8px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -30px) scale(1);
+    }
+  }
+  .vote-float {
+    animation: vote-float 0.9s ease-out forwards;
+  }
+
+  /* A raw counter just changed under a live listener — a brief, quiet accent tint
+     that draws the eye without moving the layout. */
+  @keyframes count-flash {
+    0% {
+      color: var(--color-accent);
+    }
+    100% {
+      color: inherit;
+    }
+  }
+  .count-flash {
+    animation: count-flash 0.9s ease-out;
+  }
+
+  /* Rows re-sorting on the fandom board glide from their old slot to the new one
+     (FLIP: the transform is set in JS, the easing lives here). */
+  .row-slide {
+    transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
 }

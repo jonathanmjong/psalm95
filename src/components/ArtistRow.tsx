@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
@@ -21,6 +21,26 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
   const { user, signInWithGoogle } = useAuth()
   const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
   const [voteMessage, setVoteMessage] = useState<string | null>(null)
+  /** Votes cast from this row in this session — applied locally so the raw weekly-votes
+   * figure responds immediately. The composite score and rank are recomputed hourly and
+   * are deliberately left untouched. */
+  const [localVotes, setLocalVotes] = useState(0)
+  /** Non-zero while a "+1" receipt is floating off the vote button; the value doubles as
+   * the animation's restart key so rapid votes each get their own float. */
+  const [floatId, setFloatId] = useState(0)
+
+  useEffect(() => {
+    if (!floatId) return
+    const t = setTimeout(() => setFloatId(0), 1000)
+    return () => clearTimeout(t)
+  }, [floatId])
+
+  // Only the raw weekly-votes input to the breakdown moves optimistically; every other
+  // segment is a periodically-refreshed metric.
+  const shownArtist = useMemo(
+    () => (localVotes === 0 ? artist : { ...artist, weeklyVotes: artist.weeklyVotes + localVotes }),
+    [artist, localVotes],
+  )
 
   const handleVote = async () => {
     if (!user) {
@@ -32,6 +52,8 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
     try {
       const result = await castArtistVote({ artistId: artist.id })
       setVoteState('voted')
+      setLocalVotes((n) => n + 1)
+      setFloatId(Date.now())
       const streak = result.data.currentStreak
       const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
       setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
@@ -95,7 +117,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
             </span>
           </div>
           <div className="mt-1.5 max-w-xs">
-            <ScoreBreakdown artist={artist} />
+            <ScoreBreakdown artist={shownArtist} />
           </div>
         </div>
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
@@ -128,6 +150,15 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
               >
                 {user ? 'Vote for this week' : 'Sign in to vote'}
               </button>
+              {floatId > 0 && (
+                <span
+                  key={floatId}
+                  aria-hidden
+                  className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
+                >
+                  +1
+                </span>
+              )}
               {/* Hover explainer: how artist voting works */}
               <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-60 rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-left text-xs leading-snug shadow-lg group-hover/vote:block dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
                 <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
