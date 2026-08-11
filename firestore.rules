@@ -34,6 +34,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Finished battles — public read, archived only by the scheduled function.
+    match /battleArchive/{weekId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /artists/{artistId} {
       allow read: if true;
       // metrics, votes, compositeScore, rank are only ever written by Cloud Functions
@@ -42,13 +48,11 @@ service cloud.firestore {
 
       match /pictures/{pictureId} {
         allow read: if true;
-        allow create: if request.auth != null
-          && request.resource.data.uploadedBy == request.auth.uid
-          && request.resource.data.source == 'user-upload'
-          && artistId in request.resource.data.taggedArtists
-          && request.resource.data.voteCount == 0;
-        // Edits (vote counts) and deletes go through callable functions only.
-        allow update, delete: if false;
+        // Creates go through the createPictureDoc callable so the per-user upload quota,
+        // the activeUploadCount increment and the storagePath/url pairing are enforced
+        // server-side; edits (vote counts) and deletes are callable-only too. The Admin
+        // SDK bypasses these rules, so all writes are denied to clients.
+        allow write: if false;
       }
 
       // Daily ranking snapshots that power the week/month/year trend graphs — written

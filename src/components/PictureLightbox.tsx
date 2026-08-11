@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
-import { votePicture } from '../lib/callables'
+import { deletePicture, votePicture } from '../lib/callables'
 
 interface Props {
   picture: ArtistPicture
@@ -10,13 +10,20 @@ interface Props {
   onUploadClick: () => void
   /** Called after a successful vote so parent sections can re-sort. */
   onVoted?: () => void
+  /** Called after the owner deletes this picture so parent sections can drop it. */
+  onDeleted?: () => void
 }
 
-export function PictureLightbox({ picture, artistName, onClose, onUploadClick, onVoted }: Props) {
+export function PictureLightbox({ picture, artistName, onClose, onUploadClick, onVoted, onDeleted }: Props) {
   const { user, signInWithGoogle } = useAuth()
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
   const [pending, setPending] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const ownUpload = picture.source === 'user-upload' && picture.uploadedBy === user?.uid
 
   // Close on Escape, and lock body scroll while open.
   useEffect(() => {
@@ -46,6 +53,20 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
       // Duplicate vote / offline — leave the button in its resting state.
     } finally {
       setPending(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (deleting) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await deletePicture({ pictureId: picture.id, artistId: picture.artistId })
+      onDeleted?.()
+      onClose()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete that photo.')
+      setDeleting(false)
     }
   }
 
@@ -101,6 +122,50 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
               <span className="tabular-nums">{voteCount}</span>
             </button>
           </div>
+          {ownUpload &&
+            (confirmingDelete ? (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Delete this photo?
+                </span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="ml-auto rounded-full bg-red-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-80 disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting…' : 'Delete'}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={deleting}
+                  className="rounded-full border border-[var(--color-hairline)] px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--color-surface-sunken)] disabled:opacity-50 dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                className="ml-auto flex items-center gap-1 text-xs text-[var(--color-ink-soft)] transition hover:text-[var(--color-accent)] dark:text-[var(--color-ink-soft-dark)]"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+                </svg>
+                Delete
+              </button>
+            ))}
+
+          {deleteError && <p className="text-xs text-red-500">{deleteError}</p>}
+
           <div className="flex items-center gap-2">
             <button
               onClick={onUploadClick}

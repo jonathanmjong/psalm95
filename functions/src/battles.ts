@@ -40,6 +40,29 @@ export const voteBattle = onCall<{ choiceArtistId: string }>(async (request) => 
   })
 })
 
+/** Copies the outgoing battle to battleArchive/{weekId} before it is overwritten, so past
+ * matchups and their final tallies survive the Monday rollover (the battleVotes docs already do). */
+async function archiveCurrentBattle() {
+  const db = getFirestore()
+  const snap = await db.doc(CURRENT).get()
+  if (!snap.exists) return
+  const battle = snap.data()!
+  const weekId = battle.weekId as string | undefined
+  if (!weekId) {
+    console.log('Outgoing battle has no weekId — skipping archive.')
+    return
+  }
+  const aVotes = (battle.aVotes as number) ?? 0
+  const bVotes = (battle.bVotes as number) ?? 0
+  const winner = aVotes === bVotes ? 'tie' : aVotes > bVotes ? 'a' : 'b'
+  await db.doc(`battleArchive/${weekId}`).set({
+    ...battle,
+    winner,
+    archivedAt: FieldValue.serverTimestamp(),
+  })
+  console.log(`Archived battle ${weekId}: ${battle.aName} ${aVotes} — ${bVotes} ${battle.bName} (${winner}).`)
+}
+
 /** Picks a fresh weekly matchup from the top of the board. Runs Monday 00:15 UTC
  * (after the weekly reset + hall-of-fame capture). */
 export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone: 'UTC' }, async () => {
@@ -56,6 +79,7 @@ export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone:
     ;[docs[i], docs[j]] = [docs[j], docs[i]]
   }
   const [a, b] = docs
+  await archiveCurrentBattle()
   await db.doc(CURRENT).set({
     weekId: currentWeekId(),
     aArtistId: a.id,

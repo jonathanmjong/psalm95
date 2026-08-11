@@ -218,6 +218,7 @@ export function ArtistPage() {
           artistName={artist.name}
           onClose={() => setLightboxPic(null)}
           onVoted={refreshPictures}
+          onDeleted={refreshPictures}
           onUploadClick={() => {
             setLightboxPic(null)
             if (user) setUploadOpen(true)

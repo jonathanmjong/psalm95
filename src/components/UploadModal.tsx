@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import type { Member } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { uploadArtistPicture } from '../lib/storage'
 import { createPictureDoc } from '../lib/callables'
+
+/** Mirrors MAX_ACTIVE_UPLOADS in the createPictureDoc callable. */
+const MAX_ACTIVE_UPLOADS = 3
+const LIMIT_HINT = `You already have ${MAX_ACTIVE_UPLOADS} active uploads — the maximum. Open one of your own pictures in the gallery and hit Delete to free a slot.`
 
 interface Props {
   artistId: string
@@ -13,11 +18,14 @@ interface Props {
 
 export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
   const { user } = useAuth()
+  const { profile } = useUserProfile()
   const [file, setFile] = useState<File | null>(null)
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [confirmedRights, setConfirmedRights] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const atLimit = (profile?.activeUploadCount ?? 0) >= MAX_ACTIVE_UPLOADS
 
   const toggleMember = (memberId: string) => {
     setSelectedMembers((prev) =>
@@ -26,7 +34,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
   }
 
   const handleSubmit = async () => {
-    if (!user || !file || !confirmedRights) return
+    if (!user || !file || !confirmedRights || atLimit) return
     setSubmitting(true)
     setError(null)
     try {
@@ -39,7 +47,11 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
       onUploaded()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed.')
+      if ((err as { code?: string }).code === 'functions/resource-exhausted') {
+        setError(LIMIT_HINT)
+      } else {
+        setError(err instanceof Error ? err.message : 'Upload failed.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -49,6 +61,12 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md space-y-4 rounded-2xl bg-[var(--color-surface)] p-6 dark:bg-[var(--color-surface-dark)]">
         <h2 className="text-lg font-semibold">Upload a picture</h2>
+
+        {atLimit && (
+          <p className="rounded-2xl bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-amber-600 dark:bg-[var(--color-surface-sunken-dark)]">
+            {LIMIT_HINT}
+          </p>
+        )}
 
         <input
           type="file"
@@ -100,7 +118,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!file || !confirmedRights || submitting}
+            disabled={!file || !confirmedRights || submitting || atLimit}
             className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
           >
             {submitting ? 'Uploading…' : 'Upload'}
