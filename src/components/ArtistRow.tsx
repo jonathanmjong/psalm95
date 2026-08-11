@@ -5,6 +5,7 @@ import { useTopPictures } from '../hooks/useTopPictures'
 import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
 import { ArtistMiniGraph } from './ArtistMiniGraph'
+import { RowPicturesPanel } from './RowPicturesPanel'
 import { castArtistVote } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
 
@@ -14,8 +15,22 @@ const REGION_LABEL: Record<Artist['region'], string> = {
   JP: 'J-pop',
 }
 
-export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
+interface Props {
+  artist: Artist
+  rank: number
+  /** Controlled pictures-panel state, so only one row's panel is open at a time.
+   *  Omit both props and the row manages the panel on its own. */
+  picturesOpen?: boolean
+  onPicturesToggle?: (open: boolean) => void
+}
+
+export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Props) {
   const [expanded, setExpanded] = useState(false)
+  const [localPicturesOpen, setLocalPicturesOpen] = useState(false)
+  /** True once the pictures panel has been opened at least once. The panel — and the
+   *  Firestore read inside it — is mounted only from then on, so the 12 rows on a Home
+   *  page cost nothing extra until someone actually asks for pictures. */
+  const [picturesMounted, setPicturesMounted] = useState(false)
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
   const { pictures } = useTopPictures(artist.id)
   const { user, signInWithGoogle } = useAuth()
@@ -34,6 +49,22 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
     const t = setTimeout(() => setFloatId(0), 1000)
     return () => clearTimeout(t)
   }, [floatId])
+
+  const picsOpen = picturesOpen ?? localPicturesOpen
+
+  const setPicsOpen = (open: boolean) => {
+    if (open) setPicturesMounted(true)
+    setLocalPicturesOpen(open)
+    onPicturesToggle?.(open)
+  }
+
+  // Collapsing the row also puts the pictures panel away, so reopening the row does not
+  // spring back to a panel the user thought they had closed.
+  const toggleExpanded = () => {
+    const next = !expanded
+    setExpanded(next)
+    if (!next && picsOpen) setPicsOpen(false)
+  }
 
   // Only the raw weekly-votes input to the breakdown moves optimistically; every other
   // segment is a periodically-refreshed metric.
@@ -84,7 +115,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
         </div>
       )}
       <button
-        onClick={() => setExpanded((e) => !e)}
+        onClick={toggleExpanded}
         className="flex w-full items-center gap-4 px-4 py-3 text-left"
       >
         <span
@@ -170,11 +201,32 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
                 </p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setPicsOpen(!picsOpen)}
+              aria-expanded={picsOpen}
+              aria-controls={`pictures-panel-${artist.id}`}
+              className="flex min-h-10 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-3 py-2 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+            >
+              📷 Pictures
+              <svg
+                viewBox="0 0 24 24"
+                className={`h-3.5 w-3.5 ${picsOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
             <Link
               to={`/artist/${artist.id}`}
               className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
             >
-              View & upload pictures
+              Open artist page
             </Link>
             {voteMessage && (
               <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
@@ -182,6 +234,14 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
               </span>
             )}
           </div>
+
+          {/* Mounted on first expand and kept mounted afterwards (just hidden), so
+              reopening the panel never costs a second read. */}
+          {picturesMounted && (
+            <div id={`pictures-panel-${artist.id}`} hidden={!picsOpen}>
+              <RowPicturesPanel artist={artist} />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -14,6 +14,9 @@ import { usePageMeta } from '../hooks/usePageMeta'
 export function Home() {
   const [generationId, setGenerationId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  /** Id of the row whose inline pictures panel is open — at most one at a time,
+   *  on both the ranked list and the search results. */
+  const [picturesRowId, setPicturesRowId] = useState<string | null>(null)
   const { artists, loading, page, hasMore, nextPage, prevPage } = useArtists(generationId)
   const { artists: allArtists, loading: allLoading } = useAllArtists()
 
@@ -77,7 +80,13 @@ export function Home() {
               {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim()}”
             </p>
             {results.map((artist) => (
-              <ArtistRow key={artist.id} artist={artist} rank={artist.rank} />
+              <ArtistRow
+                key={artist.id}
+                artist={artist}
+                rank={artist.rank}
+                picturesOpen={picturesRowId === artist.id}
+                onPicturesToggle={(open) => setPicturesRowId(open ? artist.id : null)}
+              />
             ))}
           </div>
         )
@@ -93,7 +102,13 @@ export function Home() {
       ) : (
         <div className="space-y-2">
           {artists.map((artist, i) => (
-            <ArtistRow key={artist.id} artist={artist} rank={page * 12 + i + 1} />
+            <ArtistRow
+              key={artist.id}
+              artist={artist}
+              rank={page * 12 + i + 1}
+              picturesOpen={picturesRowId === artist.id}
+              onPicturesToggle={(open) => setPicturesRowId(open ? artist.id : null)}
+            />
           ))}
         </div>
       )}
