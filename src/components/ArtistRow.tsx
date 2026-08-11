@@ -32,7 +32,10 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
    *  page cost nothing extra until someone actually asks for pictures. */
   const [picturesMounted, setPicturesMounted] = useState(false)
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
-  const { pictures } = useTopPictures(artist.id)
+  // Thumbnails come from the hourly-denormalized topPictureUrls when present (zero reads);
+  // the per-row pictures query only runs for docs that predate that field.
+  const { pictures } = useTopPictures(artist.id, 5, 0, !artist.topPictureUrls)
+  const thumbUrls = artist.topPictureUrls ?? pictures.map((p) => p.url)
   const { user, signInWithGoogle } = useAuth()
   const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
   const [voteMessage, setVoteMessage] = useState<string | null>(null)
@@ -131,9 +134,9 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
         >
           {rank}
         </span>
-        {pictures[0] ? (
+        {thumbUrls[0] ? (
           <img
-            src={pictures[0].url}
+            src={thumbUrls[0]}
             alt={artist.name}
             className="h-12 w-12 shrink-0 rounded-full object-cover"
           />
@@ -152,10 +155,10 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
           </div>
         </div>
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          {pictures.slice(0, 5).map((pic) => (
+          {thumbUrls.slice(0, 5).map((url, i) => (
             <img
-              key={pic.id}
-              src={pic.url}
+              key={`${url}-${i}`}
+              src={url}
               alt={`${artist.name} photo`}
               className="h-10 w-10 rounded-lg object-cover"
             />

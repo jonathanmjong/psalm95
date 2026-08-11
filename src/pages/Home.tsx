@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useArtists } from '../hooks/useArtists'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { useArtistIndex } from '../hooks/useArtistIndex'
 import { GenerationFilter } from '../components/GenerationFilter'
 import { SearchBar } from '../components/SearchBar'
 import { BirthdaysStrip } from '../components/BirthdaysStrip'
@@ -18,7 +18,7 @@ export function Home() {
    *  on both the ranked list and the search results. */
   const [picturesRowId, setPicturesRowId] = useState<string | null>(null)
   const { artists, loading, page, hasMore, nextPage, prevPage } = useArtists(generationId)
-  const { artists: allArtists, loading: allLoading } = useAllArtists()
+  const { artists: allArtists, loading: allLoading } = useArtistIndex()
 
   usePageMeta({
     title: 'PsalmTune — Rank & explore K-pop, C-pop & J-pop artists',

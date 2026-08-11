@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { useArtistIndex } from '../hooks/useArtistIndex'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 interface Winner {
@@ -18,7 +18,7 @@ const REGION_LABEL: Record<Winner['region'], string> = { KR: 'K-pop', CN: 'C-pop
 export function HallOfFame() {
   const [winners, setWinners] = useState<Winner[]>([])
   const [loading, setLoading] = useState(true)
-  const { artists } = useAllArtists()
+  const { artists } = useArtistIndex()
 
   usePageMeta({
     title: 'Fandom Hall of Fame | PsalmTune',

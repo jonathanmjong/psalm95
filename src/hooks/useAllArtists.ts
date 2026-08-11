@@ -7,7 +7,7 @@ import type { Artist } from '../types'
 // session, so fetch it once and reuse across keystrokes and route visits.
 let cache: Promise<Artist[]> | null = null
 
-function fetchAllArtists(): Promise<Artist[]> {
+export function fetchAllArtists(): Promise<Artist[]> {
   if (!cache) {
     cache = getDocs(query(collection(db, 'artists'), orderBy('compositeScore', 'desc'), orderBy('name', 'asc')))
       .then((snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Artist))

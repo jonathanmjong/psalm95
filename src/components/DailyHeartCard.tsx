@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { useArtistIndex } from '../hooks/useArtistIndex'
 import { claimDailyHeart } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
 import { currentDayIdKST, msUntilKstMidnight, formatCountdown } from '../lib/dates'
@@ -21,7 +21,7 @@ function useKstCountdown() {
 export function DailyHeartCard() {
   const { user, signInWithGoogle } = useAuth()
   const { profile } = useUserProfile()
-  const { artists } = useAllArtists()
+  const { artists } = useArtistIndex()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const resetMs = useKstCountdown()

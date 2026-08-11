@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBattle } from '../hooks/useBattle'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { useArtistIndex } from '../hooks/useArtistIndex'
 import { useAuth } from '../contexts/AuthContext'
 import { voteBattle } from '../lib/callables'
 
@@ -9,7 +9,7 @@ const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = { KR: 'K-pop', CN: 'C-p
 
 export function BattleCard() {
   const { battle, loading, votedChoice, setVotedChoice } = useBattle()
-  const { artists } = useAllArtists()
+  const { artists } = useArtistIndex()
   const { user, signInWithGoogle } = useAuth()
   const [pending, setPending] = useState<string | null>(null)
 

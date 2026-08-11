@@ -54,6 +54,9 @@ export interface Artist {
   fandomName?: string
   fandomColorName?: string
   fandomColorHex?: string
+  /** Up to 5 top-voted picture URLs, denormalized hourly by recomputeRankings so list rows
+   * render thumbnails without a per-row pictures query. */
+  topPictureUrls?: string[]
 }
 
 export interface ArtistPicture {
