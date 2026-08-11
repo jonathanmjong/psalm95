@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
 import { ArtistMiniGraph } from './ArtistMiniGraph'
 import { castArtistVote } from '../lib/callables'
+import { celebrateStreak } from '../lib/streak'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
   KR: 'K-pop',
@@ -34,6 +35,7 @@ export function ArtistRow({ artist, rank }: { artist: Artist; rank: number }) {
       const streak = result.data.currentStreak
       const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
       setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
+      celebrateStreak(result.data)
     } catch (err) {
       setVoteState('error')
       setVoteMessage(err instanceof Error ? err.message : 'Could not cast vote.')

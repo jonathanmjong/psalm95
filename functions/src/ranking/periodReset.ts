@@ -15,6 +15,19 @@ async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearlyVotes')
   console.log(`Reset ${field} to 0 for ${snap.size} artists.`)
 }
 
+/** Daily hearts are a weekly currency too: zero every fandom's counter alongside the votes.
+ * Uses merge-set so fandoms that never received a heart simply gain the field. */
+async function resetFandomHearts() {
+  const db = getFirestore()
+  const snap = await db.collection('fandomStats').get()
+  for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+    const batch = db.batch()
+    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => batch.set(doc.ref, { weeklyHearts: 0 }, { merge: true }))
+    await batch.commit()
+  }
+  console.log(`Reset weeklyHearts to 0 for ${snap.size} fandoms.`)
+}
+
 /** Before wiping weekly votes, crown the week's most-voted artist into the Hall of Fame.
  * Runs at the start of the new ISO week, so the week that just ended is "yesterday's" week. */
 async function captureWeeklyWinner() {
@@ -48,6 +61,7 @@ export const resetWeeklyVotes = onSchedule(
   async () => {
     await captureWeeklyWinner()
     await resetField('weeklyVotes')
+    await resetFandomHearts()
   },
 )
 

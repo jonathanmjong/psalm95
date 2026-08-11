@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'
+import { ToastHost } from './components/ToastHost'
 
 const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })))
 const ArtistPage = lazy(() => import('./pages/ArtistPage').then((m) => ({ default: m.ArtistPage })))
@@ -42,6 +43,7 @@ function App() {
         </Suspense>
       </main>
       <Footer />
+      <ToastHost />
     </div>
   )
 }

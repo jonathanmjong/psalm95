@@ -157,7 +157,8 @@ export function Fandoms() {
               votes={votes}
               rank={i + 1}
               medalClass={medal(i + 1)}
-              members={stats[artist.id] ?? 0}
+              members={stats[artist.id]?.memberCount ?? 0}
+              hearts={stats[artist.id]?.weeklyHearts ?? 0}
               gapToNext={i > 0 ? ranked[i - 1].votes - votes : 0}
               isMine={profile?.biasArtistId === artist.id}
             />
@@ -174,6 +175,7 @@ function FandomRow({
   rank,
   medalClass,
   members,
+  hearts,
   gapToNext,
   isMine,
 }: {
@@ -182,6 +184,8 @@ function FandomRow({
   rank: number
   medalClass: string
   members: number
+  /** Daily hearts this week — a secondary stat only; the ranking stays vote-based. */
+  hearts: number
   gapToNext: number
   isMine: boolean
 }) {
@@ -214,6 +218,7 @@ function FandomRow({
         <div className="truncate text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {artist.name}
           {members > 0 && ` · ${members.toLocaleString()} ${members === 1 ? 'member' : 'members'}`}
+          {hearts > 0 && ` · 💗 ${hearts.toLocaleString()} this week`}
           {rank > 1 && gapToNext > 0 && ` · ${gapToNext.toLocaleString()} behind #${rank - 1}`}
         </div>
       </div>

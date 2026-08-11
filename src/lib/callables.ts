@@ -1,9 +1,17 @@
 import { httpsCallable } from 'firebase/functions'
 import { functions } from './firebase'
 
+/** Streak fields every streak-advancing callable reports back (see functions/src/streak.ts). */
+export interface StreakResult {
+  currentStreak: number
+  streakFreezes: number
+  freezeUsed: boolean
+  streakAdvanced: boolean
+}
+
 export const castArtistVote = httpsCallable<
   { artistId: string },
-  { weeklyVotesRemaining: number; currentStreak: number }
+  { weeklyVotesRemaining: number } & StreakResult
 >(functions, 'castArtistVote')
 
 export const votePicture = httpsCallable<{ pictureId: string; artistId: string }, { voteCount: number }>(
@@ -42,3 +50,8 @@ export const joinFandom = httpsCallable<{ artistId: string | null }, { ok: boole
   functions,
   'joinFandom',
 )
+
+export const claimDailyHeart = httpsCallable<
+  void,
+  { longestStreak: number; weeklyHearts: number } & StreakResult
+>(functions, 'claimDailyHeart')

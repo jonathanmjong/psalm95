@@ -5,6 +5,7 @@ import { GenerationFilter } from '../components/GenerationFilter'
 import { SearchBar } from '../components/SearchBar'
 import { BirthdaysStrip } from '../components/BirthdaysStrip'
 import { BattleCard } from '../components/BattleCard'
+import { DailyHeartCard } from '../components/DailyHeartCard'
 import { ArtistRow } from '../components/ArtistRow'
 import { ScoreLegend } from '../components/ScoreLegend'
 import { Pagination } from '../components/Pagination'
@@ -53,6 +54,7 @@ export function Home() {
 
       {!searching && <BattleCard />}
       {!searching && <BirthdaysStrip artists={allArtists} />}
+      {!searching && <DailyHeartCard />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <GenerationFilter value={generationId} onChange={setGenerationId} />

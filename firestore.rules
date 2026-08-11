@@ -15,7 +15,8 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Fandom member counts — public read, maintained only by the joinFandom callable.
+    // Fandom member counts and daily-heart tallies — public read, maintained only by the
+    // joinFandom / claimDailyHeart callables and the weekly reset job (Admin SDK).
     match /fandomStats/{artistId} {
       allow read: if true;
       allow write: if false;
@@ -90,6 +91,8 @@ service cloud.firestore {
         && request.resource.data.get('currentStreak', 0) == resource.data.get('currentStreak', 0)
         && request.resource.data.get('longestStreak', 0) == resource.data.get('longestStreak', 0)
         && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '')
+        && request.resource.data.get('lastHeartDate', '') == resource.data.get('lastHeartDate', '')
+        && request.resource.data.get('streakFreezes', 0) == resource.data.get('streakFreezes', 0)
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
         && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
         && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '');

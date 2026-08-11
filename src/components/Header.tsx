@@ -29,10 +29,17 @@ export function Header() {
               {profile && profile.currentStreak > 0 && (
                 <Link
                   to="/profile"
-                  title={`${profile.currentStreak}-day voting streak`}
+                  title={`${profile.currentStreak}-day streak${
+                    profile.streakFreezes > 0 ? ` · ${profile.streakFreezes} streak freeze banked` : ''
+                  }`}
                   className="hidden rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-semibold sm:inline dark:bg-[var(--color-surface-sunken-dark)]"
                 >
                   🔥 {profile.currentStreak}
+                  {profile.streakFreezes > 0 && (
+                    <span className="ml-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                      ❄️{profile.streakFreezes}
+                    </span>
+                  )}
                 </Link>
               )}
               <Link

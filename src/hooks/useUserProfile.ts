@@ -8,6 +8,9 @@ export interface UserProfile {
   photoURL: string | null
   currentStreak: number
   longestStreak: number
+  streakFreezes: number
+  /** KST day id of the last claimed daily heart, or null if never claimed. */
+  lastHeartDate: string | null
   totalVotes: number
   activeUploadCount: number
   referralCount: number
@@ -37,6 +40,8 @@ export function useUserProfile() {
         photoURL: d.photoURL ?? user.photoURL,
         currentStreak: d.currentStreak ?? 0,
         longestStreak: d.longestStreak ?? 0,
+        streakFreezes: d.streakFreezes ?? 0,
+        lastHeartDate: d.lastHeartDate ?? null,
         totalVotes: d.totalVotes ?? 0,
         activeUploadCount: d.activeUploadCount ?? 0,
         referralCount: d.referralCount ?? 0,

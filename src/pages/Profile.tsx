@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { ACHIEVEMENTS } from '../lib/achievements'
-import { currentWeekId } from '../lib/dates'
+import { currentWeekId, currentDayIdKST } from '../lib/dates'
 
 function InviteCard({ uid, referralCount }: { uid: string; referralCount: number }) {
   const [copied, setCopied] = useState(false)
@@ -82,6 +82,7 @@ export function Profile() {
   }
 
   const weekVotes = (profile.weeklyArtistVotes[currentWeekId()] ?? []).length
+  const heartClaimedToday = profile.lastHeartDate === currentDayIdKST()
 
   return (
     <div className="space-y-8">
@@ -97,6 +98,11 @@ export function Profile() {
             {profile.currentStreak > 0
               ? `🔥 ${profile.currentStreak}-day voting streak — keep it alive!`
               : 'Vote today to start a streak 🔥'}
+          </p>
+          <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Daily heart claimed today {heartClaimedToday ? '✓' : '✗'} · ❄️ {profile.streakFreezes} streak{' '}
+            {profile.streakFreezes === 1 ? 'freeze' : 'freezes'}{' '}
+            <span className="opacity-70">(earn one every 30 streak days — it covers a missed day)</span>
           </p>
         </div>
       </header>

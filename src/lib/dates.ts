@@ -20,6 +20,21 @@ export function formatCountdown(ms: number): string {
   return `${m}m`
 }
 
+const KST_OFFSET_MS = 9 * 3_600_000
+
+/** KST (UTC+9) day id, e.g. "2026-08-08" — mirrors the Cloud Functions implementation so the
+ * client can tell whether today's daily heart has already been claimed. Display only; the
+ * callable always recomputes the day server-side. */
+export function currentDayIdKST(date = new Date()): string {
+  return new Date(date.getTime() + KST_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** Milliseconds until the daily heart resets (midnight KST). */
+export function msUntilKstMidnight(now = new Date()): number {
+  const sinceKstMidnight = (now.getTime() + KST_OFFSET_MS) % 86_400_000
+  return 86_400_000 - sinceKstMidnight
+}
+
 export function currentWeekId(date = new Date()): string {
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
   const dayNum = d.getUTCDay() || 7

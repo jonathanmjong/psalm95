@@ -118,6 +118,20 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* Unclaimed daily heart — a small, non-distracting beat that says "tap me". */
+  @keyframes heartbeat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.18);
+    }
+  }
+  .heartbeat {
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+
   .lift {
     transition:
       transform 0.18s ease,
