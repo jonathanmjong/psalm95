@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { doc, setDoc } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserProfile } from '../hooks/useUserProfile'
+import { useUserProfile, type EmailPrefs } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { db } from '../lib/firebase'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { currentWeekId, currentDayIdKST } from '../lib/dates'
 
@@ -38,6 +40,62 @@ function InviteCard({ uid, referralCount }: { uid: string; referralCount: number
           {copied ? 'Copied!' : 'Copy link'}
         </button>
       </div>
+    </section>
+  )
+}
+
+const EMAIL_PREF_ROWS: { key: keyof EmailPrefs; label: string; description: string }[] = [
+  {
+    key: 'streakReminders',
+    label: 'Streak reminders',
+    description: 'An evening nudge when your streak is about to break (KST evening, only if you haven’t acted).',
+  },
+  {
+    key: 'weeklyReset',
+    label: 'Weekly reset reminder',
+    description: 'Sunday heads-up when you still have unspent votes before the Monday reset.',
+  },
+]
+
+function EmailPrefsCard({ uid, prefs }: { uid: string; prefs: EmailPrefs }) {
+  const [error, setError] = useState<string | null>(null)
+
+  // Written straight to the profile doc — `emailPrefs` isn't one of the callable-only fields
+  // the security rules freeze. The live snapshot reflects the change immediately.
+  const toggle = async (key: keyof EmailPrefs, value: boolean) => {
+    setError(null)
+    try {
+      await setDoc(doc(db, 'users', uid), { emailPrefs: { ...prefs, [key]: value } }, { merge: true })
+    } catch {
+      setError('Couldn’t save that — please try again.')
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
+      <h2 className="text-lg font-semibold">Email notifications</h2>
+      <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        Sent to the address on your Google account. Turn either off at any time.
+      </p>
+      <div className="mt-3 space-y-3">
+        {EMAIL_PREF_ROWS.map(({ key, label, description }) => (
+          <label key={key} className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={prefs[key]}
+              onChange={(e) => void toggle(key, e.currentTarget.checked)}
+              className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
+            />
+            <span>
+              <span className="text-sm font-semibold">{label}</span>
+              <span className="block text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                {description}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
     </section>
   )
 }
@@ -115,6 +173,8 @@ export function Profile() {
       </div>
 
       <InviteCard uid={profile.uid} referralCount={profile.referralCount} />
+
+      <EmailPrefsCard uid={profile.uid} prefs={profile.emailPrefs} />
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Achievements</h2>
