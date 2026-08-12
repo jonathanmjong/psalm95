@@ -66,7 +66,7 @@ function renderArtist(a) {
   const title = `${a.name} — ${region} profile, ranking & pictures | PsalmTune`
   const memberList =
     a.type === 'group' && a.members.length ? ` Explore member profiles (${a.members.join(', ')}).` : ''
-  const description = `Vote for ${a.name} and follow their popularity, discography and concerts on PsalmTune — the fan-driven ${region} ranking platform.${memberList}`
+  const description = `Vote for ${a.name} and follow their popularity and fan-vote ranking on PsalmTune — the fan-driven ${region} ranking platform.${memberList}`
 
   let html = template
 

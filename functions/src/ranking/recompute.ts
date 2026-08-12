@@ -1,8 +1,8 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-const FACTORS = ['popularity', 'discography', 'ticketSales', 'weeklyVotes', 'monthlyVotes'] as const
-const WEIGHT = 0.2
+const FACTORS = ['popularity', 'weeklyVotes', 'monthlyVotes'] as const
+const WEIGHT = 1 / 3
 const BATCH_SIZE = 400
 /** How many top-voted picture URLs to denormalize onto each artist (row avatar + thumbnails). */
 const TOP_PICTURE_COUNT = 5
@@ -102,8 +102,6 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
       yearlyVotes: data.yearlyVotes ?? 0,
       metrics: {
         popularity: data.metrics?.popularity?.value ?? 0,
-        discography: data.metrics?.discography?.value ?? 0,
-        ticketSales: data.metrics?.ticketSales?.value ?? 0,
       },
       ...(data.fandomName ? { fandomName: data.fandomName } : {}),
       ...(data.fandomColorName ? { fandomColorName: data.fandomColorName } : {}),

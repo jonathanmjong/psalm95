@@ -1,15 +1,13 @@
 import type { Artist } from '../types'
 
-// Categorical slots 1-5 from the dataviz reference palette, fixed order —
+// Categorical slots from the dataviz reference palette, fixed order —
 // never reassigned/cycled per segment.
 const SEGMENTS: {
-  key: keyof Artist['metrics'] | 'weeklyVotes' | 'monthlyVotes'
+  key: 'popularity' | 'weeklyVotes' | 'monthlyVotes'
   label: string
   cssVar: string
 }[] = [
   { key: 'popularity', label: 'Online popularity', cssVar: 'var(--series-1)' },
-  { key: 'discography', label: 'Discography', cssVar: 'var(--series-2)' },
-  { key: 'ticketSales', label: 'Ticket sales', cssVar: 'var(--series-3)' },
   { key: 'weeklyVotes', label: 'Weekly votes', cssVar: 'var(--series-4)' },
   { key: 'monthlyVotes', label: 'Monthly votes', cssVar: 'var(--series-5)' },
 ]
@@ -22,7 +20,7 @@ function rawValue(artist: Artist, key: (typeof SEGMENTS)[number]['key']): number
   return artist.metrics[key].value
 }
 
-/** Compact 20%-per-factor segmented bar. Each segment's fill width reflects that
+/** Compact equal-weight segmented bar (⅓ per factor). Each segment's fill width reflects that
  * factor's 0-100 normalized value; segment identity is color + (via title attr / legend)
  * text, never color alone. */
 export function ScoreBreakdown({ artist }: { artist: Artist }) {
@@ -33,7 +31,7 @@ export function ScoreBreakdown({ artist }: { artist: Artist }) {
         return (
           <div
             key={seg.key}
-            title={`${seg.label}: ${value.toFixed(0)}/100 (20% weight)`}
+            title={`${seg.label}: ${value.toFixed(0)}/100 (33% weight)`}
             className="h-full flex-1 overflow-hidden rounded-full bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]"
           >
             <div

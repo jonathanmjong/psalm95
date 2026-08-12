@@ -23,7 +23,7 @@ export function Home() {
   usePageMeta({
     title: 'PsalmTune — Rank & explore K-pop, C-pop & J-pop artists',
     description:
-      'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles, popularity, discography and concerts on a fan-driven ranking platform.',
+      'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles and live popularity rankings on a fan-driven platform.',
     path: '/',
   })
 

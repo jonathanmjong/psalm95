@@ -10,7 +10,7 @@ export function ScoreLegend() {
             style={{ backgroundColor: item.cssVar }}
             aria-hidden
           />
-          {item.label} · 20%
+          {item.label} · 33%
         </span>
       ))}
     </div>

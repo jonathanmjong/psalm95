@@ -16,7 +16,7 @@ interface ArtistIndexEntry {
   weeklyVotes: number
   monthlyVotes: number
   yearlyVotes: number
-  metrics: { popularity: number; discography: number; ticketSales: number }
+  metrics: { popularity: number }
   fandomName?: string
   fandomColorName?: string
   fandomColorHex?: string
@@ -33,8 +33,9 @@ function entryToArtist(e: ArtistIndexEntry): Artist {
     ...e,
     metrics: {
       popularity: metric(e.metrics.popularity),
-      discography: metric(e.metrics.discography),
-      ticketSales: metric(e.metrics.ticketSales),
+      // Not part of the ranking (or any list surface) anymore — zero-filled to satisfy the type.
+      discography: metric(0),
+      ticketSales: metric(0),
     },
     members: e.members as Member[],
   }
