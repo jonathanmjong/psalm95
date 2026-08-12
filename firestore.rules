@@ -93,6 +93,8 @@ service cloud.firestore {
         && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '')
         && request.resource.data.get('lastHeartDate', '') == resource.data.get('lastHeartDate', '')
         && request.resource.data.get('streakFreezes', 0) == resource.data.get('streakFreezes', 0)
+        && request.resource.data.get('pictureHeartsToday', 0) == resource.data.get('pictureHeartsToday', 0)
+        && request.resource.data.get('pictureHeartsDate', '') == resource.data.get('pictureHeartsDate', '')
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
         && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
         && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '');

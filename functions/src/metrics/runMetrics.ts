@@ -3,23 +3,22 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { popularityProvider } from './providers/popularity'
 import { spotifyClientId, spotifyClientSecret } from './providers/spotifyPopularity'
 import { lastfmApiKey } from './providers/lastfmPopularity'
-import { ticketmasterEventsProvider, ticketmasterApiKey } from './providers/ticketmasterEvents'
-import { musicbrainzDiscographyProvider } from './providers/musicbrainzDiscography'
 import type { MetricProvider } from './types'
 
-const PROVIDERS: { field: 'popularity' | 'discography' | 'ticketSales'; provider: MetricProvider }[] = [
+// Discography (MusicBrainz) and ticket sales (Ticketmaster) were dropped from the ranking
+// formula in Aug 2026 and are no longer collected — their providers remain in ./providers if
+// they're ever scored again, and the last-fetched values stay frozen on the artist docs.
+const PROVIDERS: { field: 'popularity'; provider: MetricProvider }[] = [
   { field: 'popularity', provider: popularityProvider },
-  { field: 'discography', provider: musicbrainzDiscographyProvider },
-  { field: 'ticketSales', provider: ticketmasterEventsProvider },
 ]
 
 export const refreshArtistMetrics = onSchedule(
   {
     schedule: 'every 6 hours',
-    secrets: [spotifyClientId, spotifyClientSecret, lastfmApiKey, ticketmasterApiKey],
-    // Default 60s timeout isn't enough: MusicBrainz alone imposes a ~1.1s throttle per
-    // artist, and this runs across the whole roster sequentially (currently 107 artists).
-    timeoutSeconds: 540,
+    secrets: [spotifyClientId, spotifyClientSecret, lastfmApiKey],
+    // Popularity-only is quick (no MusicBrainz 1.1s/artist throttle anymore), but leave slack
+    // for provider fallbacks across the whole roster.
+    timeoutSeconds: 300,
   },
   async () => {
     const db = getFirestore()
