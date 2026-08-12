@@ -41,10 +41,17 @@ export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
     const streak = advanceStreak(userData, currentDayIdKST())
 
     const updatedWeek = [...thisWeek, artistId]
+    // Keep only the current week's ballot: stale weekIds are deleted in the same write, so the
+    // map stays one entry instead of growing by one key per week for the life of the account.
+    // (Votes reset weekly and nothing reads past weeks — totalVotes carries the lifetime count.)
+    const prunedVotes: Record<string, string[] | FieldValue> = { [weekId]: updatedWeek }
+    for (const staleWeekId of Object.keys(weeklyArtistVotes)) {
+      if (staleWeekId !== weekId) prunedVotes[staleWeekId] = FieldValue.delete()
+    }
     tx.set(
       userRef,
       {
-        weeklyArtistVotes: { ...weeklyArtistVotes, [weekId]: updatedWeek },
+        weeklyArtistVotes: prunedVotes,
         totalVotes: FieldValue.increment(1),
         ...streak.fields,
       },
