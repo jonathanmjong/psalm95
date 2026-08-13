@@ -36,9 +36,17 @@
       content="Vote for the K-pop, C-pop & J-pop artists and bands you love, explore member profiles, and follow their popularity, discography and concerts — a fan-driven ranking platform."
     />
     <meta property="og:url" content="https://psalmtune.com/" />
-    <meta property="og:image" content="https://psalmtune.com/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <!-- Default share card. Prerendered artist pages (scripts/prerender.mjs) swap this for
+         a real photo; this is also the fallback used by src/hooks/usePageMeta.ts. -->
+    <meta property="og:image" content="https://psalmtune.com/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="PsalmTune — the people's ranking for K-pop, C-pop and J-pop"
+    />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -47,7 +55,11 @@
       name="twitter:description"
       content="Vote for the K-pop, C-pop & J-pop artists and bands you love, explore member profiles, and follow their popularity, discography and concerts."
     />
-    <meta name="twitter:image" content="https://psalmtune.com/og-image.png" />
+    <meta name="twitter:image" content="https://psalmtune.com/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="PsalmTune — the people's ranking for K-pop, C-pop and J-pop"
+    />
 
     <script type="application/ld+json">
       {

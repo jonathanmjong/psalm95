@@ -55,14 +55,23 @@ export function ArtistPage() {
 
   const region = artist ? REGION_LABEL[artist.region] : ''
   const memberNames = artist?.members.map((m) => m.name).join(', ')
+  // Share card: the artist's top-voted photo, falling back to the denormalized index
+  // thumbnails and finally to the site default card in usePageMeta. The prerendered shell
+  // (scripts/prerender.mjs) carries the same shape for non-JS scrapers, minus the "of N"
+  // roster size, which the client doesn't load just to title a page.
+  const sharePicture = heroPicture?.url ?? artist?.topPictureUrls?.[0]
   usePageMeta({
-    title: artist ? `${artist.name} — ${region} profile, ranking & pictures | PsalmTune` : 'Artist | PsalmTune',
+    title: artist
+      ? `${artist.name} — #${artist.rank} · ${region} ranking, profile & pictures | PsalmTune`
+      : 'Artist | PsalmTune',
     description: artist
       ? `Vote for ${artist.name} and follow their popularity and fan-vote ranking. Explore ${
           artist.type === 'group' ? `member profiles (${memberNames})` : 'their profile'
         }, fandom and rank on PsalmTune — the fan-driven ${region} ranking platform.`
       : undefined,
     path: artistId ? `/artist/${artistId}` : undefined,
+    image: sharePicture,
+    imageAlt: artist && sharePicture ? `${artist.name} — ${region} artist on PsalmTune` : undefined,
   })
 
   if (artistLoading) {

@@ -20,9 +20,11 @@ export function HallOfFame() {
   const [loading, setLoading] = useState(true)
   const { artists } = useArtistIndex()
 
+  // Kept in sync with the prerendered shell in scripts/prerender.mjs.
   usePageMeta({
-    title: 'Fandom Hall of Fame | PsalmTune',
-    description: 'Every weekly champion fandom — and their win streaks — crowned by fan votes, week by week.',
+    title: 'Weekly champions — every crowned fandom | PsalmTune',
+    description:
+      'Every weekly champion fandom on PsalmTune, week by week — reigning streaks, past winners and the K-pop, C-pop and J-pop artists their fans voted to the top.',
     path: '/hall-of-fame',
   })
 

@@ -80,10 +80,11 @@ export function Fandoms() {
   const resetMs = useCountdown()
   const finalHours = resetMs < 6 * 3_600_000
 
+  // Kept in sync with the prerendered shell in scripts/prerender.mjs.
   usePageMeta({
-    title: 'Fandom leaderboard | PsalmTune',
+    title: 'Live fandom race — who rules this week? | PsalmTune',
     description:
-      'Which fandom is voting hardest? Ranked by fan votes this week, month, and year — rally your fellow stans and out-vote them.',
+      'Watch the fandom leaderboard move in real time: which fanbase is voting hardest this week, month and year across K-pop, C-pop and J-pop. Join your fandom and out-vote the rest before the weekly reset.',
     path: '/fandoms',
   })
 
