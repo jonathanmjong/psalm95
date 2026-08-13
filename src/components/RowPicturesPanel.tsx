@@ -47,8 +47,10 @@ export function RowPicturesPanel({ artist }: { artist: Artist }) {
         </button>
       </div>
 
-      {loading ? (
+      {loading && pictures.length === 0 ? (
         // Same footprint as the strip, so the panel does not resize once photos land.
+        // Skipped once photos are on screen: a post-vote refresh re-sorts the strip in
+        // place rather than dropping back to skeletons.
         <div className="-mx-1 flex gap-3 overflow-hidden px-1 pb-2" aria-hidden>
           {[0, 1, 2].map((i) => (
             <div

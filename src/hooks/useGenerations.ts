@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { swrDoc } from '../lib/swr'
 import type { GenerationConfig } from '../types'
 
 export function useGenerations() {
@@ -8,11 +9,21 @@ export function useGenerations() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getDoc(doc(db, 'config/generations'))
-      .then((snap) => {
-        setGenerations((snap.data()?.list as GenerationConfig[]) ?? [])
-      })
-      .finally(() => setLoading(false))
+    let active = true
+    swrDoc(
+      doc(db, 'config/generations'),
+      (snap) => (snap.data()?.list as GenerationConfig[]) ?? [],
+      (list) => {
+        if (!active) return
+        setGenerations(list)
+        setLoading(false)
+      },
+    ).catch(() => {
+      if (active) setLoading(false)
+    })
+    return () => {
+      active = false
+    }
   }, [])
 
   return { generations, loading }

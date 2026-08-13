@@ -90,8 +90,11 @@ export function Home() {
             ))}
           </div>
         )
-      ) : loading ? (
+      ) : loading && artists.length === 0 ? (
         // --- Ranked, paginated list ---
+        // Only announce loading when there is genuinely nothing to show: a cached page
+        // paints instantly on a repeat visit, and paging keeps the current rows up
+        // (Pagination is disabled meanwhile) instead of collapsing to this message.
         <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           Loading rankings…
         </p>

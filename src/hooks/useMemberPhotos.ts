@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
+import { collection, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { swrQuery } from '../lib/swr'
 import type { ArtistPicture } from '../types'
 
 interface MemberPhotos {
@@ -16,25 +17,35 @@ export function useMemberPhotos(artistId: string): MemberPhotos {
   const [result, setResult] = useState<MemberPhotos>({ byMember: {}, groupUrls: [] })
 
   useEffect(() => {
+    let active = true
     const q = query(
       collection(db, 'artists', artistId, 'pictures'),
       orderBy('voteCount', 'desc'),
       limit(100),
     )
-    getDocs(q).then((snap) => {
-      const byMember: Record<string, string> = {}
-      const groupUrls: string[] = []
-      snap.docs.forEach((d) => {
-        const pic = d.data() as ArtistPicture
-        if (pic.url) groupUrls.push(pic.url)
-        for (const tag of pic.taggedMembers ?? []) {
-          if (tag.artistId === artistId && !byMember[tag.memberId]) {
-            byMember[tag.memberId] = pic.url
+    swrQuery(
+      q,
+      (snap) => {
+        const byMember: Record<string, string> = {}
+        const groupUrls: string[] = []
+        snap.docs.forEach((d) => {
+          const pic = d.data() as ArtistPicture
+          if (pic.url) groupUrls.push(pic.url)
+          for (const tag of pic.taggedMembers ?? []) {
+            if (tag.artistId === artistId && !byMember[tag.memberId]) {
+              byMember[tag.memberId] = pic.url
+            }
           }
-        }
-      })
-      setResult({ byMember, groupUrls })
-    })
+        })
+        return { byMember, groupUrls }
+      },
+      (photos) => {
+        if (active) setResult(photos)
+      },
+    ).catch(() => {})
+    return () => {
+      active = false
+    }
   }, [artistId])
 
   return result

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { swrQuery } from '../lib/swr'
 
 export interface FandomStat {
   memberCount: number
@@ -14,16 +15,26 @@ export function useFandomStats(): Record<string, FandomStat> {
   const [stats, setStats] = useState<Record<string, FandomStat>>({})
 
   useEffect(() => {
-    getDocs(collection(db, 'fandomStats')).then((snap) => {
-      const map: Record<string, FandomStat> = {}
-      snap.docs.forEach((d) => {
-        map[d.id] = {
-          memberCount: (d.data().memberCount as number | undefined) ?? 0,
-          weeklyHearts: (d.data().weeklyHearts as number | undefined) ?? 0,
-        }
-      })
-      setStats(map)
-    })
+    let active = true
+    swrQuery(
+      collection(db, 'fandomStats'),
+      (snap) => {
+        const map: Record<string, FandomStat> = {}
+        snap.docs.forEach((d) => {
+          map[d.id] = {
+            memberCount: (d.data().memberCount as number | undefined) ?? 0,
+            weeklyHearts: (d.data().weeklyHearts as number | undefined) ?? 0,
+          }
+        })
+        return map
+      },
+      (map) => {
+        if (active) setStats(map)
+      },
+    ).catch(() => {})
+    return () => {
+      active = false
+    }
   }, [])
 
   return stats

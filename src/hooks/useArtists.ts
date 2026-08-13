@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   collection,
-  getDocs,
   limit,
   orderBy,
   query,
@@ -10,6 +9,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { swrQuery } from '../lib/swr'
 import type { Artist } from '../types'
 
 const PAGE_SIZE = 12
@@ -20,9 +20,20 @@ export function useArtists(generationId: string | null) {
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const cursors = useRef<QueryDocumentSnapshot[]>([])
+  /** Bumped per load so a slow delivery (cached or fresh) from a superseded request —
+   * generation switched, page changed — can't write stale rows. */
+  const request = useRef(0)
+  /** Generation whose rows are currently on screen, so we only blank the list when the
+   * data set actually changes rather than on every re-read. */
+  const shown = useRef<string | null | undefined>(undefined)
 
   const load = useCallback(
     async (targetPage: number) => {
+      const id = ++request.current
+      if (shown.current !== generationId) {
+        setArtists([])
+        shown.current = undefined
+      }
       setLoading(true)
       const constraints = [
         ...(generationId ? [where('generationId', '==', generationId)] : []),
@@ -36,13 +47,26 @@ export function useArtists(generationId: string | null) {
         ...(cursor ? [startAfter(cursor)] : []),
         limit(PAGE_SIZE + 1),
       )
-      const snap = await getDocs(q)
-      const docs = snap.docs.slice(0, PAGE_SIZE)
-      if (docs.length > 0) cursors.current[targetPage] = docs[docs.length - 1]
-      setArtists(docs.map((d) => ({ id: d.id, ...d.data() }) as Artist))
-      setHasMore(snap.docs.length > PAGE_SIZE)
-      setPage(targetPage)
-      setLoading(false)
+      await swrQuery(
+        q,
+        (snap) => snap,
+        (snap) => {
+          if (id !== request.current) return
+          const docs = snap.docs.slice(0, PAGE_SIZE)
+          if (docs.length > 0) cursors.current[targetPage] = docs[docs.length - 1]
+          setArtists(docs.map((d) => ({ id: d.id, ...d.data() }) as Artist))
+          setHasMore(snap.docs.length > PAGE_SIZE)
+          setPage(targetPage)
+          setLoading(false)
+          shown.current = generationId
+        },
+        // Page 0 is the first paint, so it is worth serving from cache. Later pages hang
+        // off a cursor taken from the previous page's server result — read those from the
+        // server too rather than paginating over a mix of sources.
+        { serverOnly: targetPage > 0 },
+      ).catch(() => {
+        if (id === request.current) setLoading(false)
+      })
     },
     [generationId],
   )

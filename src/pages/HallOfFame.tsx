@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
+import { collection, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { swrQuery } from '../lib/swr'
 import { useArtistIndex } from '../hooks/useArtistIndex'
 import { usePageMeta } from '../hooks/usePageMeta'
 
@@ -29,9 +30,22 @@ export function HallOfFame() {
   })
 
   useEffect(() => {
-    getDocs(query(collection(db, 'hallOfFame'), orderBy('weekId', 'desc'), limit(100)))
-      .then((snap) => setWinners(snap.docs.map((d) => d.data() as Winner)))
-      .finally(() => setLoading(false))
+    let active = true
+    // Past champions never change, so the cached list is a safe instant first paint.
+    swrQuery(
+      query(collection(db, 'hallOfFame'), orderBy('weekId', 'desc'), limit(100)),
+      (snap) => snap.docs.map((d) => d.data() as Winner),
+      (list) => {
+        if (!active) return
+        setWinners(list)
+        setLoading(false)
+      },
+    ).catch(() => {
+      if (active) setLoading(false)
+    })
+    return () => {
+      active = false
+    }
   }, [])
 
   const fandomOf = (id: string) => artists.find((a) => a.id === id)?.fandomName ?? null

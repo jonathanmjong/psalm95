@@ -208,7 +208,9 @@ export function ArtistPage() {
           </div>
         </div>
 
-        {loading ? (
+        {/* Loading copy only when the grid is genuinely empty — a cached page paints
+            immediately, and a post-vote refresh keeps the photos up while it re-reads. */}
+        {loading && pictures.length === 0 ? (
           <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
             Loading pictures…
           </p>
