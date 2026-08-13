@@ -5,7 +5,115 @@ import { useUserProfile, type EmailPrefs } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { db } from '../lib/firebase'
 import { ACHIEVEMENTS } from '../lib/achievements'
+import { claimHandle } from '../lib/callables'
+import { ShareButton } from '../components/ShareButton'
 import { currentWeekId, currentDayIdKST } from '../lib/dates'
+
+/** Mirrors the server-side check in functions/src/handles.ts, for instant feedback only —
+ * the callable is still the authority (it also owns the reserved list and uniqueness). */
+const HANDLE_PATTERN = /^[a-z0-9_]{3,20}$/
+
+function PublicProfileCard({ handle }: { handle?: string }) {
+  const [input, setInput] = useState('')
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const candidate = input.trim().toLowerCase()
+  const valid = HANDLE_PATTERN.test(candidate)
+  const link = `psalmtune.com/u/${handle}`
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${link}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // clipboard blocked
+    }
+  }
+
+  const claim = async () => {
+    setPending(true)
+    setError(null)
+    try {
+      await claimHandle({ handle: candidate })
+      // The live users/{uid} snapshot re-renders this card in its claimed state.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not claim that handle.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
+      <h2 className="text-lg font-semibold">Public profile</h2>
+      {handle ? (
+        <>
+          <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            You’re <span className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">@{handle}</span>.
+            Your page shows your streak, badges and fandom — never your name or email.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              readOnly
+              value={link}
+              onFocus={(e) => e.currentTarget.select()}
+              className="min-w-0 flex-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-sunken)] px-4 py-2 text-sm dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-sunken-dark)]"
+            />
+            <button onClick={copy} className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold">
+              {copied ? 'Copied!' : 'Copy link'}
+            </button>
+            <ShareButton
+              title={`@${handle} on PsalmTune`}
+              text={`Follow my streak on PsalmTune — @${handle}`}
+              url={`https://${link}`}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Claim a handle to get a public page you can link anywhere. It shows your streak, badges and
+            fandom — never your name or email.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+              psalmtune.com/u/
+            </span>
+            <input
+              value={input}
+              onChange={(e) => {
+                setInput(e.currentTarget.value)
+                setError(null)
+              }}
+              placeholder="yourhandle"
+              maxLength={20}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className="min-w-0 flex-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-sunken)] px-4 py-2 text-sm dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-sunken-dark)]"
+            />
+            <button
+              onClick={() => void claim()}
+              disabled={!valid || pending}
+              className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold"
+            >
+              {pending ? 'Claiming…' : 'Claim'}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            {candidate && !valid
+              ? '3–20 characters, letters, numbers and underscores only.'
+              : 'You can only claim once, so choose carefully.'}
+          </p>
+        </>
+      )}
+      {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+    </section>
+  )
+}
 
 function InviteCard({ uid, referralCount }: { uid: string; referralCount: number }) {
   const [copied, setCopied] = useState(false)
@@ -171,6 +279,8 @@ export function Profile() {
         <Stat value={`${weekVotes}/3`} label="Votes this week" />
         <Stat value={profile.totalVotes} label="Total votes" />
       </div>
+
+      <PublicProfileCard handle={profile.handle} />
 
       <InviteCard uid={profile.uid} referralCount={profile.referralCount} />
 

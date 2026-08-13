@@ -41,6 +41,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Handle → uid lookup for /u/{handle}. Public read (that's the point of a handle);
+    // the claimHandle callable is the only writer, so uniqueness can't be raced client-side.
+    match /handles/{handle} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Opt-in public projection of a user, created only when a handle is claimed. Carries
+    // the handle, fandom and aggregate stats — never displayName, email, photoURL or any
+    // per-artist vote history, all of which stay in the private users/{uid} doc.
+    match /profiles/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /artists/{artistId} {
       allow read: if true;
       // metrics, votes, compositeScore, rank are only ever written by Cloud Functions
@@ -97,7 +112,8 @@ service cloud.firestore {
         && request.resource.data.get('pictureHeartsDate', '') == resource.data.get('pictureHeartsDate', '')
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
         && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
-        && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '');
+        && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '')
+        && request.resource.data.get('handle', '') == resource.data.get('handle', '');
       allow delete: if false;
     }
 

@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { currentWeekId, currentMonthId, currentYearId, currentDayIdKST } from './dates'
 import { advanceStreak } from './streak'
+import { syncPublicProfile } from './handles'
 
 const WEEKLY_VOTE_LIMIT = 3
 
@@ -57,6 +58,12 @@ export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
       },
       { merge: true },
     )
+    // Public projection (handle-holders only): same increment, so the two docs can't drift.
+    syncPublicProfile(tx, db, uid, userData, {
+      totalVotes: FieldValue.increment(1),
+      currentStreak: streak.fields.currentStreak,
+      longestStreak: streak.fields.longestStreak,
+    })
     tx.set(
       artistRef,
       {

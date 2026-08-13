@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
+import { syncPublicProfile } from './handles'
 
 const MAX_ACTIVE_UPLOADS = 3
 
@@ -36,7 +37,8 @@ export const createPictureDoc = onCall<CreatePictureData>(async (request) => {
   try {
     await db.runTransaction(async (tx) => {
       const userSnap = await tx.get(userRef)
-      const activeUploadCount = userSnap.data()?.activeUploadCount ?? 0
+      const userData = userSnap.data() ?? {}
+      const activeUploadCount = userData.activeUploadCount ?? 0
       if (activeUploadCount >= MAX_ACTIVE_UPLOADS) {
         throw new HttpsError('resource-exhausted', 'You already have 3 active uploads. Delete one first.')
       }
@@ -58,6 +60,8 @@ export const createPictureDoc = onCall<CreatePictureData>(async (request) => {
         { merge: true },
       )
       tx.set(userRef, { activeUploadCount: FieldValue.increment(1) }, { merge: true })
+      // Public projection (handle-holders only) — drives the Photographer badge.
+      syncPublicProfile(tx, db, uid, userData, { activeUploadCount: FieldValue.increment(1) })
     })
   } catch (err) {
     // Clean up the just-uploaded Storage object if we're rejecting the doc creation.
@@ -82,13 +86,16 @@ export const deletePicture = onCall<{ artistId: string; pictureId: string }>(asy
   const userRef = db.doc(`users/${uid}`)
 
   const storagePath = await db.runTransaction(async (tx) => {
-    const pictureSnap = await tx.get(pictureRef)
+    const [pictureSnap, userSnap] = await Promise.all([tx.get(pictureRef), tx.get(userRef)])
     if (!pictureSnap.exists) throw new HttpsError('not-found', 'Picture not found.')
     const data = pictureSnap.data()!
     if (data.uploadedBy !== uid) throw new HttpsError('permission-denied', 'Not your upload.')
 
     tx.delete(pictureRef)
     tx.set(userRef, { activeUploadCount: FieldValue.increment(-1) }, { merge: true })
+    syncPublicProfile(tx, db, uid, userSnap.data() ?? {}, {
+      activeUploadCount: FieldValue.increment(-1),
+    })
     return data.storagePath as string | null
   })
 

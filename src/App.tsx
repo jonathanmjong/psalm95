@@ -8,6 +8,9 @@ const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })
 const ArtistPage = lazy(() => import('./pages/ArtistPage').then((m) => ({ default: m.ArtistPage })))
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
 const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })))
+const PublicProfile = lazy(() =>
+  import('./pages/PublicProfile').then((m) => ({ default: m.PublicProfile })),
+)
 const Fandoms = lazy(() => import('./pages/Fandoms').then((m) => ({ default: m.Fandoms })))
 const HallOfFame = lazy(() => import('./pages/HallOfFame').then((m) => ({ default: m.HallOfFame })))
 const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.Privacy })))
@@ -35,6 +38,7 @@ function App() {
             <Route path="/artist/:artistId" element={<ArtistPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/u/:handle" element={<PublicProfile />} />
             <Route path="/fandoms" element={<Fandoms />} />
             <Route path="/hall-of-fame" element={<HallOfFame />} />
             <Route path="/privacy" element={<Privacy />} />

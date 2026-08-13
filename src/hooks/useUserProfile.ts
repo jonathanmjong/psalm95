@@ -15,6 +15,8 @@ export interface UserProfile {
   activeUploadCount: number
   referralCount: number
   biasArtistId: string | null
+  /** Claimed public handle, or undefined while the account has no public page at all. */
+  handle?: string
   weeklyArtistVotes: Record<string, string[]>
   /** Per-type email opt-outs. A missing map or key means opted in — see `EmailPrefs`. */
   emailPrefs: EmailPrefs
@@ -55,6 +57,7 @@ export function useUserProfile() {
         activeUploadCount: d.activeUploadCount ?? 0,
         referralCount: d.referralCount ?? 0,
         biasArtistId: d.biasArtistId ?? null,
+        handle: d.handle ?? undefined,
         weeklyArtistVotes: d.weeklyArtistVotes ?? {},
         emailPrefs: {
           streakReminders: d.emailPrefs?.streakReminders !== false,

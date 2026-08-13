@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { currentDayIdKST } from './dates'
 import { advanceStreak } from './streak'
+import { syncPublicProfile } from './handles'
 
 /**
  * One free heart per KST day for the fandom the user has joined. Hearts are a separate,
@@ -36,6 +37,12 @@ export const claimDailyHeart = onCall(async (request) => {
     const streak = advanceStreak(userData, todayKst)
 
     tx.set(userRef, { ...streak.fields, lastHeartDate: todayKst }, { merge: true })
+    // Public projection (handle-holders only). `lastHeartDate` stays private — the public
+    // page shows streak lengths, not a day-by-day activity log.
+    syncPublicProfile(tx, db, uid, userData, {
+      currentStreak: streak.fields.currentStreak,
+      longestStreak: streak.fields.longestStreak,
+    })
     tx.set(
       statsRef,
       { weeklyHearts: FieldValue.increment(1), totalHearts: FieldValue.increment(1) },

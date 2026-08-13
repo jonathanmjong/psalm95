@@ -51,6 +51,11 @@ export const joinFandom = httpsCallable<{ artistId: string | null }, { ok: boole
   'joinFandom',
 )
 
+export const claimHandle = httpsCallable<{ handle: string }, { handle: string }>(
+  functions,
+  'claimHandle',
+)
+
 export const claimDailyHeart = httpsCallable<
   void,
   { longestStreak: number; weeklyHearts: number } & StreakResult
