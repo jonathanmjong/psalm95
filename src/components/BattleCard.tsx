@@ -38,7 +38,10 @@ export function BattleCard() {
     }
   }
 
-  const Side = ({
+  // A plain render function, not a component defined in the render body: as a component its
+  // type identity changed every render, so React unmounted and remounted both halves of the
+  // battle on every live snapshot and on every pending-state change.
+  const renderSide = ({
     id,
     name,
     region,
@@ -90,11 +93,11 @@ export function BattleCard() {
         </span>
       </div>
       <div className="flex items-stretch gap-3">
-        <Side id={battle.aArtistId} name={battle.aName} region={battle.aRegion} votes={battle.aVotes} align="left" />
+        {renderSide({ id: battle.aArtistId, name: battle.aName, region: battle.aRegion, votes: battle.aVotes, align: 'left' })}
         <div className="flex items-center text-sm font-extrabold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           VS
         </div>
-        <Side id={battle.bArtistId} name={battle.bName} region={battle.bRegion} votes={battle.bVotes} align="right" />
+        {renderSide({ id: battle.bArtistId, name: battle.bName, region: battle.bRegion, votes: battle.bVotes, align: 'right' })}
       </div>
       {decided && (
         <p className="mt-3 text-center text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">

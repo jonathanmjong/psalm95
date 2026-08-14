@@ -19,7 +19,7 @@ export function ArtistMiniGraph({ artist }: { artist: Artist }) {
   return (
     <div className="w-60 rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 shadow-lg dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-semibold">Popularity ranking</span>
+        <span className="text-xs font-semibold">Board ranking</span>
         <span className="text-xs font-bold tabular-nums text-[var(--color-accent)]">#{artist.rank}</span>
       </div>
       {loading ? (

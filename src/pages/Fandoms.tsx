@@ -129,8 +129,14 @@ export function Fandoms() {
             : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
         }`}
       >
+        {/* The countdown is always the *weekly* reset (Mon 00:00 UTC); say so explicitly, since
+            the board above may be showing the month or year tally. */}
         <span className={finalHours ? 'font-semibold' : ''}>
-          {finalHours ? '⏰ Final hours — every vote counts!' : '🗓️ Weekly board resets in'}
+          {finalHours
+            ? '⏰ Final hours of the week — every vote counts!'
+            : periodKey === 'weeklyVotes'
+              ? '🗓️ Weekly board resets in'
+              : '🗓️ Weekly votes reset in'}
         </span>
         <span className={`font-bold tabular-nums ${finalHours ? '' : 'text-[var(--color-accent)]'}`}>
           {formatCountdown(resetMs)}
