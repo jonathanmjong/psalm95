@@ -59,7 +59,7 @@ export function DailyHeartCard() {
               ? 'Pick a fandom and start claiming a heart for them every day.'
               : claimedToday
                 ? `Claimed today ✓${streak > 0 ? ` · 🔥 ${streak}-day streak` : ''} · resets at midnight KST (in ${formatCountdown(resetMs)})`
-                : `Your heart adds to ${fandomName}’s week. Resets at midnight KST (in ${formatCountdown(resetMs)}).`}
+                : `One tap adds a heart to ${fandomName}’s tally and keeps your streak alive. Resets at midnight KST (in ${formatCountdown(resetMs)}).`}
         </p>
         {error && <p className="mt-1 text-xs text-[var(--color-accent)]">{error}</p>}
       </div>
@@ -74,21 +74,24 @@ export function DailyHeartCard() {
       ) : !profile?.biasArtistId ? (
         <Link
           to="/fandoms"
-          className="shrink-0 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+          className="min-h-10 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
         >
-          Join a fandom to start claiming daily hearts
+          Join a fandom
         </Link>
       ) : claimedToday ? (
         <span className="shrink-0 rounded-full bg-[var(--color-surface-sunken)] px-4 py-2 text-sm font-semibold dark:bg-[var(--color-surface-sunken-dark)]">
           Claimed today ✓
         </span>
       ) : (
+        // The fandom name lives in the description line above, not in the label: names run
+        // long ("A.R.M.Y (Adorable Representative M.C for Youth)") and a shrink-0 button
+        // with a max-content label pushed the whole page into horizontal scroll on phones.
         <button
           onClick={claim}
           disabled={pending}
-          className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold"
+          className="btn-gradient min-h-10 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap"
         >
-          {pending ? 'Claiming…' : `Claim today’s heart for ${fandomName} `}
+          {pending ? 'Claiming…' : 'Claim today’s heart '}
           {!pending && <span className="heartbeat inline-block">💗</span>}
         </button>
       )}

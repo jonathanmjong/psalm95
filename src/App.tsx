@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'
 import { ToastHost } from './components/ToastHost'
@@ -16,6 +16,18 @@ const HallOfFame = lazy(() => import('./pages/HallOfFame').then((m) => ({ defaul
 const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.Privacy })))
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
+/** BrowserRouter keeps the scroll offset across navigations, so opening an artist from
+ * halfway down the board dropped you into the middle of their page. Reset on every path
+ * change (a hash still gets to do its own thing). */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (hash) return
+    window.scrollTo(0, 0)
+  }, [pathname, hash])
+  return null
+}
+
 function App() {
   useEffect(() => {
     // Capture an invite ref (?ref=UID) so it can credit the referrer on first sign-up.
@@ -30,6 +42,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <ScrollToTop />
       <Header />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <Suspense fallback={null}>

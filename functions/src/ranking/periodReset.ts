@@ -52,7 +52,7 @@ async function captureWeeklyWinner() {
   console.log(`Hall of Fame: ${winner.data().name} won ${endedWeekId} with ${votes} votes.`)
 }
 
-// The daily ranking-history snapshot (dailySnapshot.ts) runs shortly before each of
+// The daily ranking-history snapshot (dailySnapshot.ts) runs at 23:50 UTC, before each of
 // these, so the last data point in an artist's trend chart before a reset is that
 // period's final tally — these jobs only need to zero the live counter.
 
@@ -61,8 +61,15 @@ export const resetWeeklyVotes = onSchedule(
   async () => {
     await captureWeeklyWinner()
     await resetField('weeklyVotes')
-    await resetFandomHearts()
   },
+)
+
+/** Hearts are claimed on the midnight-KST day boundary, so their week has to end on that
+ * same clock — folded into the 00:00 UTC vote reset, a Korean fan who claimed at 08:00 KST
+ * Monday watched the heart vanish an hour later while the card still read "Claimed today". */
+export const resetFandomHeartsWeekly = onSchedule(
+  { schedule: '0 15 * * 0', timeZone: 'UTC' }, // Sunday 15:00 UTC = Monday 00:00 KST
+  () => resetFandomHearts(),
 )
 
 export const resetMonthlyVotes = onSchedule(
