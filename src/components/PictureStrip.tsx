@@ -1,4 +1,5 @@
 import type { ArtistPicture } from '../types'
+import { sized, sizedSrcSet } from '../lib/images'
 
 interface Props {
   pictures: ArtistPicture[]
@@ -21,9 +22,14 @@ export function PictureStrip({ pictures, artistName, onOpen, showVotes = false }
           aria-label={`Open ${artistName} picture`}
         >
           <img
-            src={pic.url}
+            src={sized(pic.url, 250)}
+            srcSet={sizedSrcSet(pic.url, 250, 500)}
+            sizes="112px"
+            width={112}
+            height={112}
             alt={`${artistName} fan photo`}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition group-hover:scale-105"
           />
           {showVotes && pic.voteCount > 0 && (

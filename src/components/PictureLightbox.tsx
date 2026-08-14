@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { deletePicture, votePicture } from '../lib/callables'
+import { sized } from '../lib/images'
 
 interface Props {
   picture: ArtistPicture
@@ -88,8 +89,9 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
         onClick={(e) => e.stopPropagation()}
       >
         <img
-          src={picture.url}
+          src={sized(picture.url, 1280)}
           alt={`${artistName} fan photo`}
+          decoding="async"
           className="max-h-[60vh] w-full bg-black object-contain"
         />
         <div className="flex flex-col gap-3 p-4">

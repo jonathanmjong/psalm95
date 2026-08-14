@@ -40,7 +40,7 @@ export function DailyHeartCard() {
     setError(null)
     try {
       const result = await claimDailyHeart()
-      celebrateStreak(result.data)
+      celebrateStreak(result.data, { handle: profile?.handle })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not claim your heart.')
     } finally {

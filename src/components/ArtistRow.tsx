@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
 import { ArtistMiniGraph } from './ArtistMiniGraph'
 import { RowPicturesPanel } from './RowPicturesPanel'
+import { ShareButton } from './ShareButton'
 import { castArtistVote } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
+import { sized, sizedSrcSet } from '../lib/images'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
   KR: 'K-pop',
@@ -37,6 +40,9 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
   const { pictures } = useTopPictures(artist.id, 5, 0, !artist.topPictureUrls)
   const thumbUrls = artist.topPictureUrls ?? pictures.map((p) => p.url)
   const { user, signInWithGoogle } = useAuth()
+  // Shared listener (see useUserProfile) — a board full of rows costs one subscription.
+  // Only used for the handle the streak brag links to.
+  const { profile } = useUserProfile()
   const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
   const [voteMessage, setVoteMessage] = useState<string | null>(null)
   /** Votes cast from this row in this session — applied locally so the raw weekly-votes
@@ -76,6 +82,15 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
     [artist, localVotes],
   )
 
+  // The rally a fresh vote is worth sharing. The rank claimed here is the artist's own
+  // board rank — `artist.rank` as recomputed server-side, falling back to the position
+  // this row is rendered at — never an invented fandom-board standing, which only the
+  // live /fandoms race knows.
+  const shareRank = artist.rank > 0 ? artist.rank : rank
+  const rallyText = artist.fandomName
+    ? `I just voted for ${artist.name} on PsalmTune 💜 They’re #${shareRank} on the board — ${artist.fandomName}, help us climb!`
+    : `I just voted for ${artist.name} on PsalmTune — they’re #${shareRank}. Every vote moves the board.`
+
   const handleVote = async () => {
     if (!user) {
       await signInWithGoogle()
@@ -91,7 +106,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
       const streak = result.data.currentStreak
       const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
       setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
-      celebrateStreak(result.data)
+      celebrateStreak(result.data, { handle: profile?.handle })
     } catch (err) {
       setVoteState('error')
       setVoteMessage(err instanceof Error ? err.message : 'Could not cast vote.')
@@ -117,134 +132,174 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
           <ArtistMiniGraph artist={artist} />
         </div>
       )}
-      <button
-        onClick={toggleExpanded}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left"
-      >
-        <span
-          className={`w-8 shrink-0 text-center tabular-nums ${
-            rank === 1
-              ? 'text-xl font-extrabold text-yellow-400'
-              : rank === 2
-                ? 'text-xl font-extrabold text-slate-400'
-                : rank === 3
-                  ? 'text-xl font-extrabold text-amber-600'
-                  : 'text-lg font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'
-          }`}
+      {/* The row header is a flex container, not one big <button>: the primary actions live
+          here now, and interactive elements can't legally nest inside a button. The name /
+          score region stays the expand toggle. */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <button
+          onClick={toggleExpanded}
+          aria-expanded={expanded}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
         >
-          {rank}
-        </span>
-        {thumbUrls[0] ? (
-          <img
-            src={thumbUrls[0]}
-            alt={artist.name}
-            className="h-12 w-12 shrink-0 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-12 w-12 shrink-0 rounded-full bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]" />
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-semibold">{artist.name}</span>
-            <span className="shrink-0 rounded-full bg-[var(--color-surface-sunken)] px-2 py-0.5 text-xs text-[var(--color-ink-soft)] dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-soft-dark)]">
-              {REGION_LABEL[artist.region]}
-            </span>
+          <span
+            className={`w-8 shrink-0 text-center tabular-nums ${
+              rank === 1
+                ? 'text-xl font-extrabold text-yellow-400'
+                : rank === 2
+                  ? 'text-xl font-extrabold text-slate-400'
+                  : rank === 3
+                    ? 'text-xl font-extrabold text-amber-600'
+                    : 'text-lg font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'
+            }`}
+          >
+            {rank}
+          </span>
+          {thumbUrls[0] ? (
+            <img
+              src={sized(thumbUrls[0], 120)}
+              srcSet={sizedSrcSet(thumbUrls[0], 120, 250)}
+              sizes="48px"
+              width={48}
+              height={48}
+              loading="lazy"
+              decoding="async"
+              alt={artist.name}
+              className="h-12 w-12 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-12 w-12 shrink-0 rounded-full bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-semibold">{artist.name}</span>
+              <span className="hidden shrink-0 rounded-full bg-[var(--color-surface-sunken)] px-2 py-0.5 text-xs text-[var(--color-ink-soft)] sm:inline dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-soft-dark)]">
+                {REGION_LABEL[artist.region]}
+              </span>
+            </div>
+            <div className="mt-1.5 max-w-xs">
+              <ScoreBreakdown artist={shownArtist} />
+            </div>
           </div>
-          <div className="mt-1.5 max-w-xs">
-            <ScoreBreakdown artist={shownArtist} />
-          </div>
-        </div>
-        <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          {thumbUrls.slice(0, 5).map((url, i) => (
+        </button>
+
+        <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
+          {thumbUrls.slice(0, 4).map((url, i) => (
             <img
               key={`${url}-${i}`}
-              src={url}
+              src={sized(url, 120)}
+              srcSet={sizedSrcSet(url, 120, 250)}
+              sizes="40px"
+              width={40}
+              height={40}
+              loading="lazy"
+              decoding="async"
               alt={`${artist.name} photo`}
               className="h-10 w-10 rounded-lg object-cover"
             />
           ))}
         </div>
-      </button>
 
+        {/* Primary actions, always reachable — no need to expand the row first. */}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="relative">
+            <button
+              onClick={handleVote}
+              disabled={voteState === 'voting'}
+              title={user ? `Vote for ${artist.name} this week` : 'Sign in to vote'}
+              className="btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4"
+            >
+              {voteState === 'voting' ? '…' : 'Vote'}
+            </button>
+            {floatId > 0 && (
+              <span
+                key={floatId}
+                aria-hidden
+                className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
+              >
+                +1
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPicsOpen(!picsOpen)}
+            aria-expanded={picsOpen}
+            aria-controls={`pictures-panel-${artist.id}`}
+            aria-label={`${picsOpen ? 'Hide' : 'Show'} pictures of ${artist.name}`}
+            title="Pictures — view and upload"
+            className={`flex h-10 w-10 items-center justify-center rounded-full border text-base transition ${
+              picsOpen
+                ? 'border-transparent bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]'
+                : 'border-[var(--color-hairline)] hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]'
+            }`}
+          >
+            📷
+          </button>
+          <Link
+            to={`/artist/${artist.id}`}
+            aria-label={`Open ${artist.name}'s page`}
+            title="Open artist page"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] text-[var(--color-ink-soft)] transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+
+      {/* Vote receipt + rally share, shown wherever the vote was cast from. */}
+      {voteMessage && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--color-hairline)] px-4 py-2 dark:border-[var(--color-hairline-dark)]">
+          <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            {voteMessage}
+          </span>
+          {voteState === 'voted' && (
+            <ShareButton
+              variant="inline"
+              label={artist.fandomName ? `Rally ${artist.fandomName}` : 'Share this'}
+              title={`${artist.name} on PsalmTune`}
+              text={rallyText}
+              copyMessage
+              url={`https://psalmtune.com/artist/${artist.id}`}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Pictures live outside the expanded details: the 📷 button opens them directly. */}
+      {picturesMounted && (
+        <div
+          id={`pictures-panel-${artist.id}`}
+          hidden={!picsOpen}
+          className="border-t border-[var(--color-hairline)] px-4 py-3 dark:border-[var(--color-hairline-dark)]"
+        >
+          <RowPicturesPanel artist={artist} />
+        </div>
+      )}
+
+      {/* Expanding adds detail — the actions above never needed it. */}
       {expanded && (
-        <div className="space-y-4 border-t border-[var(--color-hairline)] px-4 py-4 dark:border-[var(--color-hairline-dark)]">
+        <div className="space-y-3 border-t border-[var(--color-hairline)] px-4 py-4 dark:border-[var(--color-hairline-dark)]">
           <div>
             <h3 className="mb-1 text-sm font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
               Members
             </h3>
             <p className="text-sm">{artist.members.map((m) => m.name).join(', ')}</p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="group/vote relative">
-              <button
-                onClick={handleVote}
-                disabled={voteState === 'voting'}
-                className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold"
-              >
-                {user ? 'Vote for this week' : 'Sign in to vote'}
-              </button>
-              {floatId > 0 && (
-                <span
-                  key={floatId}
-                  aria-hidden
-                  className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
-                >
-                  +1
-                </span>
-              )}
-              {/* Hover explainer: how artist voting works */}
-              <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-60 rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-left text-xs leading-snug shadow-lg group-hover/vote:block dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
-                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
-                  How artist voting works
-                </p>
-                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-                  Vote for up to 3 different artists each week. Each vote counts toward their weekly, monthly
-                  and yearly totals and pushes them up the board. Sign in with Google to vote.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPicsOpen(!picsOpen)}
-              aria-expanded={picsOpen}
-              aria-controls={`pictures-panel-${artist.id}`}
-              className="flex min-h-10 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-3 py-2 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
-            >
-              📷 Pictures
-              <svg
-                viewBox="0 0 24 24"
-                className={`h-3.5 w-3.5 ${picsOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            <Link
-              to={`/artist/${artist.id}`}
-              className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
-            >
-              Open artist page
-            </Link>
-            {voteMessage && (
-              <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-                {voteMessage}
-              </span>
-            )}
-          </div>
-
-          {/* Mounted on first expand and kept mounted afterwards (just hidden), so
-              reopening the panel never costs a second read. */}
-          {picturesMounted && (
-            <div id={`pictures-panel-${artist.id}`} hidden={!picsOpen}>
-              <RowPicturesPanel artist={artist} />
-            </div>
-          )}
+          <p className="text-xs leading-snug text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Vote for up to 3 different artists each week — every vote counts toward their weekly and
+            monthly totals and pushes them up the board.
+          </p>
         </div>
       )}
     </div>

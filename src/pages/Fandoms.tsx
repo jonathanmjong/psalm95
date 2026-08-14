@@ -156,14 +156,18 @@ export function Fandoms() {
               )}
             </div>
           </div>
+          {/* Both messages quote the same live numbers the card is showing — rank and gap
+              come straight from the useLiveFandomRace ordering above. */}
           <ShareButton
             title={`${mine.artist.fandomName} on PsalmTune`}
+            copyMessage
+            label={myIndex === 0 ? 'Defend the crown' : 'Rally the fandom'}
             text={
               myIndex === 0
-                ? `${mine.artist.fandomName} is #1 on PsalmTune's fandom leaderboard 👑 Help us defend the crown!`
-                : `${mine.artist.fandomName} is #${myIndex + 1} on PsalmTune — ${myGapToNext.toLocaleString()} votes from moving up. Vote with us!`
+                ? `${mine.artist.fandomName} is #1 on PsalmTune’s fandom leaderboard 👑 Help us defend the crown!`
+                : `${mine.artist.fandomName} is #${myIndex + 1} — ${myGapToNext.toLocaleString()} votes behind #${myIndex} on PsalmTune. Vote now and help us overtake them!`
             }
-            url={`https://psalmtune.com/fandoms`}
+            url="https://psalmtune.com/fandoms"
           />
         </div>
       )}

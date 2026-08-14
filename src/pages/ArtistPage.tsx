@@ -22,6 +22,7 @@ import { JoinFandomButton } from '../components/JoinFandomButton'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
+import { sized, sizedSrcSet } from '../lib/images'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -113,7 +114,12 @@ export function ArtistPage() {
             aria-label={`Open ${artist.name}'s most-loved picture`}
           >
             <img
-              src={heroPicture.url}
+              src={sized(heroPicture.url, 250)}
+              srcSet={sizedSrcSet(heroPicture.url, 250, 500)}
+              sizes="176px"
+              width={176}
+              height={176}
+              decoding="async"
               alt={`${artist.name} — fan favorite`}
               className="h-full w-full object-cover transition group-hover:scale-105"
             />

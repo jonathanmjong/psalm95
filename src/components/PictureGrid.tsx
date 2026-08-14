@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { votePicture } from '../lib/callables'
+import { sized, sizedSrcSet } from '../lib/images'
 
 function PictureCard({
   picture,
@@ -44,9 +45,12 @@ function PictureCard({
         aria-label={`Open ${artistName} picture`}
       >
         <img
-          src={picture.url}
+          src={sized(picture.url, 250)}
+          srcSet={sizedSrcSet(picture.url, 250, 500)}
+          sizes="(min-width: 640px) 240px, 45vw"
           alt={`${artistName} fan photo`}
           loading="lazy"
+          decoding="async"
           className="aspect-square w-full object-cover transition hover:opacity-90"
         />
       </button>

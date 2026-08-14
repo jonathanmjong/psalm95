@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Member } from '../types'
 import { formatBirthdate, zodiacFromDate } from '../lib/zodiac'
 import { birthdayStatus, birthdayLabel } from '../lib/birthdays'
+import { sized, sizedSrcSet } from '../lib/images'
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -33,7 +34,13 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
       <div className="flex items-center gap-3">
         {photoUrl && imgOk ? (
           <img
-            src={photoUrl}
+            src={sized(photoUrl, 120)}
+            srcSet={sizedSrcSet(photoUrl, 120, 250)}
+            sizes="44px"
+            width={44}
+            height={44}
+            loading="lazy"
+            decoding="async"
             alt={member.name}
             onError={() => setImgOk(false)}
             className="h-11 w-11 shrink-0 rounded-full object-cover"

@@ -142,9 +142,11 @@ export function PublicProfile() {
             {joinedLabel && <span>{joinedLabel}</span>}
           </div>
         </div>
+        {/* Brag-shaped, and every number in it is one the page itself is showing. */}
         <ShareButton
           title={`@${profile.handle} on PsalmTune`}
-          text={`@${profile.handle} is on a ${profile.currentStreak}-day voting streak on PsalmTune 🔥`}
+          copyMessage
+          text={`@${profile.handle} on PsalmTune — 🔥 ${profile.currentStreak}-day streak, ${profile.totalVotes.toLocaleString()} votes for ${profile.fandomName ?? 'my faves'}.`}
           url={`https://psalmtune.com/u/${profile.handle}`}
         />
       </header>
