@@ -64,6 +64,8 @@ const P_COMMONS_CATEGORY = 'P373'
 const P_SPOTIFY_ARTIST_ID = 'P1902'
 const P_MUSICBRAINZ_ARTIST_ID = 'P434'
 const P_GENRE = 'P136'
+/** "has part(s)" — the member entities of a group, used for native-script name tokens. */
+const P_HAS_PART = 'P527'
 const P_RECORD_LABEL = 'P264'
 const P_COUNTRY_OF_ORIGIN = 'P495'
 const P_COUNTRY_OF_CITIZENSHIP = 'P27'
@@ -135,6 +137,8 @@ export interface ArtistRef {
   region?: string
   type?: string
   spotifyArtistId?: string | null
+  /** Used only to accept category/article files that name a member rather than the act. */
+  members?: { name: string }[]
 }
 
 export interface ResolvedEntity {
@@ -701,12 +705,48 @@ export async function fetchArtistPhotos(artist: ArtistRef): Promise<ArtistPhotoR
     return out
   }
 
-  // Stage 1 — the entity's own image (P18) and its Commons category (P373). Both are
-  // curated *about this entity*, so they are the highest-precision sources.
+  /**
+   * Does a filename actually name this act? Categories (and to a lesser extent articles)
+   * carry collateral — a station named after the group, a politician at an event they
+   * played, an exhibition a member attended. Matching against the entity's labels and
+   * aliases in *every* language is what makes this work for non-Latin filenames, where the
+   * act is written 빅스 / 乃木坂46 / 우주소녀 rather than in Latin script.
+   */
+  // Member labels come from Wikidata rather than our roster: idol photos are very often
+  // filed under one member's name in the local script (刘宇, 우주소녀), which a romanized
+  // roster name can never match.
+  const memberLabels: string[] = []
+  try {
+    const memberQids = claimIds(wd, P_HAS_PART).slice(0, 30)
+    if (memberQids.length > 0) {
+      for (const member of (await getEntities(memberQids)).values()) {
+        memberLabels.push(...labelsAndAliases(member))
+      }
+    }
+  } catch {
+    /* best effort — the act's own labels still gate the files */
+  }
+
+  const nameTokens = [
+    ...labelsAndAliases(wd),
+    ...memberLabels,
+    ...(artist.members ?? []).map((m) => m.name),
+    artist.name,
+  ]
+    .map((t) => normalizeName(t))
+    .filter((t) => t.length >= 2)
+  const mentionsArtist = (file: string): boolean => {
+    const normalized = normalizeName(decodeURIComponent(file))
+    return nameTokens.some((t) => normalized.includes(t))
+  }
+
+  // Stage 1 — the entity's own image (P18) and its Commons category (P373). P18 is curated
+  // *about this entity* and is taken as-is; the category is a container others can file
+  // loosely-related media into, so those have to name the act.
   const primary: string[] = clean(claimStrings(wd, P_IMAGE))
   if (entity.commonsCategory) {
     try {
-      primary.push(...clean(await commonsCategoryFiles(entity.commonsCategory)))
+      primary.push(...clean(await commonsCategoryFiles(entity.commonsCategory)).filter(mentionsArtist))
     } catch {
       /* best effort */
     }
@@ -724,7 +764,7 @@ export async function fetchArtistPhotos(artist: ArtistRef): Promise<ArtistPhotoR
       if (!title) continue
       entity.article ??= { wiki, title }
       try {
-        fromArticles.push(...clean(await articleImages(wiki, title)))
+        fromArticles.push(...clean(await articleImages(wiki, title)).filter(mentionsArtist))
       } catch {
         /* best effort */
       }

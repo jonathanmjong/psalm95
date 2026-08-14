@@ -126,6 +126,7 @@ async function repairArtist(doc) {
     region: artist.region,
     type: artist.type,
     spotifyArtistId: artist.spotifyArtistId ?? null,
+    members: (artist.members ?? []).map((m) => ({ name: m.name })),
   })
 
   const verified = new Map(result.images.map((image) => [urlKey(image.url), image]))
