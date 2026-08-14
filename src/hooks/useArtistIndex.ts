@@ -4,6 +4,8 @@ import { createSwrResource, swrDoc } from '../lib/swr'
 import { useSwrResource } from './useSwrResource'
 import type { Artist, Member, Region, ArtistType } from '../types'
 
+type ArtistFactors = NonNullable<Artist['factors']>
+
 /** One entry per artist in the compact `config/artistIndex` doc written by the hourly
  * `recomputeRankings` job — everything list surfaces render, none of the heavy member bios. */
 interface ArtistIndexEntry {
@@ -14,6 +16,8 @@ interface ArtistIndexEntry {
   generationId: string
   rank: number
   compositeScore: number
+  /** Absent until the first hourly run that writes it — see Artist['factors']. */
+  factors?: ArtistFactors
   weeklyVotes: number
   monthlyVotes: number
   yearlyVotes: number

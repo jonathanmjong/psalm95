@@ -37,7 +37,18 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   )
 
   const ranked = docs
-    .map((doc, i) => ({ doc, compositeScore: compositeScores[i], name: doc.data().name as string }))
+    .map((doc, i) => ({
+      doc,
+      compositeScore: compositeScores[i],
+      // The 0-100 values the composite is actually built from, denormalized onto the artist so
+      // the score bar can render the same numbers the ranking used. Without them the client has
+      // no way to reconstruct a roster-wide min-max from a single doc.
+      factors: Object.fromEntries(FACTORS.map((f) => [f, normalizedByFactor[f][i]])) as Record<
+        (typeof FACTORS)[number],
+        number
+      >,
+      name: doc.data().name as string,
+    }))
     .sort((a, b) => b.compositeScore - a.compositeScore || a.name.localeCompare(b.name))
 
   // Top-voted picture URLs per artist, denormalized so list rows need zero picture queries.
@@ -66,9 +77,10 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
 
   for (let i = 0; i < ranked.length; i += BATCH_SIZE) {
     const batch = db.batch()
-    ranked.slice(i, i + BATCH_SIZE).forEach(({ doc, compositeScore }, offset) => {
+    ranked.slice(i, i + BATCH_SIZE).forEach(({ doc, compositeScore, factors }, offset) => {
       batch.update(doc.ref, {
         compositeScore,
+        factors,
         rank: i + offset + 1,
         topPictureUrls: topPictureUrls.get(doc.id) ?? [],
       })
@@ -80,7 +92,7 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   // card, hall-of-fame labels): everything they render, none of the heavy member bios. At ~107
   // artists this serializes to roughly 150-250 KB (the picture URLs dominate) — far below the
   // 1 MiB doc limit and a fraction of the ~1 MB full-roster fetch it replaces.
-  const indexArtists = ranked.map(({ doc, compositeScore }, i) => {
+  const indexArtists = ranked.map(({ doc, compositeScore, factors }, i) => {
     const data = doc.data()
     const members = ((data.members as { memberId: string; name: string; birthdate?: string }[]) ?? []).map(
       (m) => ({
@@ -97,6 +109,7 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
       generationId: data.generationId,
       rank: i + 1,
       compositeScore,
+      factors,
       weeklyVotes: data.weeklyVotes ?? 0,
       monthlyVotes: data.monthlyVotes ?? 0,
       yearlyVotes: data.yearlyVotes ?? 0,

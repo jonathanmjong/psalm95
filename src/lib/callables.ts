@@ -14,10 +14,13 @@ export const castArtistVote = httpsCallable<
   { weeklyVotesRemaining: number } & StreakResult
 >(functions, 'castArtistVote')
 
-export const votePicture = httpsCallable<{ pictureId: string; artistId: string }, { voteCount: number }>(
-  functions,
-  'votePicture',
-)
+/** Hearting a picture is idempotent: a repeat heart resolves with `alreadyVoted: true` and the
+ * unchanged count instead of throwing, so callers can just render the filled state. Real
+ * failures (daily cap, missing picture, signed out) still reject with an HttpsError. */
+export const votePicture = httpsCallable<
+  { pictureId: string; artistId: string },
+  { voteCount: number; alreadyVoted: boolean }
+>(functions, 'votePicture')
 
 interface TaggedMember {
   artistId: string

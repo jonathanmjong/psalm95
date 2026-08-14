@@ -1,15 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
-import { useUserProfile } from '../hooks/useUserProfile'
-import { useAuth } from '../contexts/AuthContext'
 import { ScoreBreakdown } from './ScoreBreakdown'
 import { ArtistMiniGraph } from './ArtistMiniGraph'
 import { RowPicturesPanel } from './RowPicturesPanel'
-import { ShareButton } from './ShareButton'
-import { castArtistVote } from '../lib/callables'
-import { celebrateStreak } from '../lib/streak'
+import { VoteButton } from './VoteButton'
 import { sized, sizedSrcSet } from '../lib/images'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
@@ -39,25 +35,13 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
   // the per-row pictures query only runs for docs that predate that field.
   const { pictures } = useTopPictures(artist.id, 5, 0, !artist.topPictureUrls)
   const thumbUrls = artist.topPictureUrls ?? pictures.map((p) => p.url)
-  const { user, signInWithGoogle } = useAuth()
-  // Shared listener (see useUserProfile) — a board full of rows costs one subscription.
-  // Only used for the handle the streak brag links to.
-  const { profile } = useUserProfile()
-  const [voteState, setVoteState] = useState<'idle' | 'voting' | 'voted' | 'error'>('idle')
-  const [voteMessage, setVoteMessage] = useState<string | null>(null)
-  /** Votes cast from this row in this session — applied locally so the raw weekly-votes
-   * figure responds immediately. The composite score and rank are recomputed hourly and
-   * are deliberately left untouched. */
+  /** Votes cast from this row in this session — applied locally so the weekly-votes segment
+   * responds immediately. The composite score and rank are recomputed hourly and are
+   * deliberately left untouched. */
   const [localVotes, setLocalVotes] = useState(0)
-  /** Non-zero while a "+1" receipt is floating off the vote button; the value doubles as
-   * the animation's restart key so rapid votes each get their own float. */
-  const [floatId, setFloatId] = useState(0)
-
-  useEffect(() => {
-    if (!floatId) return
-    const t = setTimeout(() => setFloatId(0), 1000)
-    return () => clearTimeout(t)
-  }, [floatId])
+  /** The row's own full-width receipt strip, handed to VoteButton so its receipt lands below
+   * the row header instead of inside the narrow action cluster. */
+  const [receiptSlot, setReceiptSlot] = useState<HTMLDivElement | null>(null)
 
   const picsOpen = picturesOpen ?? localPicturesOpen
 
@@ -73,44 +57,6 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
     const next = !expanded
     setExpanded(next)
     if (!next && picsOpen) setPicsOpen(false)
-  }
-
-  // Only the raw weekly-votes input to the breakdown moves optimistically; every other
-  // segment is a periodically-refreshed metric.
-  const shownArtist = useMemo(
-    () => (localVotes === 0 ? artist : { ...artist, weeklyVotes: artist.weeklyVotes + localVotes }),
-    [artist, localVotes],
-  )
-
-  // The rally a fresh vote is worth sharing. The rank claimed here is the artist's own
-  // board rank — `artist.rank` as recomputed server-side, falling back to the position
-  // this row is rendered at — never an invented fandom-board standing, which only the
-  // live /fandoms race knows.
-  const shareRank = artist.rank > 0 ? artist.rank : rank
-  const rallyText = artist.fandomName
-    ? `I just voted for ${artist.name} on PsalmTune 💜 They’re #${shareRank} on the board — ${artist.fandomName}, help us climb!`
-    : `I just voted for ${artist.name} on PsalmTune — they’re #${shareRank}. Every vote moves the board.`
-
-  const handleVote = async () => {
-    if (!user) {
-      await signInWithGoogle()
-      return
-    }
-    setVoteState('voting')
-    setVoteMessage(null)
-    try {
-      const result = await castArtistVote({ artistId: artist.id })
-      setVoteState('voted')
-      setLocalVotes((n) => n + 1)
-      setFloatId(Date.now())
-      const streak = result.data.currentStreak
-      const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
-      setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
-      celebrateStreak(result.data, { handle: profile?.handle })
-    } catch (err) {
-      setVoteState('error')
-      setVoteMessage(err instanceof Error ? err.message : 'Could not cast vote.')
-    }
   }
 
   return (
@@ -177,7 +123,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               </span>
             </div>
             <div className="mt-1.5 max-w-xs">
-              <ScoreBreakdown artist={shownArtist} />
+              <ScoreBreakdown artist={artist} pendingVotes={localVotes} />
             </div>
           </div>
         </button>
@@ -201,25 +147,12 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
 
         {/* Primary actions, always reachable — no need to expand the row first. */}
         <div className="flex shrink-0 items-center gap-1.5">
-          <div className="relative">
-            <button
-              onClick={handleVote}
-              disabled={voteState === 'voting'}
-              title={user ? `Vote for ${artist.name} this week` : 'Sign in to vote'}
-              className="btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4"
-            >
-              {voteState === 'voting' ? '…' : 'Vote'}
-            </button>
-            {floatId > 0 && (
-              <span
-                key={floatId}
-                aria-hidden
-                className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
-              >
-                +1
-              </span>
-            )}
-          </div>
+          <VoteButton
+            artist={artist}
+            fallbackRank={rank}
+            receiptContainer={receiptSlot}
+            onVoted={() => setLocalVotes((n) => n + 1)}
+          />
           <button
             type="button"
             onClick={() => setPicsOpen(!picsOpen)}
@@ -257,24 +190,9 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
         </div>
       </div>
 
-      {/* Vote receipt + rally share, shown wherever the vote was cast from. */}
-      {voteMessage && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--color-hairline)] px-4 py-2 dark:border-[var(--color-hairline-dark)]">
-          <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-            {voteMessage}
-          </span>
-          {voteState === 'voted' && (
-            <ShareButton
-              variant="inline"
-              label={artist.fandomName ? `Rally ${artist.fandomName}` : 'Share this'}
-              title={`${artist.name} on PsalmTune`}
-              text={rallyText}
-              copyMessage
-              url={`https://psalmtune.com/artist/${artist.id}`}
-            />
-          )}
-        </div>
-      )}
+      {/* Vote receipt + rally share, rendered here by VoteButton — full row width, styled by
+          the receipt itself so this stays a zero-height anchor until a vote is cast. */}
+      <div ref={setReceiptSlot} />
 
       {/* Pictures live outside the expanded details: the 📷 button opens them directly. */}
       {picturesMounted && (

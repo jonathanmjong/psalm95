@@ -19,6 +19,7 @@ import { ArtistAbout } from '../components/ArtistAbout'
 import { Comments } from '../components/Comments'
 import { ShareButton } from '../components/ShareButton'
 import { JoinFandomButton } from '../components/JoinFandomButton'
+import { VoteButton } from '../components/VoteButton'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
@@ -169,7 +170,12 @@ export function ArtistPage() {
         <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {artist.members.map((m) => m.name).join(', ')}
         </p>
-        <JoinFandomButton artist={artist} />
+        {/* Voting is the point of this page — every share link, prerendered result, fandom row
+            and birthday chip lands here, so the primary action lives here too. */}
+        <div className="flex flex-wrap items-center gap-3">
+          <VoteButton artist={artist} variant="primary" />
+          <JoinFandomButton artist={artist} />
+        </div>
         <div className="max-w-sm">
           <ScoreBreakdown artist={artist} />
         </div>

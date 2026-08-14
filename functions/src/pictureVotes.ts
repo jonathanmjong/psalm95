@@ -22,14 +22,20 @@ export const votePicture = onCall<{ pictureId: string; artistId: string }>(async
   const userRef = db.doc(`users/${uid}`)
   const todayKst = currentDayIdKST()
 
-  const voteCount = await db.runTransaction(async (tx) => {
+  return await db.runTransaction(async (tx) => {
     const [voteSnap, pictureSnap, userSnap] = await Promise.all([
       tx.get(voteRef),
       tx.get(pictureRef),
       tx.get(userRef),
     ])
-    if (voteSnap.exists) throw new HttpsError('already-exists', 'You already voted for this picture.')
     if (!pictureSnap.exists) throw new HttpsError('not-found', 'Picture not found.')
+
+    // Hearting a photo you already hearted is an idempotent no-op rather than an error: the
+    // client has no way to know it voted on a previous visit, so an error there is just a dead
+    // tap. Nothing is written, so the daily ceiling below never moves on a repeat.
+    if (voteSnap.exists) {
+      return { voteCount: (pictureSnap.data()?.voteCount ?? 0) as number, alreadyVoted: true }
+    }
 
     const userData = userSnap.data() ?? {}
     const heartsToday =
@@ -44,8 +50,6 @@ export const votePicture = onCall<{ pictureId: string; artistId: string }>(async
     tx.update(pictureRef, { voteCount: FieldValue.increment(1) })
     tx.set(userRef, { pictureHeartsToday: heartsToday + 1, pictureHeartsDate: todayKst }, { merge: true })
 
-    return (pictureSnap.data()?.voteCount ?? 0) + 1
+    return { voteCount: ((pictureSnap.data()?.voteCount ?? 0) as number) + 1, alreadyVoted: false }
   })
-
-  return { voteCount }
 })

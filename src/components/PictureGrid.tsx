@@ -17,6 +17,7 @@ function PictureCard({
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
   const [pending, setPending] = useState(false)
+  const [voteError, setVoteError] = useState<string | null>(null)
 
   const handleVote = async () => {
     if (!user) {
@@ -25,12 +26,16 @@ function PictureCard({
     }
     if (voted || pending) return
     setPending(true)
+    setVoteError(null)
     try {
       const result = await votePicture({ pictureId: picture.id, artistId: picture.artistId })
+      // `alreadyVoted` means a heart from an earlier visit — the filled state is the whole
+      // answer, and the count comes back unchanged.
       setVoteCount(result.data.voteCount)
       setVoted(true)
-    } catch {
-      // Duplicate votes / not-signed-in errors surface as a disabled state; no need to alarm the user.
+    } catch (err) {
+      // The daily heart cap and network failures both used to land here as a dead tap.
+      setVoteError(err instanceof Error ? err.message : 'Could not heart that photo.')
     } finally {
       setPending(false)
     }
@@ -97,6 +102,7 @@ function PictureCard({
           </div>
         </div>
       </figcaption>
+      {voteError && <p className="px-3 pb-2 text-right text-xs text-red-500">{voteError}</p>}
     </figure>
   )
 }

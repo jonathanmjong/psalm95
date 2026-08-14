@@ -20,6 +20,7 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
   const [pending, setPending] = useState(false)
+  const [voteError, setVoteError] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -45,13 +46,17 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
     }
     if (voted || pending) return
     setPending(true)
+    setVoteError(null)
     try {
       const result = await votePicture({ pictureId: picture.id, artistId: picture.artistId })
       setVoteCount(result.data.voteCount)
       setVoted(true)
-      onVoted?.()
-    } catch {
-      // Duplicate vote / offline — leave the button in its resting state.
+      // A heart from an earlier visit is a no-op server-side: fill the heart, but don't ask
+      // the parent sections to re-sort over an unchanged count.
+      if (!result.data.alreadyVoted) onVoted?.()
+    } catch (err) {
+      // The daily heart cap and network failures both used to land here as a dead tap.
+      setVoteError(err instanceof Error ? err.message : 'Could not heart that photo.')
     } finally {
       setPending(false)
     }
@@ -124,6 +129,7 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
               <span className="tabular-nums">{voteCount}</span>
             </button>
           </div>
+          {voteError && <p className="text-right text-xs text-red-500">{voteError}</p>}
           {ownUpload &&
             (confirmingDelete ? (
               <div className="flex items-center gap-2 text-xs">
