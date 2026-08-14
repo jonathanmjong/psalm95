@@ -4,8 +4,13 @@ import type { Artist } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { ShareButton } from './ShareButton'
+import { HoverTip } from './HoverTip'
 import { castArtistVote } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
+import { currentWeekId } from '../lib/dates'
+
+/** Mirrors WEEKLY_VOTE_LIMIT in functions/src/votes.ts. */
+const WEEKLY_VOTE_LIMIT = 3
 
 interface Props {
   artist: Artist
@@ -99,31 +104,56 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
     </div>
   ) : null
 
+  const votesUsed = profile?.weeklyArtistVotes?.[currentWeekId()]?.length ?? 0
+  const votesLeft = Math.max(0, WEEKLY_VOTE_LIMIT - votesUsed)
+  const alreadyVotedThisWeek =
+    profile?.weeklyArtistVotes?.[currentWeekId()]?.includes(artist.id) ?? false
+
+  const tip = (
+    <>
+      <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+        {artist.name} · {artist.weeklyVotes.toLocaleString()} vote
+        {artist.weeklyVotes === 1 ? '' : 's'} this week
+      </p>
+      <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        {artist.monthlyVotes.toLocaleString()} this month · {artist.yearlyVotes.toLocaleString()} this year
+      </p>
+      <p className="mt-1.5 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        {!user
+          ? 'Sign in to vote — 3 votes a week, one per artist.'
+          : alreadyVotedThisWeek
+            ? `You already voted for ${artist.name} this week. ${votesLeft} vote${votesLeft === 1 ? '' : 's'} left for other artists.`
+            : `You have ${votesLeft} of 3 votes left this week. Votes reset Monday.`}
+      </p>
+    </>
+  )
+
   return (
     <>
-      <div className="relative">
-        <button
-          onClick={handleVote}
-          disabled={voteState === 'voting'}
-          title={user ? `Vote for ${artist.name} this week` : 'Sign in to vote'}
-          className={
-            variant === 'primary'
-              ? 'btn-gradient min-h-10 rounded-full px-5 py-2 text-sm font-semibold'
-              : 'btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4'
-          }
-        >
-          {voteState === 'voting' ? '…' : variant === 'primary' ? `Vote for ${artist.name}` : 'Vote'}
-        </button>
-        {floatId > 0 && (
-          <span
-            key={floatId}
-            aria-hidden
-            className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
+      <HoverTip tip={tip} width="w-60">
+        <div className="relative">
+          <button
+            onClick={handleVote}
+            disabled={voteState === 'voting'}
+            className={
+              variant === 'primary'
+                ? 'btn-gradient min-h-10 rounded-full px-5 py-2 text-sm font-semibold'
+                : 'btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4'
+            }
           >
-            +1
-          </span>
-        )}
-      </div>
+            {voteState === 'voting' ? '…' : variant === 'primary' ? `Vote for ${artist.name}` : 'Vote'}
+          </button>
+          {floatId > 0 && (
+            <span
+              key={floatId}
+              aria-hidden
+              className="vote-float pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 text-sm font-extrabold text-[var(--color-accent)]"
+            >
+              +1
+            </span>
+          )}
+        </div>
+      </HoverTip>
       {receipt && (receiptContainer ? createPortal(receipt, receiptContainer) : receipt)}
     </>
   )

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
 import { ScoreBreakdown } from './ScoreBreakdown'
 import { ArtistMiniGraph } from './ArtistMiniGraph'
 import { RowPicturesPanel } from './RowPicturesPanel'
 import { VoteButton } from './VoteButton'
+import { HoverTip } from './HoverTip'
 import { sized, sizedSrcSet } from '../lib/images'
 
 const REGION_LABEL: Record<Artist['region'], string> = {
@@ -24,7 +24,6 @@ interface Props {
 }
 
 export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Props) {
-  const [expanded, setExpanded] = useState(false)
   const [localPicturesOpen, setLocalPicturesOpen] = useState(false)
   /** True once the pictures panel has been opened at least once. The panel — and the
    *  Firestore read inside it — is mounted only from then on, so the 12 rows on a Home
@@ -51,14 +50,6 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
     onPicturesToggle?.(open)
   }
 
-  // Collapsing the row also puts the pictures panel away, so reopening the row does not
-  // spring back to a panel the user thought they had closed.
-  const toggleExpanded = () => {
-    const next = !expanded
-    setExpanded(next)
-    if (!next && picsOpen) setPicsOpen(false)
-  }
-
   return (
     <div
       className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
@@ -67,7 +58,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
     >
       {/* Popularity ranking trend that follows the cursor (desktop only; mobile users expand
           the row). position:fixed + high z keeps it above everything, instantly. */}
-      {!expanded && cursor && (
+      {!picsOpen && cursor && (
         <div
           className="pointer-events-none fixed z-50 hidden md:block"
           style={{
@@ -79,12 +70,14 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
         </div>
       )}
       {/* The row header is a flex container, not one big <button>: the primary actions live
-          here now, and interactive elements can't legally nest inside a button. The name /
-          score region stays the expand toggle. */}
+          here now, and interactive elements can't legally nest inside a button. */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <button
-          onClick={toggleExpanded}
-          aria-expanded={expanded}
+        {/* A real link, so the row opens the full artist page in a new tab and cmd/middle-click
+            and "open in new tab" all behave the way the rest of the web does. */}
+        <a
+          href={`/artist/${artist.id}`}
+          target="_blank"
+          rel="noopener"
           className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
         >
           <span
@@ -126,7 +119,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               <ScoreBreakdown artist={artist} pendingVotes={localVotes} />
             </div>
           </div>
-        </button>
+        </a>
 
         <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
           {thumbUrls.slice(0, 4).map((url, i) => (
@@ -153,40 +146,87 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
             receiptContainer={receiptSlot}
             onVoted={() => setLocalVotes((n) => n + 1)}
           />
-          <button
-            type="button"
-            onClick={() => setPicsOpen(!picsOpen)}
-            aria-expanded={picsOpen}
-            aria-controls={`pictures-panel-${artist.id}`}
-            aria-label={`${picsOpen ? 'Hide' : 'Show'} pictures of ${artist.name}`}
-            title="Pictures — view and upload"
-            className={`flex h-10 w-10 items-center justify-center rounded-full border text-base transition ${
-              picsOpen
-                ? 'border-transparent bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]'
-                : 'border-[var(--color-hairline)] hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]'
-            }`}
+          <HoverTip
+            align="right"
+            width="w-64"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  Photos of {artist.name}
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Opens the fan gallery right here in the row. Tap any photo to view it full size and
+                  heart the ones you love — the most-loved photo becomes their picture on the board.
+                </p>
+                <p className="mt-1.5 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  To add your own: hit <strong>Upload</strong> in the gallery, pick an image (under
+                  10 MB), tag the members in it, and confirm you have the rights to share it. You can
+                  have 3 uploads at a time — delete one to free a slot.
+                </p>
+              </>
+            }
           >
-            📷
-          </button>
-          <Link
-            to={`/artist/${artist.id}`}
-            aria-label={`Open ${artist.name}'s page`}
-            title="Open artist page"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] text-[var(--color-ink-soft)] transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+            <button
+              type="button"
+              onClick={() => setPicsOpen(!picsOpen)}
+              aria-expanded={picsOpen}
+              aria-controls={`pictures-panel-${artist.id}`}
+              aria-label={`${picsOpen ? 'Hide' : 'Show'} pictures of ${artist.name}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border text-base transition ${
+                picsOpen
+                  ? 'border-transparent bg-[var(--color-surface-sunken)] dark:bg-[var(--color-surface-sunken-dark)]'
+                  : 'border-[var(--color-hairline)] hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]'
+              }`}
             >
-              <path d="M7 17 17 7M9 7h8v8" />
-            </svg>
-          </Link>
+              📷
+            </button>
+          </HoverTip>
+          <HoverTip
+            align="right"
+            width="w-64"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  {artist.name} · #{artist.rank > 0 ? artist.rank : rank} {REGION_LABEL[artist.region]}
+                </p>
+                {artist.fandomName && (
+                  <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                    Fandom: {artist.fandomName}
+                  </p>
+                )}
+                {artist.members.length > 0 && (
+                  <p className="mt-1 line-clamp-2 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                    {artist.members.map((m) => m.name).join(', ')}
+                  </p>
+                )}
+                <p className="mt-1.5 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Full profile: member bios, birthdays, ranking history, photo gallery and comments.
+                  <strong> Click to open in a new tab.</strong>
+                </p>
+              </>
+            }
+          >
+            <a
+              href={`/artist/${artist.id}`}
+              target="_blank"
+              rel="noopener"
+              aria-label={`Open ${artist.name}'s page in a new tab`}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] text-[var(--color-ink-soft)] transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </a>
+          </HoverTip>
         </div>
       </div>
 
@@ -205,21 +245,6 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
         </div>
       )}
 
-      {/* Expanding adds detail — the actions above never needed it. */}
-      {expanded && (
-        <div className="space-y-3 border-t border-[var(--color-hairline)] px-4 py-4 dark:border-[var(--color-hairline-dark)]">
-          <div>
-            <h3 className="mb-1 text-sm font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-              Members
-            </h3>
-            <p className="text-sm">{artist.members.map((m) => m.name).join(', ')}</p>
-          </div>
-          <p className="text-xs leading-snug text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-            Vote for up to 3 different artists each week — every vote counts toward their weekly and
-            monthly totals and pushes them up the board.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
