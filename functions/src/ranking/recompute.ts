@@ -9,16 +9,26 @@ const TOP_PICTURE_COUNT = 5
 /** Concurrency cap for the per-artist top-pictures queries. */
 const PICTURE_QUERY_CHUNK = 20
 
+/**
+ * Vote factors are normalized against at least this many votes. Plain min-max makes the
+ * current leader 100 no matter how thin the vote base is, so with three votes on the whole
+ * board a single vote outscored an artist with millions of listeners. Scaling against a
+ * floor keeps one vote worth ~4 points instead of 100; once real weekly volume passes the
+ * floor the true maximum takes over and this stops having any effect.
+ */
+const VOTE_SCALE_FLOOR = 25
+
 function rawValue(data: FirebaseFirestore.DocumentData, factor: (typeof FACTORS)[number]): number {
   if (factor === 'weeklyVotes' || factor === 'monthlyVotes') return data[factor] ?? 0
   return data.metrics?.[factor]?.value ?? 0
 }
 
 /** Min-max normalizes a factor to 0-100 across all artists. Zero variance (or all-stale/zero
- * data) normalizes to 0 for every artist rather than dividing by zero. */
-function normalize(values: number[]): number[] {
+ * data) normalizes to 0 for every artist rather than dividing by zero. `floor` raises the top
+ * of the scale so a near-empty factor can't hand its leader a perfect score. */
+function normalize(values: number[], floor = 0): number[] {
   const min = Math.min(...values)
-  const max = Math.max(...values)
+  const max = Math.max(Math.max(...values), floor)
   if (max === min) return values.map(() => 0)
   return values.map((v) => ((v - min) / (max - min)) * 100)
 }
@@ -29,7 +39,13 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   const docs = snap.docs
 
   const normalizedByFactor = Object.fromEntries(
-    FACTORS.map((factor) => [factor, normalize(docs.map((d) => rawValue(d.data(), factor)))]),
+    FACTORS.map((factor) => [
+      factor,
+      normalize(
+        docs.map((d) => rawValue(d.data(), factor)),
+        factor === 'popularity' ? 0 : VOTE_SCALE_FLOOR,
+      ),
+    ]),
   )
 
   const compositeScores = docs.map((_, i) =>
