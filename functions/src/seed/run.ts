@@ -64,7 +64,16 @@ async function seedArtist(artist: (typeof artistSeeds)[number]) {
   const existingSeeded = await picturesRef.where('source', '==', 'wikimedia-seed').get()
   await Promise.all(existingSeeded.docs.map((doc) => doc.ref.delete()))
 
-  const images = await fetchWikimediaImages(artist.name)
+  // Identity-resolved (Wikidata) photos. Passing the whole seed record — not just the
+  // name — is what lets the resolver verify the entity via Spotify id / region / type
+  // instead of text-matching the name against Commons filenames.
+  const images = await fetchWikimediaImages({
+    id: artist.id,
+    name: artist.name,
+    region: artist.region,
+    type: artist.type,
+    spotifyArtistId: artist.spotifyArtistId ?? null,
+  })
   for (const image of images) {
     await picturesRef.add({
       artistId: artist.id,
