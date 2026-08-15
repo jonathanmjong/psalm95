@@ -14,6 +14,9 @@ interface CreatePictureData {
   artistId: string
   storagePath: string
   taggedMembers?: TaggedMember[]
+  /** Who took the photo, as typed by the uploader. Fansite photographers are protective of
+   * their work, and an uncredited repost is a reliable way for a fan site to get piled on. */
+  credit?: string
 }
 
 function publicUrl(bucketName: string, path: string): string {
@@ -24,7 +27,8 @@ export const createPictureDoc = onCall<CreatePictureData>(async (request) => {
   const uid = request.auth?.uid
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in to upload.')
 
-  const { artistId, storagePath, taggedMembers = [] } = request.data
+  const { artistId, storagePath, taggedMembers = [], credit } = request.data
+  const creditText = typeof credit === 'string' ? credit.trim().slice(0, 120) : ''
   if (!artistId || !storagePath || !storagePath.includes(`/uploads/${uid}/`)) {
     throw new HttpsError('invalid-argument', 'Invalid upload payload.')
   }
@@ -55,6 +59,7 @@ export const createPictureDoc = onCall<CreatePictureData>(async (request) => {
           taggedMembers,
           taggedMemberKeys: taggedMembers.map((m) => `${m.artistId}_${m.memberId}`),
           source: 'user-upload',
+          ...(creditText ? { attribution: { author: creditText, license: 'Credited by uploader' } } : {}),
           voteCount: 0,
         },
         { merge: true },

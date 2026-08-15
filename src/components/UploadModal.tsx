@@ -23,6 +23,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [confirmedRights, setConfirmedRights] = useState(false)
+  const [credit, setCredit] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +45,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
         artistId,
         storagePath,
         taggedMembers: selectedMembers.map((memberId) => ({ artistId, memberId })),
+        credit: credit.trim() || undefined,
       })
       onUploaded()
       onClose()
@@ -102,6 +104,23 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
           </div>
         </div>
       )}
+
+      {/* Fansite photographers are protective of their work, and an uncredited repost is one
+          of the fastest ways for a fan site to get piled on. Optional, but asked for by name. */}
+      <label className="block space-y-1 text-sm">
+        <span className="font-medium">Photo credit (optional)</span>
+        <input
+          type="text"
+          value={credit}
+          onChange={(e) => setCredit(e.target.value)}
+          maxLength={120}
+          placeholder="Photographer or source, e.g. @fansitename"
+          className="w-full rounded-xl border border-[var(--color-hairline)] bg-transparent px-3 py-2 text-sm dark:border-[var(--color-hairline-dark)]"
+        />
+        <span className="block text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          Shown under the photo. If it isn’t yours, credit whoever took it.
+        </span>
+      </label>
 
       <label className="flex items-start gap-2 text-sm">
         <input

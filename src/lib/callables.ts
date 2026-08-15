@@ -28,7 +28,7 @@ interface TaggedMember {
 }
 
 export const createPictureDoc = httpsCallable<
-  { artistId: string; storagePath: string; taggedMembers?: TaggedMember[] },
+  { artistId: string; storagePath: string; taggedMembers?: TaggedMember[]; credit?: string },
   { pictureId: string }
 >(functions, 'createPictureDoc')
 
