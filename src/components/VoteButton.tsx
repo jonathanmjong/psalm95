@@ -7,7 +7,7 @@ import { ShareButton } from './ShareButton'
 import { HoverTip } from './HoverTip'
 import { castArtistVote } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
-import { currentWeekId } from '../lib/dates'
+import { currentWeekId, msUntilWeeklyReset, formatCountdown } from '../lib/dates'
 import { plural } from '../lib/plural'
 
 /** Mirrors WEEKLY_VOTE_LIMIT in functions/src/votes.ts. */
@@ -64,6 +64,18 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
       await signInWithGoogle()
       return
     }
+    // Out of votes: answer on the spot instead of spending a round trip to be told no. The
+    // button stays tappable precisely so this message is reachable — a disabled button on a
+    // touch device explains nothing.
+    if (outOfVotes) {
+      setVoteState('error')
+      setVoteMessage(
+        `You've used all ${WEEKLY_VOTE_LIMIT} of your votes this week. You get 3 more in ${formatCountdown(
+          msUntilWeeklyReset(),
+        )} (Monday).`,
+      )
+      return
+    }
     setVoteState('voting')
     setVoteMessage(null)
     try {
@@ -107,8 +119,17 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
 
   const votesUsed = profile?.weeklyArtistVotes?.[currentWeekId()]?.length ?? 0
   const votesLeft = Math.max(0, WEEKLY_VOTE_LIMIT - votesUsed)
-  const alreadyVotedThisWeek =
-    profile?.weeklyArtistVotes?.[currentWeekId()]?.includes(artist.id) ?? false
+  /**
+   * Whether *this* user has already spent a vote on this artist this week. Read from the
+   * profile, so it survives a reload and shows up on every surface the artist appears on —
+   * not just the button that was clicked. `voteState` covers the gap between the vote
+   * landing and the profile listener catching up.
+   */
+  const votedForThisArtist =
+    voteState === 'voted' || (profile?.weeklyArtistVotes?.[currentWeekId()]?.includes(artist.id) ?? false)
+  const alreadyVotedThisWeek = votedForThisArtist
+  /** Signed in, all three votes spent, and none of them on this artist. */
+  const outOfVotes = !!user && votesLeft === 0 && !votedForThisArtist
 
   const tip = (
     <>
@@ -123,7 +144,9 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
           ? 'Sign in to vote — 3 votes a week, one per artist.'
           : alreadyVotedThisWeek
             ? `You already voted for ${artist.name} this week. ${plural(votesLeft, 'vote')} left for other artists.`
-            : `You have ${votesLeft} of 3 votes left this week. Votes reset Monday.`}
+            : outOfVotes
+              ? `All ${WEEKLY_VOTE_LIMIT} of your votes are spent. You get 3 more in ${formatCountdown(msUntilWeeklyReset())} (Monday).`
+              : `You have ${votesLeft} of 3 votes left this week. Votes reset Monday.`}
       </p>
     </>
   )
@@ -132,16 +155,64 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
     <>
       <HoverTip tip={tip} width="w-60">
         <div className="relative">
+          {/* Once you've voted for this artist the button becomes a receipt rather than a
+              call to action: the server rejects a second vote for the same artist this week,
+              so offering the tap again would only produce an error. */}
           <button
             onClick={handleVote}
-            disabled={voteState === 'voting'}
+            disabled={voteState === 'voting' || votedForThisArtist}
+            aria-label={
+              votedForThisArtist
+                ? `You voted for ${artist.name} this week`
+                : outOfVotes
+                  ? 'No votes left this week — see when they reset'
+                  : `Vote for ${artist.name}`
+            }
             className={
-              variant === 'primary'
-                ? 'btn-gradient min-h-10 rounded-full px-5 py-2 text-sm font-semibold'
-                : 'btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4'
+              votedForThisArtist
+                ? `inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-sm font-semibold text-[var(--color-accent)] disabled:opacity-100 ${
+                    variant === 'primary' ? 'px-5 py-2' : 'px-3 py-2 sm:px-4'
+                  }`
+                : outOfVotes
+                  ? // Muted rather than gradient, so a spent ballot doesn't keep shouting for a
+                    // tap — but still tappable, because tapping is how the reason is delivered.
+                    `inline-flex min-h-10 items-center rounded-full border border-[var(--color-hairline)] text-sm font-semibold text-[var(--color-ink-soft)] dark:border-[var(--color-hairline-dark)] dark:text-[var(--color-ink-soft-dark)] ${
+                      variant === 'primary' ? 'px-5 py-2' : 'px-3 py-2 sm:px-4'
+                    }`
+                  : variant === 'primary'
+                    ? 'btn-gradient min-h-10 rounded-full px-5 py-2 text-sm font-semibold'
+                    : 'btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4'
             }
           >
-            {voteState === 'voting' ? '…' : variant === 'primary' ? `Vote for ${artist.name}` : 'Vote'}
+            {voteState === 'voting' ? (
+              '…'
+            ) : votedForThisArtist ? (
+              <>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                {variant === 'primary' ? `Voted for ${artist.name}` : 'Voted'}
+              </>
+            ) : outOfVotes ? (
+              variant === 'primary' ? (
+                'No votes left this week'
+              ) : (
+                'No votes left'
+              )
+            ) : variant === 'primary' ? (
+              `Vote for ${artist.name}`
+            ) : (
+              'Vote'
+            )}
           </button>
           {floatId > 0 && (
             <span
