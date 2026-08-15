@@ -24,7 +24,6 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
     member.birthdate ||
     zodiac ||
     member.heightCm ||
-    member.weightKg ||
     member.interests?.length ||
     member.favoriteFoods?.length ||
     member.favoriteAnimal
@@ -76,7 +75,9 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
           {member.birthdate && <Field label="Birthdate" value={formatBirthdate(member.birthdate)} />}
           {zodiac && <Field label="Sign" value={zodiac} />}
           {member.heightCm && <Field label="Height" value={`${member.heightCm} cm`} />}
-          {member.weightKg && <Field label="Weight" value={`${member.weightKg} kg`} />}
+          {/* `member.weightKg` is deliberately never rendered. Publishing idol weights is
+              widely criticised in fandom, and the stat adds nothing to a profile card. The
+              field stays in Firestore and in the Member type; it just has no UI. */}
           {member.favoriteAnimal && <Field label="Favorite animal" value={member.favoriteAnimal} />}
           {member.favoriteFoods && member.favoriteFoods.length > 0 && (
             <Field label="Favorite foods" value={member.favoriteFoods.join(', ')} />

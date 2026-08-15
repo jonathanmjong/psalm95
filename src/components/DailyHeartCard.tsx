@@ -67,19 +67,19 @@ export function DailyHeartCard() {
       {!user ? (
         <button
           onClick={() => signInWithGoogle()}
-          className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold"
+          className="btn-gradient inline-flex min-h-11 shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold"
         >
           Sign in to claim 💗
         </button>
       ) : !profile?.biasArtistId ? (
         <Link
           to="/fandoms"
-          className="min-h-10 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+          className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
         >
           Join a fandom
         </Link>
       ) : claimedToday ? (
-        <span className="shrink-0 rounded-full bg-[var(--color-surface-sunken)] px-4 py-2 text-sm font-semibold dark:bg-[var(--color-surface-sunken-dark)]">
+        <span className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-[var(--color-surface-sunken)] px-4 py-2 text-sm font-semibold dark:bg-[var(--color-surface-sunken-dark)]">
           Claimed today ✓
         </span>
       ) : (
@@ -89,7 +89,7 @@ export function DailyHeartCard() {
         <button
           onClick={claim}
           disabled={pending}
-          className="btn-gradient min-h-10 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap"
+          className="btn-gradient inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap"
         >
           {pending ? 'Claiming…' : 'Claim today’s heart '}
           {!pending && <span className="heartbeat inline-block">💗</span>}

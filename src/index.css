@@ -56,14 +56,16 @@ body {
 }
 
 .glass-header {
-  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  /* High enough that scrolled body text can't be read through the blur — at 72% it ghosted
+     through, most visibly in dark mode. */
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 @media (prefers-color-scheme: dark) {
   .glass-header {
-    background: color-mix(in srgb, var(--color-surface-dark) 72%, transparent);
+    background: color-mix(in srgb, var(--color-surface-dark) 97%, transparent);
   }
 }
 

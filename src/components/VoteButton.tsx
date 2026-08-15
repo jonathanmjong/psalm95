@@ -8,6 +8,7 @@ import { HoverTip } from './HoverTip'
 import { castArtistVote } from '../lib/callables'
 import { celebrateStreak } from '../lib/streak'
 import { currentWeekId } from '../lib/dates'
+import { plural } from '../lib/plural'
 
 /** Mirrors WEEKLY_VOTE_LIMIT in functions/src/votes.ts. */
 const WEEKLY_VOTE_LIMIT = 3
@@ -112,8 +113,7 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
   const tip = (
     <>
       <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
-        {artist.name} · {artist.weeklyVotes.toLocaleString()} vote
-        {artist.weeklyVotes === 1 ? '' : 's'} this week
+        {artist.name} · {plural(artist.weeklyVotes, 'vote')} this week
       </p>
       <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
         {artist.monthlyVotes.toLocaleString()} this month · {artist.yearlyVotes.toLocaleString()} this year
@@ -122,7 +122,7 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
         {!user
           ? 'Sign in to vote — 3 votes a week, one per artist.'
           : alreadyVotedThisWeek
-            ? `You already voted for ${artist.name} this week. ${votesLeft} vote${votesLeft === 1 ? '' : 's'} left for other artists.`
+            ? `You already voted for ${artist.name} this week. ${plural(votesLeft, 'vote')} left for other artists.`
             : `You have ${votesLeft} of 3 votes left this week. Votes reset Monday.`}
       </p>
     </>

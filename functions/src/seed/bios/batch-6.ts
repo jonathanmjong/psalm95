@@ -53,7 +53,9 @@ export const batch6Bios: ArtistBio[] = [
     artistId: 'nct127',
     agency: 'SM Entertainment',
     debutDate: '2016-07-07',
-    fandomName: 'NCTzen',
+    // NCTzen is the umbrella fandom for all of NCT; SM's own per-unit names come from the
+    // fanclub memberships opened 2023-09-12 (NCTzen 127 / NCTzen DREAM / NCTzen WISH).
+    fandomName: 'NCTzen 127',
     fandomColorName: 'Pearl Neo Champagne',
     members: [
       { memberId: 'taeyong', birthdate: '1995-07-01', zodiacSign: 'Cancer', heightCm: 175, weightKg: 58, interests: ['listening to music', 'watching movies', 'playing games', 'swimming', 'shopping'], favoriteFoods: ['melon', 'green tea ice cream'], position: 'Leader, Main Rapper, Main Dancer, Sub-Vocalist, Visual, Center' },
@@ -71,7 +73,8 @@ export const batch6Bios: ArtistBio[] = [
     artistId: 'nct-dream',
     agency: 'SM Entertainment',
     debutDate: '2016-08-25',
-    fandomName: 'NCTzen',
+    // See nct127 — "Dreamies" names the MEMBERS, not the fans, and is never a fandom name.
+    fandomName: 'NCTzen DREAM',
     fandomColorName: 'Pearl Neo Champagne',
     members: [
       { memberId: 'mark-dream', birthdate: '1999-08-02', zodiacSign: 'Leo', heightCm: 176, weightKg: 61, interests: ['rapping', 'guitar', 'badminton', 'ice skating'], favoriteFoods: ['bagels', 'cookies and cream ice cream', 'chicken', 'kimchi'], position: 'Leader, Main Rapper, Main Dancer, Sub-Vocalist, Face of the Group' },

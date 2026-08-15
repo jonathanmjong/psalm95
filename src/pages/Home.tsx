@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useArtists } from '../hooks/useArtists'
 import { useArtistIndex } from '../hooks/useArtistIndex'
 import { GenerationFilter } from '../components/GenerationFilter'
@@ -30,6 +30,10 @@ export function Home() {
   const query = search.trim().toLowerCase()
   const searching = query.length > 0
 
+  /** Row index the battle / daily-heart cards are slotted in after — the third row normally,
+   *  the last one on a short page so the cards never fall off the list entirely. */
+  const cardSlotIndex = Math.min(2, artists.length - 1)
+
   // Instant client-side search over the full roster — matches artist name or any
   // member name, and respects the generation filter if one is selected.
   const results = useMemo(() => {
@@ -42,22 +46,23 @@ export function Home() {
   }, [searching, allArtists, generationId, query])
 
   return (
-    <div className="space-y-8">
-      <section className="hero-glow -mx-6 rounded-3xl px-6 py-14 text-center sm:py-16">
-        <h1 className="text-gradient text-5xl font-extrabold tracking-tight sm:text-6xl">
-          The people's ranking.
+    <div className="space-y-6 sm:space-y-8">
+      {/* Deliberately short: on a 390px phone every pixel here is a pixel the ranking — the
+          actual product — is pushed below the fold. The roster size is read live rather than
+          written in, so the claim can't go stale. */}
+      <section className="hero-glow -mx-6 rounded-3xl px-6 py-6 text-center sm:py-10">
+        <h1 className="text-gradient text-3xl font-extrabold tracking-tight sm:text-5xl">
+          K-pop, C-pop &amp; J-pop, ranked by fans.
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          Vote for your favorite K-pop, C-pop, and J-pop artists. Every week, every vote moves the board —
-          make it count.
+        <p className="mx-auto mt-2 max-w-xl text-base text-[var(--color-ink-soft)] sm:mt-4 sm:text-lg dark:text-[var(--color-ink-soft-dark)]">
+          {allArtists.length > 0 ? allArtists.length : 'Over 100'} artists on the board. You get 3 votes a
+          week — they reset every Monday.
         </p>
       </section>
 
       <SearchBar value={search} onChange={setSearch} />
 
-      {!searching && <BattleCard />}
       {!searching && <BirthdaysStrip artists={allArtists} />}
-      {!searching && <DailyHeartCard />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <GenerationFilter value={generationId} onChange={setGenerationId} />
@@ -105,13 +110,22 @@ export function Home() {
       ) : (
         <div className="space-y-2">
           {artists.map((artist, i) => (
-            <ArtistRow
-              key={artist.id}
-              artist={artist}
-              rank={page * 12 + i + 1}
-              picturesOpen={picturesRowId === artist.id}
-              onPicturesToggle={(open) => setPicturesRowId(open ? artist.id : null)}
-            />
+            <Fragment key={artist.id}>
+              <ArtistRow
+                artist={artist}
+                rank={page * 12 + i + 1}
+                picturesOpen={picturesRowId === artist.id}
+                onPicturesToggle={(open) => setPicturesRowId(open ? artist.id : null)}
+              />
+              {/* The board is the fold; the battle and daily-heart cards sit just under the
+                  first few rows, where a visitor has already seen what this place is. */}
+              {i === cardSlotIndex && (
+                <div className="space-y-4 py-2">
+                  <BattleCard />
+                  <DailyHeartCard />
+                </div>
+              )}
+            </Fragment>
           ))}
         </div>
       )}

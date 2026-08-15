@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
 import { ScoreBreakdown } from './ScoreBreakdown'
@@ -13,6 +14,13 @@ const REGION_LABEL: Record<Artist['region'], string> = {
   CN: 'C-pop',
   JP: 'J-pop',
 }
+
+/** Touch devices navigate in-tab: on iOS a `target="_blank"` row would spawn a new tab on
+ *  every single tap and break the back gesture. Mouse/trackpad users keep the new tab, which
+ *  is what the board was explicitly asked for. Pointer type doesn't change under a device,
+ *  so this is safe to read once. */
+const COARSE_POINTER =
+  typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches === true
 
 interface Props {
   artist: Artist
@@ -52,6 +60,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
 
   return (
     <div
+      data-artist-row={artist.id}
       className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
       onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
       onMouseLeave={() => setCursor(null)}
@@ -72,12 +81,12 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
       {/* The row header is a flex container, not one big <button>: the primary actions live
           here now, and interactive elements can't legally nest inside a button. */}
       <div className="flex items-center gap-3 px-4 py-3">
-        {/* A real link, so the row opens the full artist page in a new tab and cmd/middle-click
-            and "open in new tab" all behave the way the rest of the web does. */}
-        <a
-          href={`/artist/${artist.id}`}
-          target="_blank"
-          rel="noopener"
+        {/* A real link, so cmd/middle-click and "open in new tab" behave the way the rest of
+            the web does. On a mouse it opens the artist page in a new tab; on touch it routes
+            in-tab (see COARSE_POINTER) so the back gesture keeps working. */}
+        <Link
+          to={`/artist/${artist.id}`}
+          {...(COARSE_POINTER ? {} : { target: '_blank', rel: 'noopener' })}
           className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
         >
           <span
@@ -110,16 +119,23 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
           )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="truncate font-semibold">{artist.name}</span>
+              {/* Phones give the name column ~140px, and plenty of names need more than that
+                  ("TOMORROW X TOGETHER" wants 201px), so below sm the name wraps instead of
+                  truncating to two letters. From sm up there is room for one line. */}
+              <span data-artist-name className="font-semibold break-words sm:truncate">
+                {artist.name}
+              </span>
               <span className="hidden shrink-0 rounded-full bg-[var(--color-surface-sunken)] px-2 py-0.5 text-xs text-[var(--color-ink-soft)] sm:inline dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-soft-dark)]">
                 {REGION_LABEL[artist.region]}
               </span>
             </div>
-            <div className="mt-1.5 max-w-xs">
+            {/* The score bar shares the name's width only where that width is comfortable;
+                on phones it moves to its own full-width line below the row header. */}
+            <div className="mt-1.5 hidden max-w-xs sm:block">
               <ScoreBreakdown artist={artist} pendingVotes={localVotes} />
             </div>
           </div>
-        </a>
+        </Link>
 
         <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
           {thumbUrls.slice(0, 4).map((url, i) => (
@@ -181,6 +197,9 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               📷
             </button>
           </HoverTip>
+          {/* "Open in a new tab" is a pointer affordance and the whole row already goes to the
+              same page — below sm it only stole width from the artist's name. */}
+          <div className="hidden sm:block">
           <HoverTip
             align="right"
             width="w-64"
@@ -227,7 +246,14 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               </svg>
             </a>
           </HoverTip>
+          </div>
         </div>
+      </div>
+
+      {/* Phone-width home for the score bar — full row width, so the name column above keeps
+          all of its space for the name. */}
+      <div className="-mt-1 px-4 pb-3 sm:hidden">
+        <ScoreBreakdown artist={artist} pendingVotes={localVotes} />
       </div>
 
       {/* Vote receipt + rally share, rendered here by VoteButton — full row width, styled by

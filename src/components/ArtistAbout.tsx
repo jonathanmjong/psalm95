@@ -4,7 +4,7 @@ import { formatBirthdate } from '../lib/zodiac'
 import { useMemberPhotos } from '../hooks/useMemberPhotos'
 
 export function ArtistAbout({ artist }: { artist: Artist }) {
-  const { byMember, groupUrls } = useMemberPhotos(artist.id, artist)
+  const { byMember } = useMemberPhotos(artist.id, artist)
   const hasFacts =
     artist.debutDate || artist.agency || artist.fandomName || (artist.influences && artist.influences.length > 0)
 
@@ -54,12 +54,12 @@ export function ArtistAbout({ artist }: { artist: Artist }) {
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {artist.members.map((member, i) => (
-          <MemberCard
-            key={member.memberId}
-            member={member}
-            photoUrl={byMember[member.memberId] ?? (groupUrls.length ? groupUrls[i % groupUrls.length] : undefined)}
-          />
+        {/* Only a photo the member is individually tagged in is ever used as their portrait.
+            There is deliberately no group-photo fallback: rotating through the artist's top
+            pictures put album art and four-person group shots on individual members' cards,
+            which reads as a fake site. MemberCard's gradient initial is the honest fallback. */}
+        {artist.members.map((member) => (
+          <MemberCard key={member.memberId} member={member} photoUrl={byMember[member.memberId]} />
         ))}
       </div>
     </section>

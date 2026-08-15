@@ -6,6 +6,7 @@ import { useUserProfile } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { ShareButton } from '../components/ShareButton'
 import { msUntilWeeklyReset, formatCountdown } from '../lib/dates'
+import { plural, pluralWord } from '../lib/plural'
 import type { Artist } from '../types'
 
 const PERIODS = [
@@ -93,13 +94,23 @@ export function Fandoms() {
     .map((a) => ({ artist: a, votes: (a[periodKey] as number) ?? 0 }))
     .sort((x, y) => y.votes - x.votes)
 
-  // Underdog: most weekly votes among fandoms ranked outside the top 5.
-  const underdog = ranked.length > 6 ? [...ranked.slice(5)].sort((a, b) => b.votes - a.votes)[0] : null
+  // Only fandoms that have actually scored get a rank. A board of "0 votes" rows ordered by
+  // nothing is noise — worse, it implies 90-odd dead fandoms. The rest are summarised in a
+  // single "waiting for their first vote" row below the board.
+  const scored = ranked.filter((r) => r.votes > 0)
+  const unscoredCount = ranked.length - scored.length
 
-  // The signed-in user's own fandom and its live standing, for the brag/rally card.
-  const myIndex = profile?.biasArtistId ? ranked.findIndex((r) => r.artist.id === profile.biasArtistId) : -1
-  const mine = myIndex >= 0 ? ranked[myIndex] : null
-  const myGapToNext = mine && myIndex > 0 ? ranked[myIndex - 1].votes - mine.votes : 0
+  // Underdog: most votes among fandoms ranked outside the top 5.
+  const underdog = scored.length > 6 ? [...scored.slice(5)].sort((a, b) => b.votes - a.votes)[0] : null
+
+  // The signed-in user's own fandom and its live standing, for the brag/rally card. Rank is
+  // read off the scored board, so a fandom with no votes is never given a meaningless number.
+  const myIndex = profile?.biasArtistId ? scored.findIndex((r) => r.artist.id === profile.biasArtistId) : -1
+  const mine = myIndex >= 0 ? scored[myIndex] : null
+  const myGapToNext = mine && myIndex > 0 ? scored[myIndex - 1].votes - mine.votes : 0
+  const myUnscored = !mine && profile?.biasArtistId
+    ? (ranked.find((r) => r.artist.id === profile.biasArtistId) ?? null)
+    : null
 
   const listRef = useRowSlide(periodKey)
 
@@ -156,8 +167,8 @@ export function Fandoms() {
                 '👑 On top — defend the crown before the weekly reset.'
               ) : (
                 <>
-                  <AnimatedNumber key={periodKey} value={myGapToNext} className="tabular-nums" /> votes to
-                  overtake #{myIndex}. Rally your fandom.
+                  <AnimatedNumber key={periodKey} value={myGapToNext} className="tabular-nums" />{' '}
+                  {pluralWord(myGapToNext, 'vote')} to overtake #{myIndex}. Rally your fandom.
                 </>
               )}
             </div>
@@ -171,10 +182,24 @@ export function Fandoms() {
             text={
               myIndex === 0
                 ? `${mine.artist.fandomName} is #1 on PsalmTune’s fandom leaderboard 👑 Help us defend the crown!`
-                : `${mine.artist.fandomName} is #${myIndex + 1} — ${myGapToNext.toLocaleString()} votes behind #${myIndex} on PsalmTune. Vote now and help us overtake them!`
+                : `${mine.artist.fandomName} is #${myIndex + 1} — ${plural(myGapToNext, 'vote')} behind #${myIndex} on PsalmTune. Vote now and help us overtake them!`
             }
             url="https://psalmtune.com/fandoms"
           />
+        </div>
+      )}
+
+      {/* Your fandom hasn't scored this period — no rank to quote, so ask for the first vote. */}
+      {myUnscored && (
+        <div className="rounded-2xl border border-[var(--color-accent)] bg-[var(--color-accent)]/5 px-4 py-3">
+          <div className="text-sm font-semibold">Your fandom · {myUnscored.artist.fandomName}</div>
+          <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            No votes yet this period.{' '}
+            <Link to={`/artist/${myUnscored.artist.id}`} className="font-semibold text-[var(--color-accent)]">
+              Cast the first one
+            </Link>{' '}
+            and put them on the board.
+          </div>
         </div>
       )}
 
@@ -205,8 +230,8 @@ export function Fandoms() {
           <span className="text-lg">🚀</span>
           <span>
             <span className="font-semibold">One to watch:</span> {underdog.artist.fandomName} (
-            {underdog.artist.name}) is surging with {underdog.votes.toLocaleString()} votes — help them break the
-            top 5.
+            {underdog.artist.name}) is surging with {plural(underdog.votes, 'vote')} — help them break the top
+            5.
           </span>
         </Link>
       )}
@@ -217,7 +242,7 @@ export function Fandoms() {
         </p>
       ) : (
         <div ref={listRef} className="space-y-2">
-          {ranked.map(({ artist, votes }, i) => (
+          {scored.map(({ artist, votes }, i) => (
             <FandomRow
               key={artist.id}
               artist={artist}
@@ -227,10 +252,36 @@ export function Fandoms() {
               medalClass={medal(i + 1)}
               members={stats[artist.id]?.memberCount ?? 0}
               hearts={stats[artist.id]?.weeklyHearts ?? 0}
-              gapToNext={i > 0 ? ranked[i - 1].votes - votes : 0}
+              gapToNext={i > 0 ? scored[i - 1].votes - votes : 0}
               isMine={profile?.biasArtistId === artist.id}
             />
           ))}
+
+          {scored.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-[var(--color-hairline)] py-14 text-center dark:border-[var(--color-hairline-dark)]">
+              <p className="text-lg font-semibold">The board is wide open 🏁</p>
+              <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                No fandom has scored yet this period. Vote for your bias and put them at #1.
+              </p>
+              <Link to="/" className="btn-gradient mt-4 inline-block rounded-full px-5 py-2 text-sm font-semibold">
+                Go vote
+              </Link>
+            </div>
+          )}
+
+          {/* One honest summary row instead of ~90 identical "0 votes" rows. */}
+          {unscoredCount > 0 && scored.length > 0 && (
+            <Link
+              to="/"
+              className="flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-hairline)] px-4 py-3 text-sm transition hover:shadow-md dark:border-[var(--color-hairline-dark)]"
+            >
+              <span className="text-lg">✨</span>
+              <span>
+                <span className="font-semibold">{plural(unscoredCount, 'more fandom')}</span> waiting for
+                their first vote — join yours.
+              </span>
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -334,9 +385,10 @@ function FandomRow({
         </div>
         <div className="truncate text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {artist.name}
-          {members > 0 && ` · ${members.toLocaleString()} ${members === 1 ? 'member' : 'members'}`}
+          {members > 0 && ` · ${plural(members, 'member')}`}
           {hearts > 0 && ` · 💗 ${hearts.toLocaleString()} this week`}
-          {rank > 1 && gapToNext > 0 && (
+          {/* "N behind #X" only means something once this row has scored itself. */}
+          {rank > 1 && votes > 0 && gapToNext > 0 && (
             <>
               {' · '}
               <AnimatedNumber key={periodKey} value={gapToNext} className="tabular-nums" /> behind #{rank - 1}
@@ -348,7 +400,9 @@ function FandomRow({
         <div className="text-lg font-bold tabular-nums">
           <AnimatedNumber key={periodKey} value={votes} />
         </div>
-        <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">votes</div>
+        <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          {pluralWord(votes, 'vote')}
+        </div>
       </div>
     </Link>
   )

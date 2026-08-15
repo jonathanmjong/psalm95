@@ -30,22 +30,22 @@ export function Footer() {
           via Wikimedia Commons.
         </p>
         <nav className="flex flex-wrap items-center gap-4">
-          <Link to="/" className="hover:underline">
+          <Link to="/" className="inline-flex min-h-11 items-center hover:underline">
             Home
           </Link>
-          <Link to="/fandoms" className="hover:underline">
+          <Link to="/fandoms" className="inline-flex min-h-11 items-center hover:underline">
             Fandoms
           </Link>
-          <Link to="/hall-of-fame" className="hover:underline">
+          <Link to="/hall-of-fame" className="inline-flex min-h-11 items-center hover:underline">
             Hall of Fame
           </Link>
-          <Link to="/privacy" className="hover:underline">
+          <Link to="/privacy" className="inline-flex min-h-11 items-center hover:underline">
             Privacy
           </Link>
           {SUPPORT_ENABLED && (
             <button
               onClick={() => setSupportOpen(true)}
-              className="font-semibold text-[var(--color-accent)] hover:underline"
+              className="inline-flex min-h-11 items-center font-semibold text-[var(--color-accent)] hover:underline"
             >
               Support 💜
             </button>
