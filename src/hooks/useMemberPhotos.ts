@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { collection, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { swrQuery } from '../lib/swr'
-import type { ArtistPicture } from '../types'
+import type { Artist, ArtistPicture } from '../types'
 
 interface MemberPhotos {
   /** memberId → best (most-voted) photo the member is individually tagged in. */
@@ -11,17 +11,27 @@ interface MemberPhotos {
   groupUrls: string[]
 }
 
-/** Loads member-tagged photos plus the artist's top group photos. Seed images are
- * group-tagged, so member cards fall back to a group photo until members get tagged. */
-export function useMemberPhotos(artistId: string): MemberPhotos {
+/**
+ * Member-card avatars. Both halves are denormalized onto the artist doc hourly by
+ * `recomputeRankings`, so the common path costs zero extra reads — this used to scan 100
+ * picture docs on every artist-page visit. The scan only runs for artist docs written
+ * before that job started denormalizing.
+ */
+export function useMemberPhotos(artistId: string, artist?: Artist | null): MemberPhotos {
+  const denormalized = artist?.memberPhotoUrls
   const [result, setResult] = useState<MemberPhotos>({ byMember: {}, groupUrls: [] })
 
   useEffect(() => {
+    // Denormalized data present (even an empty map — nobody is tagged yet): nothing to fetch.
+    if (denormalized) {
+      setResult({ byMember: denormalized, groupUrls: artist?.topPictureUrls ?? [] })
+      return
+    }
     let active = true
     const q = query(
       collection(db, 'artists', artistId, 'pictures'),
       orderBy('voteCount', 'desc'),
-      limit(100),
+      limit(60),
     )
     swrQuery(
       q,
@@ -46,7 +56,7 @@ export function useMemberPhotos(artistId: string): MemberPhotos {
     return () => {
       active = false
     }
-  }, [artistId])
+  }, [artistId, denormalized, artist?.topPictureUrls])
 
   return result
 }

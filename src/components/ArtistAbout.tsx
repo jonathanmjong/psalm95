@@ -4,7 +4,7 @@ import { formatBirthdate } from '../lib/zodiac'
 import { useMemberPhotos } from '../hooks/useMemberPhotos'
 
 export function ArtistAbout({ artist }: { artist: Artist }) {
-  const { byMember, groupUrls } = useMemberPhotos(artist.id)
+  const { byMember, groupUrls } = useMemberPhotos(artist.id, artist)
   const hasFacts =
     artist.debutDate || artist.agency || artist.fandomName || (artist.influences && artist.influences.length > 0)
 

@@ -57,6 +57,9 @@ export interface Artist {
   /** Up to 5 top-voted picture URLs, denormalized hourly by recomputeRankings so list rows
    * render thumbnails without a per-row pictures query. */
   topPictureUrls?: string[]
+  /** memberId → best photo that member is tagged in, denormalized hourly alongside
+   * `topPictureUrls` so member cards cost no extra reads. */
+  memberPhotoUrls?: Record<string, string>
   /** Each factor min-max normalized to 0-100 across the whole roster — the numbers the
    * composite score is actually built from (⅓ weight each), written hourly by
    * recomputeRankings. Absent on docs that predate that job's next run. */

@@ -6,6 +6,10 @@ const WEIGHT = 1 / 3
 const BATCH_SIZE = 400
 /** How many top-voted picture URLs to denormalize onto each artist (row avatar + thumbnails). */
 const TOP_PICTURE_COUNT = 5
+/** How deep to scan an artist's photos when building the member-avatar map. The artist page
+ * used to run this scan itself on every visit (100 docs); doing it hourly here makes it free
+ * at read time, and catches freshly uploaded tagged photos that carry no votes yet. */
+const MEMBER_PHOTO_SCAN = 60
 /** Concurrency cap for the per-artist top-pictures queries. */
 const PICTURE_QUERY_CHUNK = 20
 
@@ -70,6 +74,7 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   // Top-voted picture URLs per artist, denormalized so list rows need zero picture queries.
   // Chunked so ~107 subcollection queries don't all fire at once.
   const topPictureUrls = new Map<string, string[]>()
+  const memberPhotoUrls = new Map<string, Record<string, string>>()
   for (let i = 0; i < ranked.length; i += PICTURE_QUERY_CHUNK) {
     await Promise.all(
       ranked.slice(i, i + PICTURE_QUERY_CHUNK).map(async ({ doc }) => {
@@ -77,15 +82,26 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
           const pics = await doc.ref
             .collection('pictures')
             .orderBy('voteCount', 'desc')
-            .limit(TOP_PICTURE_COUNT)
+            .limit(MEMBER_PHOTO_SCAN)
             .get()
-          topPictureUrls.set(
-            doc.id,
-            pics.docs.map((p) => p.data().url as string).filter(Boolean),
-          )
+          const urls = pics.docs.map((p) => p.data().url as string).filter(Boolean)
+          topPictureUrls.set(doc.id, urls.slice(0, TOP_PICTURE_COUNT))
+
+          // Best (most-voted) photo each member is individually tagged in.
+          const byMember: Record<string, string> = {}
+          for (const p of pics.docs) {
+            const data = p.data()
+            const url = data.url as string | undefined
+            if (!url) continue
+            for (const tag of (data.taggedMembers ?? []) as { artistId: string; memberId: string }[]) {
+              if (tag.artistId === doc.id && !byMember[tag.memberId]) byMember[tag.memberId] = url
+            }
+          }
+          memberPhotoUrls.set(doc.id, byMember)
         } catch (err) {
           console.error(`Top pictures for ${doc.id} failed:`, err)
           topPictureUrls.set(doc.id, [])
+          memberPhotoUrls.set(doc.id, {})
         }
       }),
     )
@@ -99,6 +115,7 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
         factors,
         rank: i + offset + 1,
         topPictureUrls: topPictureUrls.get(doc.id) ?? [],
+        memberPhotoUrls: memberPhotoUrls.get(doc.id) ?? {},
       })
     })
     await batch.commit()
