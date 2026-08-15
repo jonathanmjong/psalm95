@@ -37,7 +37,7 @@ export function Header() {
                   title={`${profile.currentStreak}-day streak${
                     profile.streakFreezes > 0 ? ` · ${profile.streakFreezes} streak freeze banked` : ''
                   }`}
-                  className="hidden rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-semibold sm:inline dark:bg-[var(--color-surface-sunken-dark)]"
+                  className="hidden min-h-11 items-center rounded-full bg-[var(--color-surface-sunken)] px-2.5 text-xs font-semibold sm:inline-flex dark:bg-[var(--color-surface-sunken-dark)]"
                 >
                   🔥 {profile.currentStreak}
                   {profile.streakFreezes > 0 && (
@@ -49,7 +49,7 @@ export function Header() {
               )}
               <Link
                 to="/profile"
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full pl-1 pr-3 transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
               >
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="" className="h-7 w-7 rounded-full object-cover" />
@@ -70,7 +70,7 @@ export function Header() {
           ) : (
             <button
               onClick={() => signInWithGoogle()}
-              className="btn-gradient rounded-full px-4 py-1.5 font-semibold"
+              className="btn-gradient inline-flex min-h-11 items-center rounded-full px-4 font-semibold"
             >
               Sign in with Google
             </button>
