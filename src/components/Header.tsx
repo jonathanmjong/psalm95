@@ -62,7 +62,7 @@ export function Header() {
               </Link>
               <button
                 onClick={() => logOut()}
-                className="rounded-full px-3 py-1.5 font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+                className="inline-flex min-h-11 items-center rounded-full px-3 font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
               >
                 Sign out
               </button>

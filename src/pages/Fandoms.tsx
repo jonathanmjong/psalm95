@@ -184,7 +184,7 @@ export function Fandoms() {
             <button
               key={p.key}
               onClick={() => setPeriodKey(p.key)}
-              className={`rounded-full px-3 py-1.5 font-medium transition ${
+              className={`inline-flex min-h-11 items-center rounded-full px-4 font-medium transition ${
                 periodKey === p.key
                   ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'

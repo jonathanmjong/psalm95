@@ -27,10 +27,11 @@ export function ToastHost() {
     })
   }, [])
 
-  if (toasts.length === 0) return null
-
   const dismiss = (id: number) => setToasts((current) => current.filter((t) => t.id !== id))
 
+  // The live region is always in the DOM, even with nothing to show: screen readers only
+  // announce insertions into a region that already existed when the toast arrives.
+  // Empty, it's a zero-height, pointer-transparent box.
   return (
     <div
       aria-live="polite"

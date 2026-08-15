@@ -12,7 +12,7 @@ export function Pagination({ page, hasMore, loading, onPrev, onNext }: Props) {
       <button
         onClick={onPrev}
         disabled={page === 0 || loading}
-        className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] disabled:opacity-40 dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+        className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] disabled:opacity-40 dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
       >
         Previous
       </button>
@@ -22,7 +22,7 @@ export function Pagination({ page, hasMore, loading, onPrev, onNext }: Props) {
       <button
         onClick={onNext}
         disabled={!hasMore || loading}
-        className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] disabled:opacity-40 dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+        className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] disabled:opacity-40 dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
       >
         Next
       </button>

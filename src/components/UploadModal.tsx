@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Member } from '../types'
+import { Modal } from './Modal'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { uploadArtistPicture } from '../lib/storage'
@@ -58,73 +59,77 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md space-y-4 rounded-2xl bg-[var(--color-surface)] p-6 dark:bg-[var(--color-surface-dark)]">
-        <h2 className="text-lg font-semibold">Upload a picture</h2>
+    <Modal
+      onClose={onClose}
+      labelledBy="upload-modal-title"
+      panelClassName="w-full max-w-md space-y-4 rounded-2xl bg-[var(--color-surface)] p-6 dark:bg-[var(--color-surface-dark)]"
+    >
+      <h2 id="upload-modal-title" className="text-lg font-semibold">
+        Upload a picture
+      </h2>
 
-        {atLimit && (
-          <p className="rounded-2xl bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-amber-600 dark:bg-[var(--color-surface-sunken-dark)]">
-            {LIMIT_HINT}
-          </p>
-        )}
+      {atLimit && (
+        <p className="rounded-2xl bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-amber-600 dark:bg-[var(--color-surface-sunken-dark)]">
+          {LIMIT_HINT}
+        </p>
+      )}
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm"
-        />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        className="block w-full text-sm"
+      />
 
-        {members.length > 0 && (
-          <div>
-            <p className="mb-2 text-sm font-medium">Which members are in this picture?</p>
-            <div className="flex flex-wrap gap-2">
-              {members.map((member) => (
-                <button
-                  key={member.memberId}
-                  type="button"
-                  onClick={() => toggleMember(member.memberId)}
-                  className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                    selectedMembers.includes(member.memberId)
-                      ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white'
-                      : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
-                  }`}
-                >
-                  {member.name}
-                </button>
-              ))}
-            </div>
+      {members.length > 0 && (
+        <div>
+          <p className="mb-2 text-sm font-medium">Which members are in this picture?</p>
+          <div className="flex flex-wrap gap-2">
+            {members.map((member) => (
+              <button
+                key={member.memberId}
+                type="button"
+                onClick={() => toggleMember(member.memberId)}
+                className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                  selectedMembers.includes(member.memberId)
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white'
+                    : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
+                }`}
+              >
+                {member.name}
+              </button>
+            ))}
           </div>
-        )}
-
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={confirmedRights}
-            onChange={(e) => setConfirmedRights(e.target.checked)}
-            className="mt-0.5"
-          />
-          I confirm I have the rights to share this image.
-        </label>
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="rounded-full px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!file || !confirmedRights || submitting || atLimit}
-            className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
-          >
-            {submitting ? 'Uploading…' : 'Upload'}
-          </button>
         </div>
+      )}
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={confirmedRights}
+          onChange={(e) => setConfirmedRights(e.target.checked)}
+          className="mt-0.5"
+        />
+        I confirm I have the rights to share this image.
+      </label>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="rounded-full px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={!file || !confirmedRights || submitting || atLimit}
+          className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
+        >
+          {submitting ? 'Uploading…' : 'Upload'}
+        </button>
       </div>
-    </div>
+    </Modal>
   )
 }
