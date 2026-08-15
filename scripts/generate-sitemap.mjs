@@ -28,6 +28,7 @@ const urls = [
     priority: '0.7',
     changefreq: 'daily',
   })),
+  { loc: `${SITE}/about`, priority: '0.4', changefreq: 'monthly' },
   { loc: `${SITE}/privacy`, priority: '0.2', changefreq: 'yearly' },
 ]
 

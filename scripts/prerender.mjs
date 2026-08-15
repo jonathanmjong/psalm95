@@ -264,6 +264,16 @@ const SHELLS = [
     noscript:
       '<p>The PsalmTune Hall of Fame records every fandom that has won a weekly race, along with their win streaks.</p>',
   },
+  {
+    file: 'about.html',
+    path: '/about',
+    title: 'About PsalmTune — how the ranking works, and who made it',
+    heading: 'About PsalmTune',
+    description:
+      'PsalmTune is an independent, fan-made ranking site for K-pop, C-pop and J-pop. How the score is calculated, where the photos come from, and who is behind it.',
+    noscript:
+      '<p>PsalmTune is a fan-made ranking site with no affiliation to any label, agency or artist. Scores combine online popularity with weekly and monthly fan votes, weighted equally. Artist photos are freely-licensed Wikimedia Commons images, credited to their authors.</p>',
+  },
 ]
 
 function renderShell(shell) {

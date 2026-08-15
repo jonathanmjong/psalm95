@@ -39,6 +39,9 @@ export function Footer() {
           <Link to="/hall-of-fame" className="inline-flex min-h-11 items-center hover:underline">
             Hall of Fame
           </Link>
+          <Link to="/about" className="inline-flex min-h-11 items-center hover:underline">
+            About
+          </Link>
           <Link to="/privacy" className="inline-flex min-h-11 items-center hover:underline">
             Privacy
           </Link>

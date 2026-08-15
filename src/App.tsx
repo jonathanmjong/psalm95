@@ -15,6 +15,7 @@ const PublicProfile = lazy(() =>
 const Fandoms = lazy(() => import('./pages/Fandoms').then((m) => ({ default: m.Fandoms })))
 const HallOfFame = lazy(() => import('./pages/HallOfFame').then((m) => ({ default: m.HallOfFame })))
 const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.Privacy })))
+const About = lazy(() => import('./pages/About').then((m) => ({ default: m.About })))
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
 /** BrowserRouter keeps the scroll offset across navigations, so opening an artist from
@@ -58,6 +59,7 @@ function App() {
             <Route path="/fandoms" element={<Fandoms />} />
             <Route path="/hall-of-fame" element={<HallOfFame />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
