@@ -63,3 +63,8 @@ export const claimDailyHeart = httpsCallable<
   void,
   { longestStreak: number; weeklyHearts: number } & StreakResult
 >(functions, 'claimDailyHeart')
+
+export const recordVisit = httpsCallable<
+  { source?: string; landing?: string },
+  { ok: boolean }
+>(functions, 'recordVisit')

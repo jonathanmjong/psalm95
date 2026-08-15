@@ -113,7 +113,8 @@ service cloud.firestore {
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
         && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
         && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '')
-        && request.resource.data.get('handle', '') == resource.data.get('handle', '');
+        && request.resource.data.get('handle', '') == resource.data.get('handle', '')
+        && request.resource.data.get('acquisitionSource', '') == resource.data.get('acquisitionSource', '');
       allow delete: if false;
     }
 
