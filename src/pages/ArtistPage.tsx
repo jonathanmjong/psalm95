@@ -12,7 +12,7 @@ import { PictureGrid } from '../components/PictureGrid'
 import { PictureStrip } from '../components/PictureStrip'
 import { PictureLightbox } from '../components/PictureLightbox'
 import { Pagination } from '../components/Pagination'
-import { ScoreBreakdown } from '../components/ScoreBreakdown'
+import { ScoreBreakdown, SCORE_LEGEND } from '../components/ScoreBreakdown'
 import { UploadModal } from '../components/UploadModal'
 import { RankingTrend } from '../components/RankingTrend'
 import { ArtistAbout } from '../components/ArtistAbout'
@@ -137,6 +137,13 @@ export function ArtistPage() {
         <div className="min-w-0 flex-1 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-4xl font-semibold tracking-tight">{artist.name}</h1>
+          {artist.rank > 0 && (
+            // The share card that brought most visitors here leads with the rank; without it
+            // on the page the promise evaporates the moment they arrive.
+            <span className="rounded-full bg-[var(--color-accent)]/10 px-2.5 py-1 text-sm font-bold text-[var(--color-accent)] tabular-nums">
+              #{artist.rank}
+            </span>
+          )}
           <span className="rounded-full bg-[var(--color-surface-sunken)] px-2.5 py-1 text-xs font-medium dark:bg-[var(--color-surface-sunken-dark)]">
             {REGION_LABEL[artist.region]}
           </span>
@@ -176,8 +183,25 @@ export function ArtistPage() {
           <VoteButton artist={artist} variant="primary" />
           <JoinFandomButton artist={artist} />
         </div>
+        {/* The scarcity rule lived only in a hover tooltip, which does not exist on touch —
+            so the visitor most likely to be here had no idea what a vote costs. */}
+        <p className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          {artist.weeklyVotes > 0
+            ? `${artist.weeklyVotes.toLocaleString()} ${artist.weeklyVotes === 1 ? 'vote' : 'votes'} this week · `
+            : ''}
+          You get 3 votes a week, one per artist. They reset every Monday.
+        </p>
         <div className="max-w-sm">
           <ScoreBreakdown artist={artist} />
+          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            {/* The bar had no legend on this page, so it read as three decorative pills. */}
+            {SCORE_LEGEND.map((item) => (
+              <span key={item.label} className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: item.cssVar }} aria-hidden />
+                {item.label}
+              </span>
+            ))}
+          </div>
         </div>
         </div>
       </header>
