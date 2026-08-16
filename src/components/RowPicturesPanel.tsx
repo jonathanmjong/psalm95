@@ -5,6 +5,7 @@ import { useTopPictures } from '../hooks/useTopPictures'
 import { PictureStrip } from './PictureStrip'
 import { PictureLightbox } from './PictureLightbox'
 import { UploadModal } from './UploadModal'
+import { uploadCtaLabel } from '../lib/labels'
 
 /** How many most-loved pictures the inline row strip shows. */
 const PANEL_PICTURE_COUNT = 10
@@ -43,7 +44,7 @@ export function RowPicturesPanel({ artist }: { artist: Artist }) {
           onClick={openUpload}
           className="flex min-h-10 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-surface-sunken)] dark:border-[var(--color-hairline-dark)] dark:hover:bg-[var(--color-surface-sunken-dark)]"
         >
-          {user ? 'Upload' : 'Sign in to upload'}
+          {uploadCtaLabel(!!user)}
         </button>
       </div>
 

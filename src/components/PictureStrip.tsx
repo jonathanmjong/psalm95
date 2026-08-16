@@ -1,5 +1,6 @@
 import type { ArtistPicture } from '../types'
 import { sized, sizedSrcSet } from '../lib/images'
+import { pictureCredit } from '../lib/labels'
 
 interface Props {
   pictures: ArtistPicture[]
@@ -19,6 +20,10 @@ export function PictureStrip({ pictures, artistName, onOpen, showVotes = false }
           key={pic.id}
           onClick={() => onOpen(pic)}
           className="lift group relative aspect-square w-28 shrink-0 overflow-hidden rounded-2xl border border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]"
+          // The strip shows no caption at all, so the CC credit was reachable only by
+          // opening the lightbox. The title surfaces it in place; the lightbox this opens
+          // shows the same line in full.
+          title={pictureCredit(pic)}
           aria-label={`Open ${artistName} picture`}
         >
           <img

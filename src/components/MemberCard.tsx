@@ -53,9 +53,15 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
           </span>
         )}
         <div className="min-w-0">
-          <h3 className="truncate font-semibold">{member.name}</h3>
+          <h3 className="truncate font-semibold" title={member.name}>
+            {member.name}
+          </h3>
+          {/* Positions like "Main Vocalist, Lead Dancer" clip to a few characters on a
+              390px card; the title puts the whole line back within reach. */}
           {member.position && (
-            <p className="truncate text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
+            <p className="truncate text-xs font-medium text-[var(--color-accent)]" title={member.position}>
+              {member.position}
+            </p>
           )}
         </div>
       </div>

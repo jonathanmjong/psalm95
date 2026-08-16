@@ -53,9 +53,16 @@ export function JoinFandomButton({ artist }: { artist: Artist }) {
       >
         {joined ? '✓ In this fandom' : joinLabel}
       </button>
-      {memberCount !== null && memberCount > 0 && (
+      {/* Hiding the count at 0 hid it everywhere: no fandom has members yet, so this line —
+          the only social proof on the page — never appeared at all. An empty fandom is an
+          invitation, not something to suppress. */}
+      {memberCount !== null && (
         <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-          {plural(memberCount, 'member')}
+          {memberCount > 0
+            ? plural(memberCount, 'member')
+            : joined
+              ? 'You’re the first member'
+              : 'No members yet — be the first'}
         </span>
       )}
     </div>

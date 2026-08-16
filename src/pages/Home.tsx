@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useArtists } from '../hooks/useArtists'
 import { useArtistIndex } from '../hooks/useArtistIndex'
 import { GenerationFilter } from '../components/GenerationFilter'
@@ -26,6 +26,28 @@ export function Home() {
       'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles and live popularity rankings on a fan-driven platform.',
     path: '/',
   })
+
+  /** Top of the list block — the filter row, so paging keeps the controls on screen. */
+  const listTopRef = useRef<HTMLDivElement>(null)
+  const shownPage = useRef(page)
+
+  // Pagination sits at the foot of the list, so a visitor clicking Next is ~1200px down and
+  // stayed there: the new page arrived already scrolled past its first rows. Scroll the top
+  // of the list back into view — not the window to 0, which would put the hero back in front
+  // of someone who is plainly done with it.
+  useEffect(() => {
+    if (shownPage.current === page) return
+    shownPage.current = page
+    const el = listTopRef.current
+    if (!el) return
+    // The header is sticky; without its height the filter row lands underneath it.
+    const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0
+    const top = window.scrollY + el.getBoundingClientRect().top - headerHeight - 8
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    })
+  }, [page])
 
   const query = search.trim().toLowerCase()
   const searching = query.length > 0
@@ -64,7 +86,10 @@ export function Home() {
 
       {!searching && <BirthdaysStrip artists={allArtists} />}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        ref={listTopRef}
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <GenerationFilter value={generationId} onChange={setGenerationId} />
         <ScoreLegend />
       </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useArtist } from '../hooks/useArtist'
 import { useArtistPictures, type PictureSort } from '../hooks/useArtistPictures'
@@ -24,6 +24,7 @@ import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
 import { sized, sizedSrcSet } from '../lib/images'
+import { uploadCtaLabel } from '../lib/labels'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -40,14 +41,37 @@ export function ArtistPage() {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [lightboxPic, setLightboxPic] = useState<ArtistPicture | null>(null)
   const [picRefresh, setPicRefresh] = useState(0)
-  const { pictures, loading, page, hasMore, nextPage, prevPage, refresh } = useArtistPictures(
-    artistId ?? '',
-    sort,
-    memberId,
-  )
   const { pictures: topPictures } = useTopPictures(artistId ?? '', 10, picRefresh)
   const { pictures: latestPictures } = useLatestPictures(artistId ?? '', 10, picRefresh)
   const heroPicture = topPictures[0] ?? null
+
+  // Which members the picture filter can actually offer. `memberPhotoUrls` is
+  // memberId → best photo that member is tagged in, denormalized onto the artist doc hourly
+  // by recomputeRankings — the same `taggedMembers` data the `taggedMemberKeys` query filters
+  // on, already loaded with the artist and costing no extra read.
+  const taggedMemberIds = useMemo(() => {
+    if (artist?.memberPhotoUrls) return new Set(Object.keys(artist.memberPhotoUrls))
+    // Artist docs written before that job started denormalizing: fall back to the tags on
+    // the pictures already on screen rather than querying just to populate a <select>.
+    const ids = new Set<string>()
+    for (const pic of [...topPictures, ...latestPictures]) {
+      for (const tag of pic.taggedMembers ?? []) {
+        if (tag.artistId === artistId) ids.add(tag.memberId)
+      }
+    }
+    return ids
+  }, [artist?.memberPhotoUrls, topPictures, latestPictures, artistId])
+
+  // A selection can outlive its option (a photo deleted, an hourly recompute). Filtering by a
+  // member the control no longer offers would strand the grid on an empty result with no
+  // visible way back, so it falls back to "All members".
+  const activeMemberId = memberId && taggedMemberIds.has(memberId) ? memberId : null
+
+  const { pictures, loading, page, hasMore, nextPage, prevPage, refresh } = useArtistPictures(
+    artistId ?? '',
+    sort,
+    activeMemberId,
+  )
 
   // Re-query the curated strips (and the paginated grid) after a vote or a new upload.
   const refreshPictures = () => {
@@ -252,13 +276,18 @@ export function ArtistPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">All pictures</h2>
           <div className="flex flex-wrap items-center gap-3">
-            <MemberFilter members={artist.members} value={memberId} onChange={setMemberId} />
+            <MemberFilter
+              members={artist.members}
+              taggedMemberIds={taggedMemberIds}
+              value={activeMemberId}
+              onChange={setMemberId}
+            />
             <SortControl value={sort} onChange={setSort} />
             <button
               onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
               className="btn-gradient rounded-full px-4 py-2 text-sm font-semibold"
             >
-              Upload picture
+              {uploadCtaLabel(!!user)}
             </button>
           </div>
         </div>

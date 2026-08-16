@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { deletePicture, votePicture } from '../lib/callables'
 import { sized } from '../lib/images'
 import { Modal } from './Modal'
+import { pictureCredit, uploadCtaLabel } from '../lib/labels'
 
 interface Props {
   picture: ArtistPicture
@@ -65,10 +66,7 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
     }
   }
 
-  const credit =
-    picture.source === 'wikimedia-seed' && picture.attribution
-      ? `${picture.attribution.author} · ${picture.attribution.license}`
-      : 'Community upload'
+  const credit = pictureCredit(picture)
 
   return (
     <Modal
@@ -84,8 +82,14 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
         className="max-h-[60vh] w-full bg-black object-contain"
       />
       <div className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <span className="truncate text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        <div className="flex items-start justify-between gap-3">
+          {/* Attribution nobody can read isn't attribution: at 390px the truncated credit
+              line rendered "TOMORROW X TOGETHER · Public d…". The lightbox has the room, so
+              here the full credit wraps instead of clipping. */}
+          <span
+            title={credit}
+            className="min-w-0 text-xs break-words text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]"
+          >
             {credit}
           </span>
           <button
@@ -163,7 +167,7 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
             onClick={onUploadClick}
             className="btn-gradient flex-1 rounded-full px-4 py-2 text-sm font-semibold"
           >
-            Upload your own picture
+            {uploadCtaLabel(!!user)}
           </button>
           <button
             onClick={onClose}
