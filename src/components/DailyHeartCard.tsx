@@ -54,7 +54,7 @@ export function DailyHeartCard() {
         <h2 className="text-sm font-semibold">💗 Daily Heart</h2>
         <p className="mt-0.5 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           {!user
-            ? 'One free heart for your fandom, every day. Miss a day and it’s gone.'
+            ? `One free heart for your fandom, every day — today’s expires at midnight KST (in ${formatCountdown(resetMs)}).`
             : !profile?.biasArtistId
               ? 'Pick a fandom and start claiming a heart for them every day.'
               : claimedToday

@@ -1,4 +1,7 @@
 interface Props {
+  /** Total pages, when the caller knows the roster size. 'Page 3' alone doesn't tell you
+   * whether page 7 exists. */
+  totalPages?: number
   page: number
   hasMore: boolean
   loading: boolean
@@ -6,7 +9,7 @@ interface Props {
   onNext: () => void
 }
 
-export function Pagination({ page, hasMore, loading, onPrev, onNext }: Props) {
+export function Pagination({ page, hasMore, loading, onPrev, onNext, totalPages }: Props) {
   return (
     <div className="flex items-center justify-center gap-3 pb-8">
       <button
@@ -17,7 +20,7 @@ export function Pagination({ page, hasMore, loading, onPrev, onNext }: Props) {
         Previous
       </button>
       <span className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-        Page {page + 1}
+        Page {page + 1}{totalPages ? ` of ${totalPages}` : ''}
       </span>
       <button
         onClick={onNext}

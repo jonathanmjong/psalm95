@@ -12,11 +12,19 @@ export interface SharePayload {
 
 export type ShareOutcome = 'shared' | 'copied' | 'failed'
 
+/** Some environments expose navigator.share but can never present the sheet (embedded
+ * webviews, certain desktop builds), leaving the promise pending forever — which showed up
+ * as a Share button that gave no feedback at all. Race it so we always fall through. */
+const SHARE_SHEET_TIMEOUT_MS = 2500
+
 export async function shareOrCopy({ title, text, url, copyText }: SharePayload): Promise<ShareOutcome> {
   if (navigator.share) {
     try {
-      await navigator.share({ title, text, url })
-      return 'shared'
+      const shared = await Promise.race([
+        navigator.share({ title, text, url }).then(() => true),
+        new Promise<false>((resolve) => setTimeout(() => resolve(false), SHARE_SHEET_TIMEOUT_MS)),
+      ])
+      if (shared) return 'shared'
     } catch {
       // user cancelled or share failed — fall through to copy
     }

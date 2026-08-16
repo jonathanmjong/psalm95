@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export function NotFound() {
+  usePageMeta({ title: 'Page not found | PsalmTune', noindex: true })
   return (
     <div className="flex flex-col items-center gap-4 py-24 text-center">
       <h1 className="text-3xl font-semibold tracking-tight">Page not found</h1>

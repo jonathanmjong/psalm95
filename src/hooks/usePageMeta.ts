@@ -8,6 +8,10 @@ interface PageMeta {
   /** Share-card image (absolute URL, or a site-relative path). Falls back to the site
    * default card at /og.png. */
   image?: string
+  /** Keep this page out of search results. Hosting rewrites every unknown path to the SPA
+   * shell, so a missing artist answers HTTP 200; without this Google indexes those soft 404s
+   * as thin duplicates of the homepage. */
+  noindex?: boolean
   /** Alt text for the share card. */
   imageAlt?: string
 }
@@ -49,12 +53,21 @@ function setCanonical(href: string) {
  * scripts/prerender.mjs (artist pages, /fandoms, /hall-of-fame) or the static
  * index.html defaults. Keep the two in sync when changing the wording here.
  * Restores the document title on unmount so stale titles don't leak between routes. */
-export function usePageMeta({ title, description, path, image, imageAlt }: PageMeta) {
+export function usePageMeta({ title, description, path, image, imageAlt, noindex }: PageMeta) {
   useEffect(() => {
     const url = SITE + (path ?? window.location.pathname)
     const custom = Boolean(image)
     const imageUrl = image ? (image.startsWith('http') ? image : SITE + image) : DEFAULT_IMAGE
     document.title = title
+    // Soft 404s (unknown artist, unclaimed handle) answer HTTP 200 because Hosting rewrites
+    // everything to the SPA shell, so the only way to keep them out of the index is this tag.
+    // It has to be removed again on the next route, or one 404 would deindex the whole SPA.
+    const robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')
+    if (noindex) {
+      setMeta('meta[name="robots"]', 'name', 'robots', 'noindex')
+    } else if (robots) {
+      robots.remove()
+    }
     if (description) {
       setMeta('meta[name="description"]', 'name', 'description', description)
       setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description)
@@ -79,5 +92,5 @@ export function usePageMeta({ title, description, path, image, imageAlt }: PageM
     return () => {
       document.title = DEFAULT_TITLE
     }
-  }, [title, description, path, image, imageAlt])
+  }, [title, description, path, image, imageAlt, noindex])
 }

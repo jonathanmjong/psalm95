@@ -174,7 +174,7 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
 
   return (
     <>
-      <HoverTip tip={tip} width="w-60">
+      <HoverTip tip={tip} width="w-60" align="right">
         <div className="relative" onPointerEnter={warmVotePath} onFocusCapture={warmVotePath}>
           {/* Once you've voted for this artist the button becomes a receipt rather than a
               call to action: the server rejects a second vote for the same artist this week,

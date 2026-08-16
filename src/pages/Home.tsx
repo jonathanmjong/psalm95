@@ -76,12 +76,12 @@ export function Home() {
             Searching…
           </p>
         ) : results.length === 0 ? (
-          <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          <p className="py-12 text-center text-sm break-words text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
             No artists or members match “{search.trim().slice(0, 80)}”.
           </p>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            <p className="text-sm break-words text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
               {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim().slice(0, 80)}”
             </p>
             {results.map((artist) => (
@@ -131,7 +131,18 @@ export function Home() {
       )}
 
       {!searching && (
-        <Pagination page={page} hasMore={hasMore} loading={loading} onPrev={prevPage} onNext={nextPage} />
+        <Pagination
+          page={page}
+          hasMore={hasMore}
+          loading={loading}
+          onPrev={prevPage}
+          onNext={nextPage}
+          totalPages={
+            // Only when a generation filter isn't narrowing the board — the index count
+            // would otherwise overstate how many pages the current filter actually has.
+            !generationId && allArtists.length ? Math.ceil(allArtists.length / 12) : undefined
+          }
+        />
       )}
     </div>
   )

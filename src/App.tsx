@@ -19,9 +19,6 @@ const Privacy = lazy(() => import('./pages/Privacy').then((m) => ({ default: m.P
 const About = lazy(() => import('./pages/About').then((m) => ({ default: m.About })))
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })))
 
-/** BrowserRouter keeps the scroll offset across navigations, so opening an artist from
- * halfway down the board dropped you into the middle of their page. Reset on every path
- * change (a hash still gets to do its own thing). */
 /** Route chunks are lazy, so a slow connection previously showed a completely blank page —
  *  measured at ~10s on 3G before any affordance appeared. A skeleton says "it's coming". */
 function RouteFallback() {
@@ -39,7 +36,7 @@ function RouteFallback() {
 }
 
 function ScrollToTop() {
-  const { pathname, hash } = useLocation()
+  const { pathname, hash, key } = useLocation()
   const navigationType = useNavigationType()
   useEffect(() => {
     // Only for forward navigation. On POP (back/forward) the browser restores the previous
@@ -47,7 +44,9 @@ function ScrollToTop() {
     // scrolled halfway down.
     if (hash || navigationType === 'POP') return
     window.scrollTo(0, 0)
-  }, [pathname, hash, navigationType])
+    // Keyed on `key` as well as `pathname`: clicking the logo while already on Home changes
+    // neither, and doing nothing nine pages down the board reads as a broken link.
+  }, [pathname, hash, key, navigationType])
   return null
 }
 
@@ -68,8 +67,16 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <ScrollToTop />
+      {/* 15 tab stops (including 10 birthday chips) stood between the top of the page and the
+          first ranked row. Visually hidden until focused. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-full focus:bg-[var(--color-surface)] focus:px-4 focus:text-sm focus:font-semibold focus:shadow-lg focus:dark:bg-[var(--color-surface-dark)]"
+      >
+        Skip to rankings
+      </a>
       <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <ErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
           <Routes>

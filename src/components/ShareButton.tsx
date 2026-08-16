@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { shareOrCopy } from '../lib/share'
+import { showToast } from '../lib/toast'
 
 interface Props {
   title: string
@@ -28,6 +29,12 @@ export function ShareButton({ title, text, url, variant = 'button', label = 'Sha
       url,
       copyText: copyMessage ? `${text} ${url}` : url,
     })
+    // 'shared' needs no feedback (the OS sheet was the feedback); 'failed' must say
+    // something, or the button reads as broken.
+    if (outcome === 'failed') {
+      showToast(`Couldn’t share automatically — the link is ${url}`)
+      return
+    }
     if (outcome !== 'copied') return
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)

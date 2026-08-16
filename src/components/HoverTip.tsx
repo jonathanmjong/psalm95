@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, useState, type ReactElement, type ReactNode } from 'react'
 
 interface Props {
   /** Tooltip body. Kept as a node so callers can lay out richer previews. */
@@ -27,14 +27,20 @@ export function HoverTip({ tip, children, align = 'left', width = 'w-64' }: Prop
       onFocusCapture={() => setOpen(true)}
       onBlurCapture={() => setOpen(false)}
     >
-      <div aria-describedby={open ? id : undefined}>{children}</div>
+      {/* The description has to live on the focusable control itself: screen readers read
+          aria-describedby from the *focused* element, and a wrapper div is never focused. */}
+      {isValidElement(children)
+        ? cloneElement(children as ReactElement<{ 'aria-describedby'?: string }>, {
+            'aria-describedby': open ? id : undefined,
+          })
+        : children}
       {open && (
         <div
           id={id}
           role="tooltip"
           className={`pointer-events-none absolute bottom-full z-30 mb-2 ${width} ${
             align === 'right' ? 'right-0' : 'left-0'
-          } rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-left text-xs leading-snug shadow-lg dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]`}
+          } max-w-[calc(100vw-2rem)] rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-left text-xs leading-snug shadow-lg dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]`}
         >
           {tip}
         </div>

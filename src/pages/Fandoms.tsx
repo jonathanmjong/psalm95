@@ -101,7 +101,7 @@ export function Fandoms() {
   const unscoredCount = ranked.length - scored.length
 
   // Underdog: most votes among fandoms ranked outside the top 5.
-  const underdog = scored.length > 6 ? [...scored.slice(5)].sort((a, b) => b.votes - a.votes)[0] : null
+  const underdog = scored.length > 3 ? [...scored.slice(5)].sort((a, b) => b.votes - a.votes)[0] : null
 
   // The signed-in user's own fandom and its live standing, for the brag/rally card. Rank is
   // read off the scored board, so a fandom with no votes is never given a meaningless number.

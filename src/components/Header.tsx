@@ -13,7 +13,7 @@ export function Header() {
           labels and the auth control only fit there with the tighter gutter and gaps below. */}
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-5">
-          <Link to="/" className="shrink-0">
+          <Link to="/" className="inline-flex min-h-11 shrink-0 items-center">
             <Logo />
           </Link>
           {/* Visible at every width: the live fandom race is a headline surface, and hiding

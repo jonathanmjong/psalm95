@@ -274,6 +274,16 @@ const SHELLS = [
     noscript:
       '<p>PsalmTune is a fan-made ranking site with no affiliation to any label, agency or artist. Scores combine online popularity with weekly and monthly fan votes, weighted equally. Artist photos are freely-licensed Wikimedia Commons images, credited to their authors.</p>',
   },
+  {
+    file: 'privacy.html',
+    path: '/privacy',
+    title: 'Privacy Policy | PsalmTune',
+    heading: 'Privacy Policy',
+    description:
+      'How PsalmTune handles your data — Google sign-in, votes, uploads, cookies and advertising, and how to have your account removed.',
+    noscript:
+      '<p>PsalmTune stores the Google account email you sign in with, the votes you cast and the pictures you upload. Public profiles show only a chosen handle and aggregate stats.</p>',
+  },
 ]
 
 function renderShell(shell) {
