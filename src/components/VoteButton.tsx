@@ -13,6 +13,9 @@ import { plural } from '../lib/plural'
 /** Mirrors WEEKLY_VOTE_LIMIT in functions/src/votes.ts. */
 const WEEKLY_VOTE_LIMIT = 3
 
+/** Module-level: one warm-up per page session, however many vote buttons are on screen. */
+let warmedThisSession = false
+
 interface Props {
   artist: Artist
   /** Called once a vote lands, so the surrounding surface can respond — the board row uses it
@@ -59,6 +62,18 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
     ? `I just voted for ${artist.name} on PsalmTune 💜 They’re #${shareRank} on the board — ${artist.fandomName}, help us climb!`
     : `I just voted for ${artist.name} on PsalmTune — they’re #${shareRank}. Every vote moves the board.`
 
+  /**
+   * Spin up the vote container before it's needed. Cold is ~2.4s versus ~0.2s warm, and on a
+   * quiet site nearly every visit's first vote pays that. Fired once per session on the first
+   * sign of intent (hover or focus of any vote button), and deliberately ignored on failure —
+   * it's an optimisation, not a step.
+   */
+  const warmVotePath = () => {
+    if (!user || warmedThisSession) return
+    warmedThisSession = true
+    void castArtistVote({ warm: true }).catch(() => {})
+  }
+
   const handleVote = async () => {
     if (!user) {
       await signInWithGoogle()
@@ -76,12 +91,16 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
       )
       return
     }
+    // Show the vote as landed straight away. The round trip is ~200ms warm but ~2.4s cold,
+    // and the client has already checked both rules the server enforces (not a duplicate for
+    // this artist, votes remaining), so the optimistic state is nearly always the true one.
+    // A rejection flips voteState to 'error', which drops the button back automatically.
     setVoteState('voting')
+    setFloatId(Date.now())
     setVoteMessage(null)
     try {
       const result = await castArtistVote({ artistId: artist.id })
       setVoteState('voted')
-      setFloatId(Date.now())
       const streak = result.data.currentStreak
       const streakMsg = streak > 1 ? ` · 🔥 ${streak}-day streak!` : ''
       setVoteMessage(`Vote cast — ${result.data.weeklyVotesRemaining} left this week.${streakMsg}`)
@@ -126,7 +145,9 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
    * landing and the profile listener catching up.
    */
   const votedForThisArtist =
-    voteState === 'voted' || (profile?.weeklyArtistVotes?.[currentWeekId()]?.includes(artist.id) ?? false)
+    voteState === 'voted' ||
+    voteState === 'voting' ||
+    (profile?.weeklyArtistVotes?.[currentWeekId()]?.includes(artist.id) ?? false)
   const alreadyVotedThisWeek = votedForThisArtist
   /** Signed in, all three votes spent, and none of them on this artist. */
   const outOfVotes = !!user && votesLeft === 0 && !votedForThisArtist
@@ -154,13 +175,13 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
   return (
     <>
       <HoverTip tip={tip} width="w-60">
-        <div className="relative">
+        <div className="relative" onPointerEnter={warmVotePath} onFocusCapture={warmVotePath}>
           {/* Once you've voted for this artist the button becomes a receipt rather than a
               call to action: the server rejects a second vote for the same artist this week,
               so offering the tap again would only produce an error. */}
           <button
             onClick={handleVote}
-            disabled={voteState === 'voting' || votedForThisArtist}
+            disabled={votedForThisArtist}
             aria-label={
               votedForThisArtist
                 ? `You voted for ${artist.name} this week`
@@ -184,9 +205,7 @@ export function VoteButton({ artist, onVoted, variant = 'row', receiptContainer,
                     : 'btn-gradient min-h-10 rounded-full px-3 py-2 text-sm font-semibold sm:px-4'
             }
           >
-            {voteState === 'voting' ? (
-              '…'
-            ) : votedForThisArtist ? (
+            {votedForThisArtist ? (
               <>
                 <svg
                   viewBox="0 0 24 24"

@@ -6,9 +6,15 @@ import { syncPublicProfile } from './handles'
 
 const WEEKLY_VOTE_LIMIT = 3
 
-export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
+export const castArtistVote = onCall<{ artistId?: string; warm?: boolean }>(async (request) => {
   const uid = request.auth?.uid
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in to vote.')
+
+  // A cold container costs ~2.4s versus ~0.2s warm, and on a quiet site the first vote of a
+  // visit almost always pays it. The client pings this the moment someone looks like they
+  // might vote, so the container is already up when the real vote arrives. It touches
+  // nothing and must stay the cheapest possible path through this function.
+  if (request.data?.warm) return { warmed: true }
 
   const { artistId } = request.data
   if (typeof artistId !== 'string' || !artistId) {

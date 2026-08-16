@@ -10,7 +10,7 @@ export interface StreakResult {
 }
 
 export const castArtistVote = httpsCallable<
-  { artistId: string },
+  { artistId?: string; warm?: boolean },
   { weeklyVotesRemaining: number } & StreakResult
 >(functions, 'castArtistVote')
 
