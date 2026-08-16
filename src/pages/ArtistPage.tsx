@@ -33,7 +33,7 @@ const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
 
 export function ArtistPage() {
   const { artistId } = useParams()
-  const { artist, loading: artistLoading } = useArtist(artistId)
+  const { artist, loading: artistLoading, error: artistError } = useArtist(artistId)
   const { user, signInWithGoogle } = useAuth()
   const [sort, setSort] = useState<PictureSort>('date')
   const [memberId, setMemberId] = useState<string | null>(null)
@@ -81,6 +81,25 @@ export function ArtistPage() {
       <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
         Loading artist…
       </p>
+    )
+  }
+
+  // A backend failure is not a missing artist. Saying "doesn't exist" on an outage misleads
+  // the visitor and, on a page every share link points at, tells crawlers it's a soft 404.
+  if (!artist && artistError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 py-16 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">Couldn’t load this artist</h1>
+        <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          We couldn’t reach the board just now. Check your connection and try again.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-gradient inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold"
+        >
+          Retry
+        </button>
+      </div>
     )
   }
 

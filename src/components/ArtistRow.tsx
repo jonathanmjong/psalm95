@@ -33,6 +33,9 @@ interface Props {
 
 export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Props) {
   const [localPicturesOpen, setLocalPicturesOpen] = useState(false)
+  /** A dead image host used to render a broken-image glyph with the alt text spilling out of
+   *  the 48px circle and colliding with the artist's name. Fall back to the plain placeholder. */
+  const [avatarOk, setAvatarOk] = useState(true)
   /** True once the pictures panel has been opened at least once. The panel — and the
    *  Firestore read inside it — is mounted only from then on, so the 12 rows on a Home
    *  page cost nothing extra until someone actually asks for pictures. */
@@ -102,8 +105,10 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
           >
             {rank}
           </span>
-          {thumbUrls[0] ? (
+          {thumbUrls[0] && avatarOk ? (
             <img
+              onError={() => setAvatarOk(false)}
+              alt=""
               src={sized(thumbUrls[0], 120)}
               srcSet={sizedSrcSet(thumbUrls[0], 120, 250)}
               sizes="48px"
@@ -111,7 +116,6 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               height={48}
               loading="lazy"
               decoding="async"
-              alt={artist.name}
               className="h-12 w-12 shrink-0 rounded-full object-cover"
             />
           ) : (
@@ -148,7 +152,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
               height={40}
               loading="lazy"
               decoding="async"
-              alt={`${artist.name} photo`}
+              alt=""
               className="h-10 w-10 rounded-lg object-cover"
             />
           ))}

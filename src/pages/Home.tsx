@@ -77,12 +77,12 @@ export function Home() {
           </p>
         ) : results.length === 0 ? (
           <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-            No artists or members match “{search.trim()}”.
+            No artists or members match “{search.trim().slice(0, 80)}”.
           </p>
         ) : (
           <div className="space-y-2">
             <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-              {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim()}”
+              {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim().slice(0, 80)}”
             </p>
             {results.map((artist) => (
               <ArtistRow

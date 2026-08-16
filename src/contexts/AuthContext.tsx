@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   getRedirectResult,
   onAuthStateChanged,
@@ -24,12 +24,17 @@ function popupWillFail(): boolean {
   )
 }
 
-/** Failures that mean "this browser won't do popups" rather than "the user changed their mind". */
+/**
+ * Failures that mean "this browser won't do popups" rather than "the user changed their mind".
+ *
+ * `auth/internal-error` is deliberately NOT here: a second click while a popup is already
+ * open rejects with it, and treating that as "popups don't work" escalated an impatient
+ * double-tap into a full-page redirect to accounts.google.com, throwing away page state.
+ */
 const REDIRECT_FALLBACK_CODES = new Set([
   'auth/popup-blocked',
   'auth/operation-not-supported-in-this-environment',
   'auth/web-storage-unsupported',
-  'auth/internal-error',
 ])
 
 async function ensureUserProfile(user: User) {
@@ -73,6 +78,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  /** Guards against a second sign-in attempt while one is already open. */
+  const signInInFlight = useRef(false)
 
   useEffect(() => {
     // Completes a redirect sign-in when the user lands back on the site. Surfacing the
@@ -95,6 +102,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * nothing at all and said nothing about it.
    */
   const signInWithGoogle = async () => {
+    // A second tap while sign-in is already running must be a no-op. Without this, the
+    // duplicate call rejects and the error handling below reacted to it, so an impatient
+    // double-tap navigated the tab away instead of doing nothing.
+    if (signInInFlight.current) return
+    signInInFlight.current = true
+    try {
+      await runSignIn()
+    } finally {
+      signInInFlight.current = false
+    }
+  }
+
+  const runSignIn = async () => {
     if (popupWillFail()) {
       try {
         await signInWithRedirect(auth, googleProvider)
