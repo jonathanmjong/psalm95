@@ -1,14 +1,15 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth'
 import {
+  connectFirestoreEmulator,
   getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
   type Firestore,
 } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
-import { getFunctions } from 'firebase/functions'
+import { getStorage, connectStorageEmulator } from 'firebase/storage'
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -50,3 +51,20 @@ export const db = createDb()
 export const storage = getStorage(app)
 export const functions = getFunctions(app)
 export const googleProvider = new GoogleAuthProvider()
+
+/**
+ * Local Firebase emulator suite, for end-to-end testing against `firebase emulators:start`.
+ *
+ * Double-guarded and dev-only: `import.meta.env.DEV` is statically false in a production
+ * build, so Rollup drops this whole block from the shipped bundle, and even in dev it stays
+ * inert unless `VITE_USE_EMULATORS=true` is set explicitly. There is no way for a deployed
+ * build to point itself at localhost.
+ */
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
+  const host = import.meta.env.VITE_EMULATOR_HOST || '127.0.0.1'
+  connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true })
+  connectFirestoreEmulator(db, host, 8080)
+  connectStorageEmulator(storage, host, 9199)
+  connectFunctionsEmulator(functions, host, 5001)
+  console.info('[firebase] connected to local emulators')
+}
