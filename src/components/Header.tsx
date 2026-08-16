@@ -10,15 +10,19 @@ export function Header() {
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]">
       {/* Everything in this bar is measured against a 390px phone: the brand, two full nav
-          labels and the auth control only fit there with the tighter gutter and gaps below. */}
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-5">
+          labels and the auth control only fit there with the tighter gutter and gaps below.
+          `flex-wrap` is the escape hatch for narrower effective widths — at 200% browser zoom
+          a phone reports ~195 CSS px, where the auth control used to sit on top of the
+          wordmark. Wrapping to a second line costs nothing at normal sizes, since the row
+          only wraps once it genuinely cannot fit. */}
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1 px-4 py-3 sm:flex-nowrap sm:px-6">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:flex-nowrap sm:gap-5">
           <Link to="/" className="inline-flex min-h-11 shrink-0 items-center">
             <Logo />
           </Link>
           {/* Visible at every width: the live fandom race is a headline surface, and hiding
               the nav below md left phones with no route to it but the footer. */}
-          <nav className="flex items-center gap-2 text-xs font-medium text-[var(--color-ink-soft)] sm:gap-4 sm:text-sm dark:text-[var(--color-ink-soft-dark)]">
+          <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-[var(--color-ink-soft)] sm:gap-4 sm:text-sm dark:text-[var(--color-ink-soft-dark)]">
             <Link
               to="/fandoms"
               className="inline-flex min-h-11 items-center transition hover:text-[var(--color-ink)] dark:hover:text-[var(--color-ink-dark)]"
