@@ -14,7 +14,7 @@ export function SortControl({ value, onChange }: Props) {
           onClick={() => onChange(sort)}
           className={`rounded-full px-3 py-1.5 font-medium transition ${
             value === sort
-              ? 'bg-[var(--color-accent)] text-white'
+              ? 'bg-[var(--color-accent-strong)] text-white'
               : 'text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'
           }`}
         >

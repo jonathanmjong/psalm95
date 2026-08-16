@@ -94,7 +94,7 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
             aria-label={voted ? 'Voted' : 'Vote for this picture'}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition disabled:opacity-70 ${
               voted
-                ? 'bg-[var(--color-accent)] text-white'
+                ? 'bg-[var(--color-accent-strong)] text-white'
                 : 'bg-[var(--color-surface-sunken)] hover:opacity-80 dark:bg-[var(--color-surface-sunken-dark)]'
             }`}
           >

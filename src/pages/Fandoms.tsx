@@ -76,7 +76,7 @@ export function Fandoms() {
   const [periodKey, setPeriodKey] = useState<(typeof PERIODS)[number]['key']>('weeklyVotes')
   // Live raw vote counters — these do move the instant a vote is cast, unlike the
   // hourly composite score, which is never animated.
-  const { artists, loading } = useLiveFandomRace(periodKey)
+  const { artists, loading, error } = useLiveFandomRace(periodKey)
   const stats = useFandomStats()
   const resetMs = useCountdown()
   const finalHours = resetMs < 6 * 3_600_000
@@ -211,7 +211,7 @@ export function Fandoms() {
               onClick={() => setPeriodKey(p.key)}
               className={`inline-flex min-h-11 items-center rounded-full px-4 font-medium transition ${
                 periodKey === p.key
-                  ? 'bg-[var(--color-accent)] text-white'
+                  ? 'bg-[var(--color-accent-strong)] text-white'
                   : 'text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]'
               }`}
             >
@@ -257,7 +257,23 @@ export function Fandoms() {
             />
           ))}
 
-          {scored.length === 0 && (
+          {/* Celebrating an open field we never actually managed to read would be a lie. */}
+          {scored.length === 0 && error && (
+            <div className="rounded-2xl border border-dashed border-[var(--color-hairline)] py-14 text-center dark:border-[var(--color-hairline-dark)]">
+              <p className="text-lg font-semibold">Couldn’t load the race</p>
+              <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                We couldn’t reach the board just now. Check your connection and try again.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="btn-gradient mt-4 inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {scored.length === 0 && !error && (
             <div className="rounded-2xl border border-dashed border-[var(--color-hairline)] py-14 text-center dark:border-[var(--color-hairline-dark)]">
               <p className="text-lg font-semibold">The board is wide open 🏁</p>
               <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">

@@ -19,6 +19,8 @@ export function useArtists(generationId: string | null) {
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
+  /** A failed fetch must not render as 'No artists found for this generation yet.' */
+  const [error, setError] = useState(false)
   const cursors = useRef<QueryDocumentSnapshot[]>([])
   /** Bumped per load so a slow delivery (cached or fresh) from a superseded request —
    * generation switched, page changed — can't write stale rows. */
@@ -65,7 +67,10 @@ export function useArtists(generationId: string | null) {
         // server too rather than paginating over a mix of sources.
         { serverOnly: targetPage > 0 },
       ).catch(() => {
-        if (id === request.current) setLoading(false)
+        if (id === request.current) {
+          setError(true)
+          setLoading(false)
+        }
       })
     },
     [generationId],
@@ -80,6 +85,7 @@ export function useArtists(generationId: string | null) {
   return {
     artists,
     loading,
+    error,
     page,
     hasMore,
     nextPage: () => load(page + 1),

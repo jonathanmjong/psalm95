@@ -94,7 +94,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
                 onClick={() => toggleMember(member.memberId)}
                 className={`rounded-full border px-3 py-1.5 text-sm transition ${
                   selectedMembers.includes(member.memberId)
-                    ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white'
+                    ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)] text-white'
                     : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
                 }`}
               >

@@ -27,6 +27,9 @@ const RACE_LIMIT = 120
 export function useLiveFandomRace(field: VotePeriodField) {
   const [artists, setArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
+  /** Set when the listener fails, so the page can say the board is unreachable rather than
+   * congratulating an empty field nobody could actually read. */
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     // Note: `loading` is intentionally not reset when `field` changes. Every artist doc
@@ -43,9 +46,12 @@ export function useLiveFandomRace(field: VotePeriodField) {
         )
         setLoading(false)
       },
-      () => setLoading(false),
+      () => {
+        setError(true)
+        setLoading(false)
+      },
     )
   }, [field])
 
-  return { artists, loading }
+  return { artists, loading, error }
 }

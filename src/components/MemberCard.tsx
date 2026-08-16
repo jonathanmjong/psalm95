@@ -63,7 +63,7 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
         <p
           className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
             bday.isToday
-              ? 'bg-[var(--color-accent)] text-white'
+              ? 'bg-[var(--color-accent-strong)] text-white'
               : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink)] dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-dark)]'
           }`}
         >

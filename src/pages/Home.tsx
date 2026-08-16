@@ -17,7 +17,7 @@ export function Home() {
   /** Id of the row whose inline pictures panel is open — at most one at a time,
    *  on both the ranked list and the search results. */
   const [picturesRowId, setPicturesRowId] = useState<string | null>(null)
-  const { artists, loading, page, hasMore, nextPage, prevPage } = useArtists(generationId)
+  const { artists, loading, error, page, hasMore, nextPage, prevPage } = useArtists(generationId)
   const { artists: allArtists, loading: allLoading } = useArtistIndex()
 
   usePageMeta({
@@ -103,6 +103,20 @@ export function Home() {
         <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           Loading rankings…
         </p>
+      ) : artists.length === 0 && error ? (
+        // The board is unreachable, not empty — claiming otherwise blames the roster for a
+        // network failure and leaves the visitor with nothing to act on.
+        <div className="space-y-3 py-12 text-center">
+          <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Couldn’t load the board just now.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-gradient inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold"
+          >
+            Retry
+          </button>
+        </div>
       ) : artists.length === 0 ? (
         <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           No artists found for this generation yet.

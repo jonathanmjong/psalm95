@@ -6,6 +6,10 @@
     Roboto, Helvetica, Arial, sans-serif;
 
   --color-accent: #ff375f;
+  /* White text on #ff375f is 3.52:1 — below the 4.5:1 AA minimum. Selected states (chips,
+     period tabs, sort toggles, the voted heart) use this darker accent instead, which is
+     5.03:1, while the brand accent stays exactly as it is everywhere else. */
+  --color-accent-strong: #d81b4a;
   --color-ink: #1d1d1f;
   --color-ink-soft: #6e6e73;
   --color-surface: #ffffff;
