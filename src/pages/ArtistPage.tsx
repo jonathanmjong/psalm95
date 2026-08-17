@@ -20,6 +20,7 @@ import { Comments } from '../components/Comments'
 import { ShareButton } from '../components/ShareButton'
 import { JoinFandomButton } from '../components/JoinFandomButton'
 import { VoteButton } from '../components/VoteButton'
+import { HoverTip } from '../components/HoverTip'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
@@ -176,6 +177,40 @@ export function ArtistPage() {
               </span>
             )}
           </button>
+        )}
+        {/* Four artists currently have no freely-licensed photo at all, and this slot used to
+            render nothing — so the one page where a fan could fix that offered no hint they
+            could. The placeholder occupies the same 176px square and opens the uploader. */}
+        {!heroPicture && (
+          <HoverTip
+            width="w-56"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  No picture of {artist.name} yet
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  {user
+                    ? 'Add the first one — the most-loved photo becomes their picture across the site.'
+                    : 'Sign in to add the first one — the most-loved photo becomes their picture across the site.'}
+                </p>
+              </>
+            }
+          >
+            <button
+              type="button"
+              onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
+              aria-label={`${uploadCtaLabel(!!user)} of ${artist.name} — no picture yet`}
+              className="group mx-auto flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-[var(--color-hairline)] text-center transition hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 sm:mx-0 dark:border-[var(--color-hairline-dark)]"
+            >
+              <span className="text-3xl" aria-hidden>
+                📷
+              </span>
+              <span className="px-3 text-xs font-semibold text-[var(--color-ink-soft)] transition group-hover:text-[var(--color-accent)] dark:text-[var(--color-ink-soft-dark)]">
+                {user ? 'Add the first picture' : 'Sign in to add a picture'}
+              </span>
+            </button>
+          </HoverTip>
         )}
         <div className="min-w-0 flex-1 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
