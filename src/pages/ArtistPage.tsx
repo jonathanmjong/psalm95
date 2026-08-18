@@ -152,31 +152,64 @@ export function ArtistPage() {
 
       <header className="flex flex-col gap-5 sm:flex-row sm:items-start">
         {heroPicture && (
-          <button
-            type="button"
-            onClick={() => setLightboxPic(heroPicture)}
-            className="group relative mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-3xl border border-[var(--color-hairline)] sm:mx-0 dark:border-[var(--color-hairline-dark)]"
-            aria-label={`Open ${artist.name}'s most-loved picture`}
+          /* A container, not one big button: the upload affordance has to be a sibling of the
+             view button rather than nested inside it. The image itself is the most-voted photo
+             of this artist (useTopPictures orders by voteCount), so hearting a photo in the
+             gallery is what promotes it to here. */
+          <HoverTip
+            width="w-56"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  {artist.name}&rsquo;s most-loved photo
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Chosen by fan hearts — whichever photo has the most takes this spot. Tap to view it
+                  full size, or {user ? 'add one of your own' : 'sign in to add one of your own'}.
+                </p>
+              </>
+            }
           >
-            <img
-              src={sized(heroPicture.url, 250)}
-              srcSet={sizedSrcSet(heroPicture.url, 250, 500)}
-              sizes="176px"
-              width={176}
-              height={176}
-              decoding="async"
-              alt={`${artist.name} — fan favorite`}
-              className="h-full w-full object-cover transition group-hover:scale-105"
-            />
-            {heroPicture.voteCount > 0 && (
-              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums">
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                {heroPicture.voteCount}
-              </span>
-            )}
-          </button>
+            <div className="group relative mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-3xl border border-[var(--color-hairline)] sm:mx-0 dark:border-[var(--color-hairline-dark)]">
+              <button
+                type="button"
+                onClick={() => setLightboxPic(heroPicture)}
+                className="block h-full w-full"
+                aria-label={`Open ${artist.name}'s most-loved picture`}
+              >
+                <img
+                  src={sized(heroPicture.url, 250)}
+                  srcSet={sizedSrcSet(heroPicture.url, 250, 500)}
+                  sizes="176px"
+                  width={176}
+                  height={176}
+                  decoding="async"
+                  alt={`${artist.name} — fan favorite`}
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                />
+              </button>
+              {heroPicture.voteCount > 0 && (
+                <span className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums">
+                  <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {heroPicture.voteCount}
+                </span>
+              )}
+              {/* Adding a picture used to mean opening the photo, then finding the CTA inside the
+                  lightbox. It belongs on the picture itself. */}
+              <button
+                type="button"
+                onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
+                aria-label={
+                  user ? `Upload a picture of ${artist.name}` : `Sign in to upload a picture of ${artist.name}`
+                }
+                className="absolute bottom-2 left-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-base text-white opacity-100 transition hover:bg-black/80 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+              >
+                <span aria-hidden>📷</span>
+              </button>
+            </div>
+          </HoverTip>
         )}
         {/* Four artists currently have no freely-licensed photo at all, and this slot used to
             render nothing — so the one page where a fan could fix that offered no hint they
@@ -200,7 +233,11 @@ export function ArtistPage() {
             <button
               type="button"
               onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
-              aria-label={`${uploadCtaLabel(!!user)} of ${artist.name} — no picture yet`}
+              aria-label={
+                user
+                  ? `Add the first picture of ${artist.name}`
+                  : `Sign in to add the first picture of ${artist.name}`
+              }
               className="group mx-auto flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-[var(--color-hairline)] text-center transition hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 sm:mx-0 dark:border-[var(--color-hairline-dark)]"
             >
               <span className="text-3xl" aria-hidden>
