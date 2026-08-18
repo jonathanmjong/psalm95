@@ -4,6 +4,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Artist pages are prerendered at build time, and their <title> and og:description carry
+  # the artist's rank ("BLACKPINK — #2 of 107"). Rankings recompute hourly, so between
+  # deploys those baked-in numbers drift from the live board — after the popularity source
+  # changed, one artist's card read #10 while the board said #100. A nightly rebuild keeps
+  # the crawler- and scraper-visible copy honest without touching anything else.
+  # 18:00 UTC = 03:00 KST: quiet for the primary audience, and clear of the daily snapshot
+  # (23:50 UTC) and the Monday weekly reset (00:00 UTC).
+  schedule:
+    - cron: '0 18 * * *'
 
 permissions:
   id-token: write
