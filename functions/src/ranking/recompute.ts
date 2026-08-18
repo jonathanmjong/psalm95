@@ -55,11 +55,22 @@ function normalizePopularity(docs: FirebaseFirestore.QueryDocumentSnapshot[]): n
   const comparable = docs.map((d) => hasComparablePopularity(d.data()))
   const values = docs.map((d) => rawValue(d.data(), 'popularity'))
   const measured = values.filter((_, i) => comparable[i])
-  if (measured.length === 0) return normalize(values)
+
+  // Nothing measurable — e.g. a Wikipedia outage marks the whole roster stale. Min-maxing the
+  // raw values here would be the very bug this function exists to prevent: the fallback
+  // numbers are on an incomparable scale, so one Deezer artist at 1.3M would take 100 and
+  // push a 401k-pageview artist to 7. With no comparable data, popularity simply contributes
+  // nothing and the vote factors decide the board.
+  if (measured.length === 0) return values.map(() => 0)
 
   const scaled = normalize(measured)
   const sorted = [...scaled].sort((a, b) => a - b)
-  const median = sorted[Math.floor(sorted.length / 2)]
+  // True median, averaging the two middles on an even count. Taking the upper middle meant a
+  // two-artist measured cohort scaled to [0, 100] handed every unmeasured artist a perfect
+  // 100 — inverting the board at small N, exactly what this guards against at large N.
+  const mid = sorted.length / 2
+  const median =
+    sorted.length % 2 === 1 ? sorted[Math.floor(mid)] : (sorted[mid - 1] + sorted[mid]) / 2
 
   let next = 0
   return comparable.map((ok) => (ok ? scaled[next++] : median))
@@ -75,7 +86,12 @@ function normalize(values: number[], floor = 0): number[] {
   return values.map((v) => ((v - min) / (max - min)) * 100)
 }
 
-export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeoutSeconds: 300 }, async () => {
+/**
+ * The ranking recompute itself, as a plain function. The onSchedule wrapper below is only the
+ * trigger — keeping the body out of the closure lets the emulator harness (and any one-off
+ * script) drive the exact production code path without a pubsub emulator.
+ */
+export async function recomputeRankingsNow(): Promise<void> {
   const db = getFirestore()
   const snap = await db.collection('artists').get()
   const docs = snap.docs
@@ -202,4 +218,8 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   console.log(
     `Recomputed rankings for ${ranked.length} artists; artistIndex ~${Math.round(indexBytes / 1024)} KB.`,
   )
-})
+}
+
+export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeoutSeconds: 300 }, () =>
+  recomputeRankingsNow(),
+)
