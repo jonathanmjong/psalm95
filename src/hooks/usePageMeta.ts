@@ -17,7 +17,7 @@ interface PageMeta {
 }
 
 const SITE = 'https://psalmtune.com'
-const DEFAULT_TITLE = "PsalmTune — Rank & explore K-pop, C-pop & J-pop artists"
+const DEFAULT_TITLE = "PsalmTune — fan-voted K-pop, C-pop & J-pop rankings"
 const DEFAULT_IMAGE = `${SITE}/og.png`
 const DEFAULT_IMAGE_ALT = "PsalmTune — the people's ranking for K-pop, C-pop and J-pop"
 /** Tags that only describe the default 1200x630 PNG card. */
