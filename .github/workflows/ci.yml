@@ -79,3 +79,44 @@ jobs:
             node scripts/emu/test-scheduled.mjs
           '
 
+  # The Modal keyboard contract — focus enters the dialog, Tab and Shift+Tab stay trapped,
+  # Escape closes, focus returns to the trigger, body scroll locks and releases. None of that
+  # is observable by reading the code, and it silently regresses the moment someone reworks a
+  # dialog. Runs against the built output rather than the dev server.
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # The build needs the Firebase web config; these are public client values, and the
+      # check never signs in or writes. Falls back to placeholders so a fork without the
+      # repo variables set still builds and runs the check.
+      - name: Build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || 'ci-placeholder' }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN || 'demo-test.firebaseapp.com' }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID || 'demo-test' }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET || 'demo-test.appspot.com' }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID || '000000000000' }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID || '1:000000000000:web:citest' }}
+        run: npm run build
+
+      # Served by the hosting emulator, not `vite preview`: only the emulator replays
+      # firebase.json, and without its cleanUrls mapping /artist/blackpink does not resolve
+      # at all — the check silently degraded to 2/9 because the page it drives never loaded.
+      - name: Serve the build and run the accessibility check
+        run: |
+          npx firebase-tools emulators:exec --only hosting --project demo-test '
+            for i in $(seq 1 60); do curl -sf http://127.0.0.1:5055 >/dev/null && break; sleep 1; done
+            curl -sf http://127.0.0.1:5055 >/dev/null || { echo "hosting emulator never came up"; exit 1; }
+            BASE_URL=http://127.0.0.1:5055 node scripts/check-a11y.mjs
+          '
+

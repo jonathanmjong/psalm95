@@ -25,7 +25,7 @@
         ]
       },
       {
-        "//": "Rollup content-hashes everything under /assets, so a given filename can only ever hold one set of bytes — safe to cache forever, and it matches how sw.js serves them (cache-first, dropped wholesale when BUILD_ID changes). Hosting's default here is only max-age=3600, which made a return visit an hour later re-download the whole ~1 MB bundle.",
+        "//": "Rollup content-hashes everything under /assets, so a given filename can only ever hold one set of bytes \u2014 safe to cache forever, and it matches how sw.js serves them (cache-first, dropped wholesale when BUILD_ID changes). Hosting's default here is only max-age=3600, which made a return visit an hour later re-download the whole ~1 MB bundle.",
         "source": "/assets/**",
         "headers": [
           {
@@ -35,7 +35,7 @@
         ]
       },
       {
-        "//": "Prerendered shells (dist/artist/*.html, dist/fandoms.html, dist/hall-of-fame.html) embed hourly rank data and reference hashed assets — always revalidate so a deploy or rank refresh is picked up immediately. Header globs match the REQUEST path, so the cleanUrls forms are listed alongside **/*.html.",
+        "//": "Prerendered shells (dist/artist/*.html, dist/fandoms.html, dist/hall-of-fame.html) embed hourly rank data and reference hashed assets \u2014 always revalidate so a deploy or rank refresh is picked up immediately. Header globs match the REQUEST path, so the cleanUrls forms are listed alongside **/*.html.",
         "source": "**/*.html",
         "headers": [
           {
