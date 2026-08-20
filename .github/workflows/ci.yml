@@ -38,3 +38,44 @@ jobs:
       - name: Typecheck + build functions
         working-directory: functions
         run: npm run build
+
+  # The emulator suites — 288 assertions across callables, security rules and the scheduled
+  # jobs — previously only ran when someone remembered to run them by hand, which is how a
+  # suite quietly rots. Everything is pinned to a `demo-` project, which the Firebase SDKs
+  # refuse to route to real backends, so this can never touch production.
+  emulator-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      # Firestore and Storage emulators are Java processes.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install deps
+        run: |
+          npm ci
+          npm --prefix functions ci
+
+      # test-scheduled imports the compiled handlers from functions/lib.
+      - name: Build functions
+        run: npm --prefix functions run build
+
+      - name: Run emulator suites
+        run: |
+          source scripts/emu/env.sh
+          npx firebase-tools emulators:exec --only auth,firestore,functions,storage --project demo-test '
+            set -e
+            node scripts/emu/seed.mjs
+            node scripts/emu/test-flows.mjs
+            node scripts/emu/test-rules.mjs
+            node scripts/emu/test-scheduled.mjs
+          '
+
