@@ -14,6 +14,8 @@
 #        node scripts/emu/test-flows.mjs   # callables + Firestore/Storage state
 #        node scripts/emu/test-rules.mjs   # security rules + comments, via the client SDK
 #        node scripts/emu/test-ui.mjs      # the UI in headless Chrome over CDP
+#        npm --prefix functions run build  # test-scheduled imports functions/lib
+#        node scripts/emu/test-scheduled.mjs  # the onSchedule jobs, invoked directly
 #
 # Everything is pinned to the demo-test project: the Firebase SDKs refuse to contact real
 # Google backends for a "demo-" project, so this harness cannot reach production.

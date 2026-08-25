@@ -6,6 +6,7 @@ import { useTopPictures } from '../hooks/useTopPictures'
 import { useLatestPictures } from '../hooks/useLatestPictures'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { MemberFilter } from '../components/MemberFilter'
 import { SortControl } from '../components/SortControl'
 import { PictureGrid } from '../components/PictureGrid'
@@ -26,6 +27,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
 import { sized, sizedSrcSet } from '../lib/images'
 import { uploadCtaLabel } from '../lib/labels'
+import { picturesVotesLeft, pictureVotesRuleText } from '../lib/pictureVotes'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -37,6 +39,7 @@ export function ArtistPage() {
   const { artistId } = useParams()
   const { artist, loading: artistLoading, error: artistError } = useArtist(artistId)
   const { user, signInWithGoogle } = useAuth()
+  const { profile } = useUserProfile()
   const [sort, setSort] = useState<PictureSort>('date')
   const [memberId, setMemberId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -363,6 +366,13 @@ export function ArtistPage() {
             </button>
           </div>
         </div>
+
+        {/* Plain visible copy, deliberately not a tooltip: picture hearts are the one action
+            on this page with a hard, non-resetting budget, and a hover-only rule is invisible
+            to the phone visitor who is about to spend it. */}
+        <p className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          {pictureVotesRuleText(artist.name, picturesVotesLeft(profile, artist.id), !!user)}
+        </p>
 
         {/* Loading copy only when the grid is genuinely empty — a cached page paints
             immediately, and a post-vote refresh keeps the photos up while it re-reads. */}

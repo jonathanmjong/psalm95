@@ -339,12 +339,14 @@ checkEq('heart a picture → voteCount 1', r.ok && r.data.voteCount, 1)
 checkEq('heart reports alreadyVoted false', r.ok && r.data.alreadyVoted, false)
 checkEq('picture doc voteCount persisted', (await db.doc(`artists/${A.aurora}/pictures/${pictureIds[0]}`).get()).data().voteCount, 1)
 checkEq('daily heart quota consumed once', (await userDoc()).pictureHeartsToday, 1)
+checkEq('per-artist picture-vote spend recorded', (await userDoc()).pictureVotesByArtist, { aurora: 1 })
 
 r = await callFn('votePicture', { pictureId: pictureIds[0], artistId: A.aurora }, TOKEN)
 check('re-heart resolves instead of erroring', r.ok, JSON.stringify(r.error))
 checkEq('re-heart returns alreadyVoted true', r.ok && r.data.alreadyVoted, true)
 checkEq('re-heart does not bump voteCount', (await db.doc(`artists/${A.aurora}/pictures/${pictureIds[0]}`).get()).data().voteCount, 1)
 checkEq('re-heart does NOT consume daily quota', (await userDoc()).pictureHeartsToday, 1)
+checkEq('re-heart does NOT consume per-artist quota', (await userDoc()).pictureVotesByArtist, { aurora: 1 })
 
 r = await callFn('votePicture', { pictureId: 'nope', artistId: A.aurora }, TOKEN)
 check('hearting a missing picture is not-found', !r.ok && r.error.status === 'NOT_FOUND', JSON.stringify(r.error))
@@ -368,6 +370,85 @@ check('storage object removed', !(await objectExists(paths[2])))
 
 r = await callFn('deletePicture', { artistId: A.aurora, pictureId: pictureIds[0] }, OTHER_TOKEN)
 check("cannot delete another user's picture", !r.ok && r.error.status === 'PERMISSION_DENIED', JSON.stringify(r.error))
+
+/* ------------------------------------------------- 5b. 3 picture votes per artist */
+// Hearts pick an artist's best photos (the top one becomes their picture site-wide), so the
+// allowance is 3 *per artist*, never reset. Spending them on one artist must leave every
+// other artist untouched.
+console.log('\n--- Flow 5b: 3 picture votes per artist ---')
+await reset()
+
+/** Picture docs written straight through the Admin SDK. This section needs more photos than
+ * the 3-upload-per-user quota allows, and that quota is not what is under test here. */
+async function seedPictures(artistId, count) {
+  const ids = []
+  for (let i = 0; i < count; i++) {
+    const ref = db.collection(`artists/${artistId}/pictures`).doc()
+    await ref.set({
+      artistId,
+      url: `https://example.com/${artistId}-${i}.jpg`,
+      storagePath: `artists/${artistId}/seed/${ref.id}.jpg`,
+      source: 'wikimedia-seed',
+      voteCount: 0,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+    ids.push(ref.id)
+  }
+  return ids
+}
+const votePic = (artistId, pictureId, token = TOKEN) =>
+  callFn('votePicture', { pictureId, artistId }, token)
+const picVotes = async (uid = me.uid) => (await userDoc(uid)).pictureVotesByArtist ?? {}
+const picCount = async (artistId, pictureId) =>
+  (await db.doc(`artists/${artistId}/pictures/${pictureId}`).get()).data()?.voteCount
+
+const auroraPics = await seedPictures(A.aurora, 5)
+const novaPics = await seedPictures(A.nova, 2)
+
+for (let i = 0; i < 3; i++) {
+  r = await votePic(A.aurora, auroraPics[i])
+  checkEq(`picture vote ${i + 1} of 3 on aurora succeeds`, r.ok && r.data.voteCount, 1)
+}
+checkEq('spend map shows 3 used on aurora', await picVotes(), { aurora: 3 })
+
+r = await votePic(A.aurora, auroraPics[3])
+check(
+  '4th picture vote on aurora rejected (resource-exhausted)',
+  !r.ok && r.error.status === 'RESOURCE_EXHAUSTED',
+  JSON.stringify(r.error),
+)
+checkEq('rejected 4th leaves that picture at voteCount 0', await picCount(A.aurora, auroraPics[3]), 0)
+checkEq('rejected 4th does not move the spend map', await picVotes(), { aurora: 3 })
+checkEq('rejected 4th does not consume a daily heart', (await userDoc()).pictureHeartsToday, 3)
+
+// The allowance is per artist, so a different artist is completely unaffected.
+r = await votePic(A.nova, novaPics[0])
+check('a vote on a DIFFERENT artist still works', r.ok, JSON.stringify(r.error))
+checkEq('spend map tracks each artist separately', await picVotes(), { aurora: 3, nova: 1 })
+
+// A repeat heart must stay an idempotent no-op even once the artist's 3 are gone — those are
+// exactly the pictures a returning fan will tap again, and the client cannot know it voted.
+r = await votePic(A.aurora, auroraPics[0])
+check('re-heart with 0 left resolves instead of erroring', r.ok, JSON.stringify(r.error))
+checkEq('re-heart with 0 left reports alreadyVoted', r.ok && r.data.alreadyVoted, true)
+checkEq('re-heart with 0 left does not bump voteCount', await picCount(A.aurora, auroraPics[0]), 1)
+checkEq('re-heart with 0 left consumes no per-artist quota', await picVotes(), { aurora: 3, nova: 1 })
+checkEq('re-heart with 0 left consumes no daily quota', (await userDoc()).pictureHeartsToday, 4)
+
+// The 50/day ceiling is still a cross-artist backstop, independent of the per-artist 3.
+await db.doc(`users/${me.uid}`).set({ pictureHeartsToday: 50, pictureHeartsDate: kstDay(0) }, { merge: true })
+r = await votePic(A.nova, novaPics[1])
+check(
+  'daily cap still applies even with per-artist votes left',
+  !r.ok && r.error.status === 'RESOURCE_EXHAUSTED',
+  JSON.stringify(r.error),
+)
+checkEq('daily-cap rejection leaves nova\'s allowance untouched', (await picVotes()).nova, 1)
+
+// And one fan exhausting an artist says nothing about anyone else's allowance.
+r = await votePic(A.aurora, auroraPics[3], OTHER_TOKEN)
+check("another user still has their own 3 for that artist", r.ok, JSON.stringify(r.error))
+checkEq('other user spend map is their own', await picVotes(other.uid), { aurora: 1 })
 
 /* ================================================================= 6. HANDLE */
 console.log('\n--- Flow 6: handle ---')

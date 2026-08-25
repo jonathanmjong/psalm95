@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile, type UserProfile } from '../hooks/useUserProfile'
 import { votePicture } from '../lib/callables'
 import { sized, sizedSrcSet } from '../lib/images'
 import { pictureCredit } from '../lib/labels'
+import { plural } from '../lib/plural'
+import { PICTURE_VOTES_PER_ARTIST, picturesVotesLeft, pictureVotesSpentText } from '../lib/pictureVotes'
 import { HoverTip } from './HoverTip'
 
 function PictureCard({
   picture,
   artistName,
+  profile,
   onOpen,
 }: {
   picture: ArtistPicture
   artistName: string
+  profile: UserProfile | null
   onOpen?: (picture: ArtistPicture) => void
 }) {
   const { user, signInWithGoogle } = useAuth()
@@ -44,6 +49,14 @@ function PictureCard({
   }
 
   const credit = pictureCredit(picture)
+  // Derived from the user doc this hook already streams — no per-picture read. A heart cast
+  // in this session is `voted`, and the snapshot has already decremented for it.
+  const votesLeft = picturesVotesLeft(profile, picture.artistId)
+  // Rendered spent, but still clickable on purpose: the client never loads the user's vote
+  // docs, so it cannot tell which three photos they hearted on an earlier visit. Blocking the
+  // tap would strand exactly those three unfilled forever; letting it through fills them
+  // (`alreadyVoted`, no quota spent) and otherwise surfaces the server's explanation below.
+  const spent = !!user && !voted && votesLeft === 0
 
   return (
     <figure className="lift overflow-hidden rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]">
@@ -82,8 +95,12 @@ function PictureCard({
                   How picture voting works
                 </p>
                 <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-                  Tap the heart to love a photo — one vote per picture. The most-voted photos rise to the
-                  top of the gallery. Sign in with Google to vote.
+                  You get {PICTURE_VOTES_PER_ARTIST} votes per artist, one per picture, and they don&rsquo;t
+                  reset — spend them on {artistName}&rsquo;s best. The most-voted picture becomes their main
+                  photo.{' '}
+                  {user
+                    ? `${plural(votesLeft, 'vote')} left for ${artistName}.`
+                    : 'Sign in with Google to vote.'}
                 </p>
               </>
             }
@@ -91,11 +108,21 @@ function PictureCard({
             <button
               onClick={handleVote}
               disabled={voted || pending}
-              aria-label={voted ? 'Voted' : 'Vote for this picture'}
+              aria-disabled={spent}
+              title={spent ? pictureVotesSpentText(artistName) : undefined}
+              aria-label={
+                voted
+                  ? 'Voted'
+                  : spent
+                    ? `No picture votes left for ${artistName}`
+                    : 'Vote for this picture'
+              }
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition disabled:opacity-70 ${
                 voted
                   ? 'bg-[var(--color-accent-strong)] text-white'
-                  : 'bg-[var(--color-surface-sunken)] hover:opacity-80 dark:bg-[var(--color-surface-sunken-dark)]'
+                  : spent
+                    ? 'bg-[var(--color-surface-sunken)] opacity-50 dark:bg-[var(--color-surface-sunken-dark)]'
+                    : 'bg-[var(--color-surface-sunken)] hover:opacity-80 dark:bg-[var(--color-surface-sunken-dark)]'
               }`}
             >
               <svg
@@ -129,6 +156,11 @@ export function PictureGrid({
   artistName: string
   onOpen?: (picture: ArtistPicture) => void
 }) {
+  // One subscription for the whole grid rather than one per card. `useUserProfile` shares a
+  // single Firestore listener per uid anyway, but reading it here keeps every card's
+  // remaining-vote count derived from the same snapshot.
+  const { profile } = useUserProfile()
+
   if (pictures.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
@@ -140,7 +172,13 @@ export function PictureGrid({
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
       {pictures.map((picture) => (
-        <PictureCard key={picture.id} picture={picture} artistName={artistName} onOpen={onOpen} />
+        <PictureCard
+          key={picture.id}
+          picture={picture}
+          artistName={artistName}
+          profile={profile}
+          onOpen={onOpen}
+        />
       ))}
     </div>
   )
