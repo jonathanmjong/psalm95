@@ -35,6 +35,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Each week's closing fandom-heart totals, written by the weekly reset before it zeroes
+    // the live counters. Public read, function-only write.
+    match /fandomHeartHistory/{weekId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Finished battles — public read, archived only by the scheduled function.
     match /battleArchive/{weekId} {
       allow read: if true;

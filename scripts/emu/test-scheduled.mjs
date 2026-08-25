@@ -31,7 +31,7 @@ const db = getFirestore()
 // pick up the emulator-pinned default app rather than making one of their own.
 const require = createRequire(import.meta.url)
 const { recomputeRankingsNow } = require('../../functions/lib/ranking/recompute.js')
-const { resetWeeklyVotesNow, resetField, resetFandomHearts, captureWeeklyWinner } = require(
+const { resetWeeklyVotesNow, resetField, resetFandomHearts, archiveFandomHearts, captureWeeklyWinner } = require(
   '../../functions/lib/ranking/periodReset.js',
 )
 const { captureDailySnapshotNow } = require('../../functions/lib/ranking/dailySnapshot.js')
@@ -69,6 +69,7 @@ const COLLECTIONS = [
   'battles',
   'battleArchive',
   'battleVotes',
+  'fandomHeartHistory',
 ]
 
 async function wipe() {
@@ -406,7 +407,9 @@ await wipe()
 await db.doc('fandomStats/f-a').set({ weeklyHearts: 12, totalHearts: 500, memberCount: 40 })
 await db.doc('fandomStats/f-b').set({ weeklyHearts: 0, totalHearts: 3, memberCount: 1 })
 await db.doc('fandomStats/f-c').set({ memberCount: 7 }) // never received a heart
-await resetFandomHearts()
+// MONDAY is the pinned Monday used elsewhere in this suite; the week being closed is the
+// one the preceding day fell in.
+await resetFandomHearts(MONDAY)
 const fA = (await db.doc('fandomStats/f-a').get()).data()
 const fC = (await db.doc('fandomStats/f-c').get()).data()
 checkEq('weeklyHearts zeroed', fA.weeklyHearts, 0)
@@ -414,6 +417,26 @@ checkEq('totalHearts left alone', fA.totalHearts, 500)
 checkEq('memberCount left alone', fA.memberCount, 40)
 checkEq('a fandom that never received a heart gains the field via merge-set', fC.weeklyHearts, 0)
 checkEq('merge-set does not clobber other fields', fC.memberCount, 7)
+
+// The week's totals must survive the zeroing — they cannot be reconstructed afterwards,
+// which is exactly how the weekly battle used to lose its matchup.
+const heartWeek = isoWeekId(new Date(MONDAY.getTime() - 86_400_000))
+const archived = (await db.doc(`fandomHeartHistory/${heartWeek}`).get()).data()
+check('the closed week is archived before the counters are zeroed', !!archived, heartWeek)
+checkEq('the archive keeps each fandom that scored', archived?.hearts?.['f-a'], 12)
+checkEq('fandoms on zero are left out of the archive', archived?.hearts?.['f-b'], undefined)
+checkEq('totalHearts across the week', archived?.totalHearts, 12)
+checkEq('fandomCount counts only fandoms that scored', archived?.fandomCount, 1)
+
+// A week nobody played should not leave an empty document behind.
+await wipe()
+await db.doc('fandomStats/f-z').set({ weeklyHearts: 0, memberCount: 2 })
+await resetFandomHearts(MONDAY)
+checkEq(
+  'a week with no hearts writes no archive doc',
+  (await db.doc(`fandomHeartHistory/${heartWeek}`).get()).exists,
+  false,
+)
 
 /* ================================================================= 4. monthly / yearly resets */
 console.log('\n=== 4. resetMonthlyVotes / resetYearlyVotes ===')

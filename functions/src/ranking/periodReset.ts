@@ -16,9 +16,54 @@ export async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearly
 }
 
 /** Daily hearts are a weekly currency too: zero every fandom's counter alongside the votes.
- * Uses merge-set so fandoms that never received a heart simply gain the field. */
-export async function resetFandomHearts() {
+ * Uses merge-set so fandoms that never received a heart simply gain the field.
+ *
+ * The week's totals are archived first. Votes get this for free — the daily snapshot keeps a
+ * per-artist series and the Hall of Fame records each champion — but hearts had nowhere to
+ * land, so every Sunday's totals were discarded permanently. Same failure the weekly battle
+ * had before it was archived: a number you can never reconstruct once it is overwritten.
+ *
+ * `now` is injectable so a test can pin the week being closed. */
+export async function archiveFandomHearts(now: Date = new Date()) {
   const db = getFirestore()
+  // Runs at Monday 00:00 KST, so the week being closed is the one "yesterday" fell in.
+  const endedWeekId = currentWeekId(new Date(now.getTime() - 86_400_000))
+  const snap = await db.collection('fandomStats').get()
+
+  const hearts: Record<string, number> = {}
+  let total = 0
+  for (const doc of snap.docs) {
+    const n = (doc.data().weeklyHearts as number) ?? 0
+    if (n > 0) {
+      hearts[doc.id] = n
+      total += n
+    }
+  }
+  // Nothing to remember: don't litter the collection with empty weeks.
+  if (total === 0) {
+    console.log(`No fandom hearts to archive for ${endedWeekId}.`)
+    return
+  }
+
+  await db.doc(`fandomHeartHistory/${endedWeekId}`).set({
+    weekId: endedWeekId,
+    hearts,
+    totalHearts: total,
+    fandomCount: Object.keys(hearts).length,
+    capturedAt: FieldValue.serverTimestamp(),
+  })
+  console.log(`Archived ${total} fandom hearts across ${Object.keys(hearts).length} fandoms for ${endedWeekId}.`)
+}
+
+export async function resetFandomHearts(now: Date = new Date()) {
+  const db = getFirestore()
+  // Archive before zeroing, and never let a failure there block the reset — a missed archive
+  // costs one week of history, a missed reset carries hearts into the next week forever.
+  try {
+    await archiveFandomHearts(now)
+  } catch (err) {
+    console.error('Fandom heart archive failed; continuing with the reset:', err)
+  }
   const snap = await db.collection('fandomStats').get()
   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
     const batch = db.batch()
