@@ -29,6 +29,22 @@ const [visitsSnap, statsSnap] = await Promise.all([
   db.collection('stats').orderBy('date', 'desc').limit(days).get(),
 ])
 
+/**
+ * Reads a counter group in either shape. Until 2026-08-31 recordVisit wrote dotted keys via
+ * `set({merge:true})`, which Firestore stores as a literal field name ("bySource.direct")
+ * rather than a nested map — so those days' numbers are real but flat. Merging both keeps the
+ * pre-fix history readable instead of silently reporting zero.
+ */
+function collect(data, group) {
+  const out = { ...(data[group] ?? {}) }
+  for (const [k, v] of Object.entries(data)) {
+    if (!k.startsWith(`${group}.`)) continue
+    const key = k.slice(group.length + 1)
+    out[key] = (out[key] ?? 0) + v
+  }
+  return out
+}
+
 const pad = (s, n) => String(s).padEnd(n)
 const num = (s, n) => String(s).padStart(n)
 
@@ -43,8 +59,8 @@ if (visitsSnap.empty) {
   for (const doc of visitsSnap.docs) {
     const d = doc.data()
     visits += d.visits ?? 0
-    for (const [k, v] of Object.entries(d.bySource ?? {})) totals[k] = (totals[k] ?? 0) + v
-    for (const [k, v] of Object.entries(d.signupsBySource ?? {})) signups[k] = (signups[k] ?? 0) + v
+    for (const [k, v] of Object.entries(collect(d, 'bySource'))) totals[k] = (totals[k] ?? 0) + v
+    for (const [k, v] of Object.entries(collect(d, 'signupsBySource'))) signups[k] = (signups[k] ?? 0) + v
   }
   console.log(`${pad('source', 16)}${num('visits', 8)}${num('signups', 9)}${num('conv %', 9)}`)
   for (const [src, n] of Object.entries(totals).sort((a, b) => b[1] - a[1])) {
@@ -57,7 +73,7 @@ if (visitsSnap.empty) {
   console.log('LANDING PAGE')
   const landings = {}
   for (const doc of visitsSnap.docs)
-    for (const [k, v] of Object.entries(doc.data().byLanding ?? {})) landings[k] = (landings[k] ?? 0) + v
+    for (const [k, v] of Object.entries(collect(doc.data(), 'byLanding'))) landings[k] = (landings[k] ?? 0) + v
   for (const [k, v] of Object.entries(landings).sort((a, b) => b[1] - a[1]))
     console.log(`  ${pad(k, 14)}${num(v, 6)}`)
   console.log()

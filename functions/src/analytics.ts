@@ -71,12 +71,16 @@ export const recordVisit = onCall<{ source?: string; landing?: string }>(async (
   const landing = classifyLanding(request.data?.landing)
   const db = getFirestore()
 
+  // Nested objects, not dotted keys: `set` with merge treats "bySource.direct" as a field
+  // *named* that, dots and all, while only `update` reads dots as a path. Written the wrong
+  // way this silently produced flat keys and every source read back empty. Deep merge plus
+  // increment gives the nested shape the reader expects.
   await db.doc(`analytics/${currentDayIdKST()}`).set(
     {
       date: currentDayIdKST(),
       visits: FieldValue.increment(1),
-      [`bySource.${source}`]: FieldValue.increment(1),
-      [`byLanding.${landing}`]: FieldValue.increment(1),
+      bySource: { [source]: FieldValue.increment(1) },
+      byLanding: { [landing]: FieldValue.increment(1) },
       updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true },
@@ -91,7 +95,7 @@ export const recordVisit = onCall<{ source?: string; landing?: string }>(async (
       await userRef.set({ acquisitionSource: source }, { merge: true })
       await db
         .doc(`analytics/${currentDayIdKST()}`)
-        .set({ [`signupsBySource.${source}`]: FieldValue.increment(1) }, { merge: true })
+        .set({ signupsBySource: { [source]: FieldValue.increment(1) } }, { merge: true })
     }
   }
 
