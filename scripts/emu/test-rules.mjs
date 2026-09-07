@@ -215,6 +215,7 @@ const frozen = {
   activeUploadCount: -5,
   pictureHeartsToday: 99,
   pictureHeartsDate: '2030-01-01',
+  pictureVotesByArtist: { aurora: 0 },
   referredBy: 'someone',
   referralCount: 500,
   biasArtistId: 'aurora',

@@ -2,10 +2,12 @@ import { useState } from 'react'
 import type { Artist, ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { useTopPictures } from '../hooks/useTopPictures'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { PictureStrip } from './PictureStrip'
 import { PictureLightbox } from './PictureLightbox'
 import { UploadModal } from './UploadModal'
 import { uploadCtaLabel } from '../lib/labels'
+import { picturesVotesLeft, pictureVotesRuleText } from '../lib/pictureVotes'
 
 /** How many most-loved pictures the inline row strip shows. */
 const PANEL_PICTURE_COUNT = 10
@@ -20,6 +22,7 @@ const PANEL_PICTURE_COUNT = 10
  */
 export function RowPicturesPanel({ artist }: { artist: Artist }) {
   const { user, signInWithGoogle } = useAuth()
+  const { profile } = useUserProfile()
   const [refreshKey, setRefreshKey] = useState(0)
   const { pictures, loading } = useTopPictures(artist.id, PANEL_PICTURE_COUNT, refreshKey)
   const [lightboxPic, setLightboxPic] = useState<ArtistPicture | null>(null)
@@ -47,6 +50,12 @@ export function RowPicturesPanel({ artist }: { artist: Artist }) {
           {uploadCtaLabel(!!user)}
         </button>
       </div>
+
+      {/* Hearting happens in the lightbox this strip opens, but the budget has to be legible
+          before the tap — visible copy rather than a tooltip, same as the artist page. */}
+      <p className="mb-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        {pictureVotesRuleText(artist.name, picturesVotesLeft(profile, artist.id), !!user)}
+      </p>
 
       {loading && pictures.length === 0 ? (
         // Same footprint as the strip, so the panel does not resize once photos land.

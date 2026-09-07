@@ -4,7 +4,7 @@ import { currentWeekId } from '../dates'
 
 const BATCH_SIZE = 400
 
-async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearlyVotes') {
+export async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearlyVotes') {
   const db = getFirestore()
   const snap = await db.collection('artists').get()
   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
@@ -16,9 +16,54 @@ async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearlyVotes')
 }
 
 /** Daily hearts are a weekly currency too: zero every fandom's counter alongside the votes.
- * Uses merge-set so fandoms that never received a heart simply gain the field. */
-async function resetFandomHearts() {
+ * Uses merge-set so fandoms that never received a heart simply gain the field.
+ *
+ * The week's totals are archived first. Votes get this for free — the daily snapshot keeps a
+ * per-artist series and the Hall of Fame records each champion — but hearts had nowhere to
+ * land, so every Sunday's totals were discarded permanently. Same failure the weekly battle
+ * had before it was archived: a number you can never reconstruct once it is overwritten.
+ *
+ * `now` is injectable so a test can pin the week being closed. */
+export async function archiveFandomHearts(now: Date = new Date()) {
   const db = getFirestore()
+  // Runs at Monday 00:00 KST, so the week being closed is the one "yesterday" fell in.
+  const endedWeekId = currentWeekId(new Date(now.getTime() - 86_400_000))
+  const snap = await db.collection('fandomStats').get()
+
+  const hearts: Record<string, number> = {}
+  let total = 0
+  for (const doc of snap.docs) {
+    const n = (doc.data().weeklyHearts as number) ?? 0
+    if (n > 0) {
+      hearts[doc.id] = n
+      total += n
+    }
+  }
+  // Nothing to remember: don't litter the collection with empty weeks.
+  if (total === 0) {
+    console.log(`No fandom hearts to archive for ${endedWeekId}.`)
+    return
+  }
+
+  await db.doc(`fandomHeartHistory/${endedWeekId}`).set({
+    weekId: endedWeekId,
+    hearts,
+    totalHearts: total,
+    fandomCount: Object.keys(hearts).length,
+    capturedAt: FieldValue.serverTimestamp(),
+  })
+  console.log(`Archived ${total} fandom hearts across ${Object.keys(hearts).length} fandoms for ${endedWeekId}.`)
+}
+
+export async function resetFandomHearts(now: Date = new Date()) {
+  const db = getFirestore()
+  // Archive before zeroing, and never let a failure there block the reset — a missed archive
+  // costs one week of history, a missed reset carries hearts into the next week forever.
+  try {
+    await archiveFandomHearts(now)
+  } catch (err) {
+    console.error('Fandom heart archive failed; continuing with the reset:', err)
+  }
   const snap = await db.collection('fandomStats').get()
   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
     const batch = db.batch()
@@ -30,9 +75,9 @@ async function resetFandomHearts() {
 
 /** Before wiping weekly votes, crown the week's most-voted artist into the Hall of Fame.
  * Runs at the start of the new ISO week, so the week that just ended is "yesterday's" week. */
-async function captureWeeklyWinner() {
+export async function captureWeeklyWinner(now: Date = new Date()) {
   const db = getFirestore()
-  const endedWeekId = currentWeekId(new Date(Date.now() - 86_400_000))
+  const endedWeekId = currentWeekId(new Date(now.getTime() - 86_400_000))
   const top = await db.collection('artists').orderBy('weeklyVotes', 'desc').limit(1).get()
   if (top.empty) return
   const winner = top.docs[0]
@@ -44,8 +89,11 @@ async function captureWeeklyWinner() {
   await db.doc(`hallOfFame/${endedWeekId}`).set({
     weekId: endedWeekId,
     artistId: winner.id,
-    artistName: winner.data().name,
-    region: winner.data().region,
+    // The Admin SDK rejects undefined outright, and this write used to run *before* the
+    // vote reset — so one artist added without a region threw here and left every artist
+    // carrying last week's votes into the new week, with nothing surfacing the failure.
+    artistName: winner.data().name ?? winner.id,
+    region: winner.data().region ?? null,
     votes,
     capturedAt: FieldValue.serverTimestamp(),
   })
@@ -56,12 +104,23 @@ async function captureWeeklyWinner() {
 // these, so the last data point in an artist's trend chart before a reset is that
 // period's final tally — these jobs only need to zero the live counter.
 
+/** Crown-then-zero, as a plain function so tests can drive it without a pubsub emulator.
+ * `now` is injectable purely so a test can pin the "week that just ended". */
+export async function resetWeeklyVotesNow(now: Date = new Date()) {
+  // Crown first so the Hall of Fame sees the week's real totals — but never let a failure
+  // there stop the reset. A missed crown loses one week of history; a missed reset carries
+  // every artist's votes into the next week and quietly corrupts the board until noticed.
+  try {
+    await captureWeeklyWinner(now)
+  } catch (err) {
+    console.error('Hall of Fame capture failed; continuing with the weekly reset:', err)
+  }
+  await resetField('weeklyVotes')
+}
+
 export const resetWeeklyVotes = onSchedule(
   { schedule: '0 0 * * 1', timeZone: 'UTC' }, // every Monday 00:00 UTC
-  async () => {
-    await captureWeeklyWinner()
-    await resetField('weeklyVotes')
-  },
+  () => resetWeeklyVotesNow(),
 )
 
 /** Hearts are claimed on the midnight-KST day boundary, so their week has to end on that
