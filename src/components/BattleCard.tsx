@@ -105,7 +105,9 @@ export function BattleCard() {
           {decided ? `${total.toLocaleString()} votes` : user ? 'Pick your fandom' : 'Sign in to pick a side'}
         </span>
       </div>
-      <div className="flex items-stretch gap-3">
+      {/* Stacks below ~240px: two side-by-side columns plus the VS divider cannot fit at 200%
+          zoom on a phone, and they used to push the page into horizontal scroll. */}
+      <div className="flex flex-col items-stretch gap-3 min-[240px]:flex-row">
         {renderSide({ id: battle.aArtistId, name: battle.aName, region: battle.aRegion, votes: battle.aVotes, align: 'left' })}
         <div className="flex items-center text-sm font-extrabold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
           VS

@@ -22,9 +22,58 @@ const PICTURE_QUERY_CHUNK = 20
  */
 const VOTE_SCALE_FLOOR = 25
 
+/**
+ * The popularity source every artist is expected to use. Anything else is a fallback whose
+ * numbers are on an entirely different scale — Deezer reports lifetime follower counts in the
+ * millions, Wikipedia reports 30-day pageviews in the thousands. Min-max normalizing them in
+ * one column lets a single fallback artist define the top of the scale and crush everyone
+ * else: observed live, one artist at 1.3M Deezer followers pushed BTS's 401k pageviews down
+ * to 30/100 and inverted the board.
+ */
+const PRIMARY_POPULARITY_SOURCE = 'wikipedia-pageviews'
+
 function rawValue(data: FirebaseFirestore.DocumentData, factor: (typeof FACTORS)[number]): number {
   if (factor === 'weeklyVotes' || factor === 'monthlyVotes') return data[factor] ?? 0
   return data.metrics?.[factor]?.value ?? 0
+}
+
+/** True when this artist's popularity figure is comparable with everyone else's. */
+function hasComparablePopularity(data: FirebaseFirestore.DocumentData): boolean {
+  const metric = data.metrics?.popularity
+  return !!metric && metric.stale !== true && metric.source === PRIMARY_POPULARITY_SOURCE
+}
+
+/**
+ * Normalizes popularity using only the artists on the primary source, then hands everyone
+ * else the median of that result. "We could not measure this artist" is not the same claim as
+ * "this artist has no audience", and scoring a failed lookup as 0 punished the artist for our
+ * outage — three artists sat at popularity 0 for exactly that reason. The median is an
+ * explicit "unknown, assume typical": it neither rewards nor punishes, and it keeps an
+ * incomparable fallback number out of the scale entirely.
+ */
+function normalizePopularity(docs: FirebaseFirestore.QueryDocumentSnapshot[]): number[] {
+  const comparable = docs.map((d) => hasComparablePopularity(d.data()))
+  const values = docs.map((d) => rawValue(d.data(), 'popularity'))
+  const measured = values.filter((_, i) => comparable[i])
+
+  // Nothing measurable — e.g. a Wikipedia outage marks the whole roster stale. Min-maxing the
+  // raw values here would be the very bug this function exists to prevent: the fallback
+  // numbers are on an incomparable scale, so one Deezer artist at 1.3M would take 100 and
+  // push a 401k-pageview artist to 7. With no comparable data, popularity simply contributes
+  // nothing and the vote factors decide the board.
+  if (measured.length === 0) return values.map(() => 0)
+
+  const scaled = normalize(measured)
+  const sorted = [...scaled].sort((a, b) => a - b)
+  // True median, averaging the two middles on an even count. Taking the upper middle meant a
+  // two-artist measured cohort scaled to [0, 100] handed every unmeasured artist a perfect
+  // 100 — inverting the board at small N, exactly what this guards against at large N.
+  const mid = sorted.length / 2
+  const median =
+    sorted.length % 2 === 1 ? sorted[Math.floor(mid)] : (sorted[mid - 1] + sorted[mid]) / 2
+
+  let next = 0
+  return comparable.map((ok) => (ok ? scaled[next++] : median))
 }
 
 /** Min-max normalizes a factor to 0-100 across all artists. Zero variance (or all-stale/zero
@@ -37,7 +86,12 @@ function normalize(values: number[], floor = 0): number[] {
   return values.map((v) => ((v - min) / (max - min)) * 100)
 }
 
-export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeoutSeconds: 300 }, async () => {
+/**
+ * The ranking recompute itself, as a plain function. The onSchedule wrapper below is only the
+ * trigger — keeping the body out of the closure lets the emulator harness (and any one-off
+ * script) drive the exact production code path without a pubsub emulator.
+ */
+export async function recomputeRankingsNow(): Promise<void> {
   const db = getFirestore()
   const snap = await db.collection('artists').get()
   const docs = snap.docs
@@ -45,10 +99,12 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   const normalizedByFactor = Object.fromEntries(
     FACTORS.map((factor) => [
       factor,
-      normalize(
-        docs.map((d) => rawValue(d.data(), factor)),
-        factor === 'popularity' ? 0 : VOTE_SCALE_FLOOR,
-      ),
+      factor === 'popularity'
+        ? normalizePopularity(docs)
+        : normalize(
+            docs.map((d) => rawValue(d.data(), factor)),
+            VOTE_SCALE_FLOOR,
+          ),
     ]),
   )
 
@@ -162,4 +218,8 @@ export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeout
   console.log(
     `Recomputed rankings for ${ranked.length} artists; artistIndex ~${Math.round(indexBytes / 1024)} KB.`,
   )
-})
+}
+
+export const recomputeRankings = onSchedule({ schedule: 'every 1 hours', timeoutSeconds: 300 }, () =>
+  recomputeRankingsNow(),
+)
