@@ -42,7 +42,7 @@ export const voteBattle = onCall<{ choiceArtistId: string }>(async (request) => 
 
 /** Copies the outgoing battle to battleArchive/{weekId} before it is overwritten, so past
  * matchups and their final tallies survive the Monday rollover (the battleVotes docs already do). */
-async function archiveCurrentBattle() {
+export async function archiveCurrentBattle() {
   const db = getFirestore()
   const snap = await db.doc(CURRENT).get()
   if (!snap.exists) return
@@ -65,8 +65,20 @@ async function archiveCurrentBattle() {
 
 /** Picks a fresh weekly matchup from the top of the board. Runs Monday 00:15 UTC
  * (after the weekly reset + hall-of-fame capture). */
-export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone: 'UTC' }, async () => {
+export async function createWeeklyBattleNow(now: Date = new Date()) {
   const db = getFirestore()
+
+  // Running twice inside one week is destructive, so it's a no-op instead. The archive is
+  // keyed by the outgoing battle's weekId: a re-run would file the *live* matchup under the
+  // week that is still current, then replace it with a different pair carrying that same
+  // weekId — and everyone who already voted stays locked out, because battleVotes is keyed
+  // {uid}_{weekId} and cannot tell the two matchups apart.
+  const current = await db.doc(CURRENT).get()
+  if (current.exists && current.data()?.weekId === currentWeekId(now)) {
+    console.log(`Battle for ${currentWeekId(now)} already exists — skipping.`)
+    return
+  }
+
   const top = await db.collection('artists').orderBy('compositeScore', 'desc').limit(12).get()
   if (top.size < 2) {
     console.log('Not enough artists for a battle.')
@@ -81,7 +93,7 @@ export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone:
   const [a, b] = docs
   await archiveCurrentBattle()
   await db.doc(CURRENT).set({
-    weekId: currentWeekId(),
+    weekId: currentWeekId(now),
     aArtistId: a.id,
     aName: a.data().name,
     aRegion: a.data().region,
@@ -93,4 +105,8 @@ export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone:
     createdAt: FieldValue.serverTimestamp(),
   })
   console.log(`New battle: ${a.data().name} vs ${b.data().name}.`)
-})
+}
+
+export const createWeeklyBattle = onSchedule({ schedule: '15 0 * * 1', timeZone: 'UTC' }, () =>
+  createWeeklyBattleNow(),
+)

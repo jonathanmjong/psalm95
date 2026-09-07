@@ -1,10 +1,17 @@
 import { useState } from 'react'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { deletePicture, votePicture } from '../lib/callables'
 import { sized } from '../lib/images'
 import { Modal } from './Modal'
 import { pictureCredit, uploadCtaLabel } from '../lib/labels'
+import { plural } from '../lib/plural'
+import {
+  PICTURE_VOTES_PER_ARTIST,
+  picturesVotesLeft,
+  pictureVotesSpentText,
+} from '../lib/pictureVotes'
 
 interface Props {
   picture: ArtistPicture
@@ -19,6 +26,7 @@ interface Props {
 
 export function PictureLightbox({ picture, artistName, onClose, onUploadClick, onVoted, onDeleted }: Props) {
   const { user, signInWithGoogle } = useAuth()
+  const { profile } = useUserProfile()
   const [voteCount, setVoteCount] = useState(picture.voteCount)
   const [voted, setVoted] = useState(false)
   const [pending, setPending] = useState(false)
@@ -67,6 +75,12 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
   }
 
   const credit = pictureCredit(picture)
+  // Straight off the user doc the app already streams — no extra read to know what's left.
+  const votesLeft = picturesVotesLeft(profile, picture.artistId)
+  // Shown spent but still tappable: the client never loads the user's vote docs, so it cannot
+  // tell which photos they hearted on an earlier visit. The tap either fills the heart
+  // (`alreadyVoted`, no quota spent) or surfaces the server's message in the slot below.
+  const spent = !!user && !voted && votesLeft === 0
 
   return (
     <Modal
@@ -95,11 +109,17 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
           <button
             onClick={handleVote}
             disabled={voted || pending}
-            aria-label={voted ? 'Voted' : 'Vote for this picture'}
+            aria-disabled={spent}
+            title={spent ? pictureVotesSpentText(artistName) : undefined}
+            aria-label={
+              voted ? 'Voted' : spent ? `No picture votes left for ${artistName}` : 'Vote for this picture'
+            }
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition disabled:opacity-70 ${
               voted
                 ? 'bg-[var(--color-accent-strong)] text-white'
-                : 'bg-[var(--color-surface-sunken)] hover:opacity-80 dark:bg-[var(--color-surface-sunken-dark)]'
+                : spent
+                  ? 'bg-[var(--color-surface-sunken)] opacity-50 dark:bg-[var(--color-surface-sunken-dark)]'
+                  : 'bg-[var(--color-surface-sunken)] hover:opacity-80 dark:bg-[var(--color-surface-sunken-dark)]'
             }`}
           >
             <svg
@@ -118,6 +138,18 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
           </button>
         </div>
         {voteError && <p className="text-right text-xs text-red-500">{voteError}</p>}
+        {/* The rule as plain visible text, not a tooltip: the lightbox is opened by a tap on
+            a phone far more often than by a mouse, and a hover-only explanation is no
+            explanation at all there. */}
+        {!voteError && (
+          <p className="text-right text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            {!user
+              ? `${PICTURE_VOTES_PER_ARTIST} votes per artist — sign in to pick ${artistName}'s best pictures.`
+              : votesLeft === 0
+                ? pictureVotesSpentText(artistName)
+                : `${plural(votesLeft, 'vote')} left for ${artistName}. The most-voted picture becomes their main photo.`}
+          </p>
+        )}
         {ownUpload &&
           (confirmingDelete ? (
             <div className="flex items-center gap-2 text-xs">

@@ -14,12 +14,76 @@
  * Exits non-zero if any check fails, so it can gate a deploy.
  */
 import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
 const BASE_URL = process.env.BASE_URL || 'https://psalmtune.com'
-const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const chrome = spawn(CHROME, ['--headless=new','--remote-debugging-port=9333','--no-first-run','--user-data-dir=/tmp/a11yprof','about:blank'],{stdio:'ignore'})
+
+/** CHROME_PATH wins; otherwise take the first browser that exists, so this runs unchanged on
+ *  a developer's Mac and on a Linux CI runner. */
+function findChrome() {
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH
+  const candidates = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  ]
+  const found = candidates.find((p) => existsSync(p))
+  if (!found) {
+    console.error('No Chrome found. Set CHROME_PATH to a Chrome or Chromium binary.')
+    process.exit(2)
+  }
+  return found
+}
+
+const CHROME = findChrome()
+// A fresh profile per run: a reused one replays the previous run's IndexedDB and service
+// worker, which makes results depend on what ran before.
+const PROFILE = `/tmp/a11yprof-${process.pid}`
+// --disable-dev-shm-usage: CI containers give /dev/shm ~64 MB and Chrome crashes on start
+// without it. stderr is captured rather than discarded so a failure to launch says why.
+const chrome = spawn(
+  CHROME,
+  [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--remote-debugging-port=9333',
+    '--no-first-run',
+    `--user-data-dir=${PROFILE}`,
+    'about:blank',
+  ],
+  { stdio: ['ignore', 'ignore', 'pipe'] },
+)
+let chromeErr = ''
+chrome.stderr.on('data', (d) => { chromeErr += d.toString() })
+chrome.on('exit', (code) => {
+  if (code !== 0 && code !== null) console.error(`Chrome exited early (code ${code}):\n${chromeErr.slice(-800)}`)
+})
+
 const sleep = ms => new Promise(r=>setTimeout(r,ms))
-await sleep(2500)
-const targets = await (await fetch('http://127.0.0.1:9333/json/list')).json()
+
+/** Poll DevTools instead of guessing at a fixed delay — a cold CI runner is slower than a
+ *  warm laptop, and a fixed sleep turns "Chrome was still starting" into a confusing
+ *  connection-refused stack trace. */
+async function waitForDevTools(timeoutMs = 30000) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    try {
+      return await (await fetch('http://127.0.0.1:9333/json/list')).json()
+    } catch {
+      await sleep(500)
+    }
+  }
+  console.error(`Chrome DevTools never answered on :9333 after ${timeoutMs}ms.`)
+  console.error(`Binary: ${CHROME}`)
+  if (chromeErr) console.error(`Chrome stderr:\n${chromeErr.slice(-1200)}`)
+  process.exit(2)
+}
+
+const targets = await waitForDevTools()
 const page = targets.find(t=>t.type==='page')
 const ws = new WebSocket(page.webSocketDebuggerUrl)
 let id=0; const pending=new Map()
