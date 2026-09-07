@@ -1,9 +1,8 @@
 # psalm95
 
 A fan-driven ranking platform for Korean, Chinese, and Japanese idol groups and
-solo artists. Rankings blend five equally-weighted factors: online popularity,
-albums sold, concert ticket sales, and weekly + monthly fan votes cast by
-signed-in users.
+solo artists. Rankings blend three equally-weighted factors: online popularity
+and weekly + monthly fan votes cast by signed-in users.
 
 ## Stack
 

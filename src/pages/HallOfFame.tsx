@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
+import { collection, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import { useAllArtists } from '../hooks/useAllArtists'
+import { swrQuery } from '../lib/swr'
+import { useArtistIndex } from '../hooks/useArtistIndex'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { pluralWord } from '../lib/plural'
 
 interface Winner {
   weekId: string
@@ -15,21 +17,49 @@ interface Winner {
 
 const REGION_LABEL: Record<Winner['region'], string> = { KR: 'K-pop', CN: 'C-pop', JP: 'J-pop' }
 
+/**
+ * A "champion" crowned with a handful of votes is worse than no champion at all — it tells
+ * a visitor the whole leaderboard is decided by a rounding error. Weeks below this floor are
+ * hidden, so the page shows its "no champions yet" invitation until a week is genuinely
+ * contested. The stored hallOfFame docs are left untouched.
+ *
+ * DROP THIS (and the filter below) once the site has real weekly traffic.
+ */
+const MIN_CHAMPION_VOTES = 5
+
 export function HallOfFame() {
   const [winners, setWinners] = useState<Winner[]>([])
   const [loading, setLoading] = useState(true)
-  const { artists } = useAllArtists()
+  const { artists } = useArtistIndex()
 
+  // Kept in sync with the prerendered shell in scripts/prerender.mjs.
   usePageMeta({
-    title: 'Fandom Hall of Fame | PsalmTune',
-    description: 'Every weekly champion fandom — and their win streaks — crowned by fan votes, week by week.',
+    title: 'Weekly champions — every crowned fandom | PsalmTune',
+    description:
+      'Every weekly champion fandom on PsalmTune, week by week — reigning streaks, past winners and the K-pop, C-pop and J-pop artists their fans voted to the top.',
     path: '/hall-of-fame',
   })
 
   useEffect(() => {
-    getDocs(query(collection(db, 'hallOfFame'), orderBy('weekId', 'desc'), limit(100)))
-      .then((snap) => setWinners(snap.docs.map((d) => d.data() as Winner)))
-      .finally(() => setLoading(false))
+    let active = true
+    // Past champions never change, so the cached list is a safe instant first paint.
+    swrQuery(
+      query(collection(db, 'hallOfFame'), orderBy('weekId', 'desc'), limit(100)),
+      (snap) =>
+        snap.docs
+          .map((d) => d.data() as Winner)
+          .filter((w) => (w.votes ?? 0) >= MIN_CHAMPION_VOTES),
+      (list) => {
+        if (!active) return
+        setWinners(list)
+        setLoading(false)
+      },
+    ).catch(() => {
+      if (active) setLoading(false)
+    })
+    return () => {
+      active = false
+    }
   }, [])
 
   const fandomOf = (id: string) => artists.find((a) => a.id === id)?.fandomName ?? null
@@ -105,7 +135,7 @@ export function HallOfFame() {
                 <div className="shrink-0 text-right">
                   <div className="text-lg font-bold tabular-nums">{w.votes.toLocaleString()}</div>
                   <div className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
-                    votes
+                    {pluralWord(w.votes, 'vote')}
                   </div>
                 </div>
               </Link>

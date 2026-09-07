@@ -16,7 +16,7 @@ export function BirthdaysStrip({ artists }: { artists: Artist[] }) {
             to={`/artist/${artistId}`}
             className={`shrink-0 rounded-xl border px-3 py-2 text-sm transition hover:-translate-y-0.5 ${
               status.isToday
-                ? 'border-transparent bg-[var(--color-accent)] text-white'
+                ? 'border-transparent bg-[var(--color-accent-strong)] text-white'
                 : 'border-[var(--color-hairline)] dark:border-[var(--color-hairline-dark)]'
             }`}
           >

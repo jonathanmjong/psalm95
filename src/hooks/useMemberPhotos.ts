@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
+import { collection, limit, orderBy, query } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import type { ArtistPicture } from '../types'
+import { swrQuery } from '../lib/swr'
+import type { Artist, ArtistPicture } from '../types'
 
 interface MemberPhotos {
   /** memberId → best (most-voted) photo the member is individually tagged in. */
@@ -10,32 +11,52 @@ interface MemberPhotos {
   groupUrls: string[]
 }
 
-/** Loads member-tagged photos plus the artist's top group photos. Seed images are
- * group-tagged, so member cards fall back to a group photo until members get tagged. */
-export function useMemberPhotos(artistId: string): MemberPhotos {
+/**
+ * Member-card avatars. Both halves are denormalized onto the artist doc hourly by
+ * `recomputeRankings`, so the common path costs zero extra reads — this used to scan 100
+ * picture docs on every artist-page visit. The scan only runs for artist docs written
+ * before that job started denormalizing.
+ */
+export function useMemberPhotos(artistId: string, artist?: Artist | null): MemberPhotos {
+  const denormalized = artist?.memberPhotoUrls
   const [result, setResult] = useState<MemberPhotos>({ byMember: {}, groupUrls: [] })
 
   useEffect(() => {
+    // Denormalized data present (even an empty map — nobody is tagged yet): nothing to fetch.
+    if (denormalized) {
+      setResult({ byMember: denormalized, groupUrls: artist?.topPictureUrls ?? [] })
+      return
+    }
+    let active = true
     const q = query(
       collection(db, 'artists', artistId, 'pictures'),
       orderBy('voteCount', 'desc'),
-      limit(100),
+      limit(60),
     )
-    getDocs(q).then((snap) => {
-      const byMember: Record<string, string> = {}
-      const groupUrls: string[] = []
-      snap.docs.forEach((d) => {
-        const pic = d.data() as ArtistPicture
-        if (pic.url) groupUrls.push(pic.url)
-        for (const tag of pic.taggedMembers ?? []) {
-          if (tag.artistId === artistId && !byMember[tag.memberId]) {
-            byMember[tag.memberId] = pic.url
+    swrQuery(
+      q,
+      (snap) => {
+        const byMember: Record<string, string> = {}
+        const groupUrls: string[] = []
+        snap.docs.forEach((d) => {
+          const pic = d.data() as ArtistPicture
+          if (pic.url) groupUrls.push(pic.url)
+          for (const tag of pic.taggedMembers ?? []) {
+            if (tag.artistId === artistId && !byMember[tag.memberId]) {
+              byMember[tag.memberId] = pic.url
+            }
           }
-        }
-      })
-      setResult({ byMember, groupUrls })
-    })
-  }, [artistId])
+        })
+        return { byMember, groupUrls }
+      },
+      (photos) => {
+        if (active) setResult(photos)
+      },
+    ).catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [artistId, denormalized, artist?.topPictureUrls])
 
   return result
 }

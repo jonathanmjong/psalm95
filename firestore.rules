@@ -15,7 +15,8 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Fandom member counts — public read, maintained only by the joinFandom callable.
+    // Fandom member counts and daily-heart tallies — public read, maintained only by the
+    // joinFandom / claimDailyHeart callables and the weekly reset job (Admin SDK).
     match /fandomStats/{artistId} {
       allow read: if true;
       allow write: if false;
@@ -34,6 +35,34 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Each week's closing fandom-heart totals, written by the weekly reset before it zeroes
+    // the live counters. Public read, function-only write.
+    match /fandomHeartHistory/{weekId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Finished battles — public read, archived only by the scheduled function.
+    match /battleArchive/{weekId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Handle → uid lookup for /u/{handle}. Public read (that's the point of a handle);
+    // the claimHandle callable is the only writer, so uniqueness can't be raced client-side.
+    match /handles/{handle} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Opt-in public projection of a user, created only when a handle is claimed. Carries
+    // the handle, fandom and aggregate stats — never displayName, email, photoURL or any
+    // per-artist vote history, all of which stay in the private users/{uid} doc.
+    match /profiles/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /artists/{artistId} {
       allow read: if true;
       // metrics, votes, compositeScore, rank are only ever written by Cloud Functions
@@ -42,13 +71,11 @@ service cloud.firestore {
 
       match /pictures/{pictureId} {
         allow read: if true;
-        allow create: if request.auth != null
-          && request.resource.data.uploadedBy == request.auth.uid
-          && request.resource.data.source == 'user-upload'
-          && artistId in request.resource.data.taggedArtists
-          && request.resource.data.voteCount == 0;
-        // Edits (vote counts) and deletes go through callable functions only.
-        allow update, delete: if false;
+        // Creates go through the createPictureDoc callable so the per-user upload quota,
+        // the activeUploadCount increment and the storagePath/url pairing are enforced
+        // server-side; edits (vote counts) and deletes are callable-only too. The Admin
+        // SDK bypasses these rules, so all writes are denied to clients.
+        allow write: if false;
       }
 
       // Daily ranking snapshots that power the week/month/year trend graphs — written
@@ -86,9 +113,16 @@ service cloud.firestore {
         && request.resource.data.get('currentStreak', 0) == resource.data.get('currentStreak', 0)
         && request.resource.data.get('longestStreak', 0) == resource.data.get('longestStreak', 0)
         && request.resource.data.get('lastVoteDate', '') == resource.data.get('lastVoteDate', '')
+        && request.resource.data.get('lastHeartDate', '') == resource.data.get('lastHeartDate', '')
+        && request.resource.data.get('streakFreezes', 0) == resource.data.get('streakFreezes', 0)
+        && request.resource.data.get('pictureHeartsToday', 0) == resource.data.get('pictureHeartsToday', 0)
+        && request.resource.data.get('pictureHeartsDate', '') == resource.data.get('pictureHeartsDate', '')
+        && request.resource.data.get('pictureVotesByArtist', {}) == resource.data.get('pictureVotesByArtist', {})
         && request.resource.data.get('referredBy', '') == resource.data.get('referredBy', '')
         && request.resource.data.get('referralCount', 0) == resource.data.get('referralCount', 0)
-        && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '');
+        && request.resource.data.get('biasArtistId', '') == resource.data.get('biasArtistId', '')
+        && request.resource.data.get('handle', '') == resource.data.get('handle', '')
+        && request.resource.data.get('acquisitionSource', '') == resource.data.get('acquisitionSource', '');
       allow delete: if false;
     }
 

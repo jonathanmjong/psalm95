@@ -1,9 +1,119 @@
 import { useState } from 'react'
+import { doc, setDoc } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserProfile } from '../hooks/useUserProfile'
+import { useUserProfile, type EmailPrefs } from '../hooks/useUserProfile'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { db } from '../lib/firebase'
 import { ACHIEVEMENTS } from '../lib/achievements'
-import { currentWeekId } from '../lib/dates'
+import { claimHandle } from '../lib/callables'
+import { ShareButton } from '../components/ShareButton'
+import { currentWeekId, currentDayIdKST } from '../lib/dates'
+
+/** Mirrors the server-side check in functions/src/handles.ts, for instant feedback only —
+ * the callable is still the authority (it also owns the reserved list and uniqueness). */
+const HANDLE_PATTERN = /^[a-z0-9_]{3,20}$/
+
+function PublicProfileCard({ handle }: { handle?: string }) {
+  const [input, setInput] = useState('')
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const candidate = input.trim().toLowerCase()
+  const valid = HANDLE_PATTERN.test(candidate)
+  const link = `psalmtune.com/u/${handle}`
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${link}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // clipboard blocked
+    }
+  }
+
+  const claim = async () => {
+    setPending(true)
+    setError(null)
+    try {
+      await claimHandle({ handle: candidate })
+      // The live users/{uid} snapshot re-renders this card in its claimed state.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not claim that handle.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
+      <h2 className="text-lg font-semibold">Public profile</h2>
+      {handle ? (
+        <>
+          <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            You’re <span className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">@{handle}</span>.
+            Your page shows your streak, badges and fandom — never your name or email.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              readOnly
+              value={link}
+              onFocus={(e) => e.currentTarget.select()}
+              className="min-w-0 flex-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-sunken)] px-4 py-2 text-sm dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-sunken-dark)]"
+            />
+            <button onClick={copy} className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold">
+              {copied ? 'Copied!' : 'Copy link'}
+            </button>
+            <ShareButton
+              title={`@${handle} on PsalmTune`}
+              text={`Follow my streak on PsalmTune — @${handle}`}
+              url={`https://${link}`}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Claim a handle to get a public page you can link anywhere. It shows your streak, badges and
+            fandom — never your name or email.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+              psalmtune.com/u/
+            </span>
+            <input
+              value={input}
+              onChange={(e) => {
+                setInput(e.currentTarget.value)
+                setError(null)
+              }}
+              placeholder="yourhandle"
+              maxLength={20}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className="min-w-0 flex-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-sunken)] px-4 py-2 text-sm dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-sunken-dark)]"
+            />
+            <button
+              onClick={() => void claim()}
+              disabled={!valid || pending}
+              className="btn-gradient shrink-0 rounded-full px-4 py-2 text-sm font-semibold"
+            >
+              {pending ? 'Claiming…' : 'Claim'}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            {candidate && !valid
+              ? '3–20 characters, letters, numbers and underscores only.'
+              : 'You can only claim once, so choose carefully.'}
+          </p>
+        </>
+      )}
+      {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+    </section>
+  )
+}
 
 function InviteCard({ uid, referralCount }: { uid: string; referralCount: number }) {
   const [copied, setCopied] = useState(false)
@@ -38,6 +148,62 @@ function InviteCard({ uid, referralCount }: { uid: string; referralCount: number
           {copied ? 'Copied!' : 'Copy link'}
         </button>
       </div>
+    </section>
+  )
+}
+
+const EMAIL_PREF_ROWS: { key: keyof EmailPrefs; label: string; description: string }[] = [
+  {
+    key: 'streakReminders',
+    label: 'Streak reminders',
+    description: 'An evening nudge when your streak is about to break (KST evening, only if you haven’t acted).',
+  },
+  {
+    key: 'weeklyReset',
+    label: 'Weekly reset reminder',
+    description: 'Sunday heads-up when you still have unspent votes before the Monday reset.',
+  },
+]
+
+function EmailPrefsCard({ uid, prefs }: { uid: string; prefs: EmailPrefs }) {
+  const [error, setError] = useState<string | null>(null)
+
+  // Written straight to the profile doc — `emailPrefs` isn't one of the callable-only fields
+  // the security rules freeze. The live snapshot reflects the change immediately.
+  const toggle = async (key: keyof EmailPrefs, value: boolean) => {
+    setError(null)
+    try {
+      await setDoc(doc(db, 'users', uid), { emailPrefs: { ...prefs, [key]: value } }, { merge: true })
+    } catch {
+      setError('Couldn’t save that — please try again.')
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-[var(--color-hairline)] p-4 dark:border-[var(--color-hairline-dark)]">
+      <h2 className="text-lg font-semibold">Email notifications</h2>
+      <p className="mt-1 text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+        Sent to the address on your Google account. Turn either off at any time.
+      </p>
+      <div className="mt-3 space-y-3">
+        {EMAIL_PREF_ROWS.map(({ key, label, description }) => (
+          <label key={key} className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={prefs[key]}
+              onChange={(e) => void toggle(key, e.currentTarget.checked)}
+              className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
+            />
+            <span>
+              <span className="text-sm font-semibold">{label}</span>
+              <span className="block text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                {description}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
     </section>
   )
 }
@@ -82,6 +248,7 @@ export function Profile() {
   }
 
   const weekVotes = (profile.weeklyArtistVotes[currentWeekId()] ?? []).length
+  const heartClaimedToday = profile.lastHeartDate === currentDayIdKST()
 
   return (
     <div className="space-y-8">
@@ -98,6 +265,11 @@ export function Profile() {
               ? `🔥 ${profile.currentStreak}-day voting streak — keep it alive!`
               : 'Vote today to start a streak 🔥'}
           </p>
+          <p className="text-sm text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+            Daily heart claimed today {heartClaimedToday ? '✓' : '✗'} · ❄️ {profile.streakFreezes} streak{' '}
+            {profile.streakFreezes === 1 ? 'freeze' : 'freezes'}{' '}
+            <span className="opacity-70">(earn one every 30 streak days — it covers a missed day)</span>
+          </p>
         </div>
       </header>
 
@@ -108,7 +280,11 @@ export function Profile() {
         <Stat value={profile.totalVotes} label="Total votes" />
       </div>
 
+      <PublicProfileCard handle={profile.handle} />
+
       <InviteCard uid={profile.uid} referralCount={profile.referralCount} />
+
+      <EmailPrefsCard uid={profile.uid} prefs={profile.emailPrefs} />
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Achievements</h2>

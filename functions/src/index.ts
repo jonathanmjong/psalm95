@@ -12,10 +12,21 @@ export { votePicture } from './pictureVotes'
 export { createPictureDoc, deletePicture } from './pictures'
 export { refreshArtistMetrics } from './metrics/runMetrics'
 export { recomputeRankings } from './ranking/recompute'
-export { resetWeeklyVotes, resetMonthlyVotes, resetYearlyVotes } from './ranking/periodReset'
+export {
+  resetWeeklyVotes,
+  resetMonthlyVotes,
+  resetYearlyVotes,
+  resetFandomHeartsWeekly,
+} from './ranking/periodReset'
 export { captureDailySnapshot } from './ranking/dailySnapshot'
+export { captureEngagementStats } from './ranking/engagementStats'
 export { createCheckoutSession } from './stripe/checkout'
 export { stripeWebhook } from './stripe/webhook'
 export { voteBattle, createWeeklyBattle } from './battles'
 export { claimReferral } from './referrals'
 export { joinFandom } from './fandom'
+export { claimDailyHeart } from './dailyHeart'
+export { claimHandle } from './handles'
+export { recordVisit } from './analytics'
+export { streakRiskEmail } from './email/streakRisk'
+export { weeklyResetEmail } from './email/weeklyReset'

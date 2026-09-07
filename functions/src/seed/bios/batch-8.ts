@@ -5,6 +5,8 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'kingandprince',
     agency: 'Starto Entertainment (formerly Johnny & Associates)',
     debutDate: '2018-05-23',
+    // ファンネーム「ティアラ」, chosen at the 2018-05-26 debut event (ja.wikipedia.org/wiki/King_&_Prince).
+    fandomName: 'Tiara',
     members: [
       {
         memberId: 'hirano',
@@ -153,6 +155,9 @@ export const batch8Bios: ArtistBio[] = [
     agency: 'Sony Music Artists / Sacra Music',
     influences: ['Avril Lavigne', 'Oasis', 'Green Day', 'Paramore'],
     debutDate: '2011-04-20',
+    // LiSA calls her fans 「LiSAッ子」 (ja.wikipedia.org/wiki/LiSA); romanized to match the
+    // rest of the roster's convention.
+    fandomName: 'LiSAkko',
     members: [
       {
         memberId: 'lisa',
@@ -361,6 +366,9 @@ export const batch8Bios: ArtistBio[] = [
     artistId: 'zhou-shen',
     agency: 'Independent (personal studio, under Shanghai Jinyan Culture Media)',
     debutDate: '2014-07-25',
+    // 生米 (shēngmǐ, "raw rice") — community-adopted and used back by Zhou Shen, the usual
+    // pattern for C-pop fandom names. See scripts/fix-fandom-names.mjs for sourcing.
+    fandomName: 'Shengmi',
     members: [
       {
         memberId: 'zhou-shen',

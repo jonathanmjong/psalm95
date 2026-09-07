@@ -1,12 +1,20 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { currentWeekId, currentMonthId, currentYearId, currentDayId } from './dates'
+import { currentWeekId, currentMonthId, currentYearId, currentDayIdKST } from './dates'
+import { advanceStreak } from './streak'
+import { syncPublicProfile } from './handles'
 
 const WEEKLY_VOTE_LIMIT = 3
 
-export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
+export const castArtistVote = onCall<{ artistId?: string; warm?: boolean }>(async (request) => {
   const uid = request.auth?.uid
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in to vote.')
+
+  // A cold container costs ~2.4s versus ~0.2s warm, and on a quiet site the first vote of a
+  // visit almost always pays it. The client pings this the moment someone looks like they
+  // might vote, so the container is already up when the real vote arrives. It touches
+  // nothing and must stay the cheapest possible path through this function.
+  if (request.data?.warm) return { warmed: true }
 
   const { artistId } = request.data
   if (typeof artistId !== 'string' || !artistId) {
@@ -21,7 +29,7 @@ export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
   const userRef = db.doc(`users/${uid}`)
   const artistRef = db.doc(`artists/${artistId}`)
 
-  const weeklyVotesRemaining = await db.runTransaction(async (tx) => {
+  const result = await db.runTransaction(async (tx) => {
     const [userSnap, artistSnap] = await Promise.all([tx.get(userRef), tx.get(artistRef)])
     if (!artistSnap.exists) throw new HttpsError('not-found', 'Artist not found.')
 
@@ -36,29 +44,32 @@ export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
       throw new HttpsError('resource-exhausted', 'You have used all 3 votes this week.')
     }
 
-    // Daily voting streak: advances once per day the user casts any vote.
-    const dayId = currentDayId()
-    const yesterday = currentDayId(new Date(Date.now() - 86_400_000))
-    const lastVoteDate = userData.lastVoteDate as string | undefined
-    let currentStreak = (userData.currentStreak as number | undefined) ?? 0
-    let longestStreak = (userData.longestStreak as number | undefined) ?? 0
-    if (lastVoteDate !== dayId) {
-      currentStreak = lastVoteDate === yesterday ? currentStreak + 1 : 1
-      longestStreak = Math.max(longestStreak, currentStreak)
-    }
+    // Daily streak (shared with claimDailyHeart): a vote or a claimed heart earns the KST day.
+    const streak = advanceStreak(userData, currentDayIdKST())
 
     const updatedWeek = [...thisWeek, artistId]
+    // Keep only the current week's ballot: stale weekIds are deleted in the same write, so the
+    // map stays one entry instead of growing by one key per week for the life of the account.
+    // (Votes reset weekly and nothing reads past weeks — totalVotes carries the lifetime count.)
+    const prunedVotes: Record<string, string[] | FieldValue> = { [weekId]: updatedWeek }
+    for (const staleWeekId of Object.keys(weeklyArtistVotes)) {
+      if (staleWeekId !== weekId) prunedVotes[staleWeekId] = FieldValue.delete()
+    }
     tx.set(
       userRef,
       {
-        weeklyArtistVotes: { ...weeklyArtistVotes, [weekId]: updatedWeek },
+        weeklyArtistVotes: prunedVotes,
         totalVotes: FieldValue.increment(1),
-        lastVoteDate: dayId,
-        currentStreak,
-        longestStreak,
+        ...streak.fields,
       },
       { merge: true },
     )
+    // Public projection (handle-holders only): same increment, so the two docs can't drift.
+    syncPublicProfile(tx, db, uid, userData, {
+      totalVotes: FieldValue.increment(1),
+      currentStreak: streak.fields.currentStreak,
+      longestStreak: streak.fields.longestStreak,
+    })
     tx.set(
       artistRef,
       {
@@ -72,11 +83,20 @@ export const castArtistVote = onCall<{ artistId: string }>(async (request) => {
       { merge: true },
     )
 
-    return { remaining: WEEKLY_VOTE_LIMIT - updatedWeek.length, currentStreak }
+    return {
+      remaining: WEEKLY_VOTE_LIMIT - updatedWeek.length,
+      currentStreak: streak.fields.currentStreak,
+      streakFreezes: streak.fields.streakFreezes,
+      freezeUsed: streak.freezeUsed,
+      streakAdvanced: streak.advanced,
+    }
   })
 
   return {
-    weeklyVotesRemaining: weeklyVotesRemaining.remaining,
-    currentStreak: weeklyVotesRemaining.currentStreak,
+    weeklyVotesRemaining: result.remaining,
+    currentStreak: result.currentStreak,
+    streakFreezes: result.streakFreezes,
+    freezeUsed: result.freezeUsed,
+    streakAdvanced: result.streakAdvanced,
   }
 })

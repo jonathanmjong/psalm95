@@ -6,6 +6,10 @@
     Roboto, Helvetica, Arial, sans-serif;
 
   --color-accent: #ff375f;
+  /* White text on #ff375f is 3.52:1 — below the 4.5:1 AA minimum. Selected states (chips,
+     period tabs, sort toggles, the voted heart) use this darker accent instead, which is
+     5.03:1, while the brand accent stays exactly as it is everywhere else. */
+  --color-accent-strong: #d81b4a;
   --color-ink: #1d1d1f;
   --color-ink-soft: #6e6e73;
   --color-surface: #ffffff;
@@ -56,14 +60,16 @@ body {
 }
 
 .glass-header {
-  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  /* High enough that scrolled body text can't be read through the blur — at 72% it ghosted
+     through, most visibly in dark mode. */
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 @media (prefers-color-scheme: dark) {
   .glass-header {
-    background: color-mix(in srgb, var(--color-surface-dark) 72%, transparent);
+    background: color-mix(in srgb, var(--color-surface-dark) 97%, transparent);
   }
 }
 
@@ -118,6 +124,20 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* Unclaimed daily heart — a small, non-distracting beat that says "tap me". */
+  @keyframes heartbeat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.18);
+    }
+  }
+  .heartbeat {
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+
   .lift {
     transition:
       transform 0.18s ease,
@@ -126,5 +146,54 @@ input[type="search"]::-webkit-search-cancel-button {
   .lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.5);
+  }
+
+  /* "+1" receipt that floats off the vote button the moment a vote is accepted.
+     It confirms the vote itself — never a rank change, which only moves hourly. */
+  @keyframes vote-float {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(0.9);
+    }
+    18% {
+      opacity: 1;
+      transform: translate(-50%, -8px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -30px) scale(1);
+    }
+  }
+  .vote-float {
+    animation: vote-float 0.9s ease-out forwards;
+  }
+
+  /* A raw counter just changed under a live listener — a brief, quiet accent tint
+     that draws the eye without moving the layout. */
+  @keyframes count-flash {
+    0% {
+      color: var(--color-accent);
+    }
+    100% {
+      color: inherit;
+    }
+  }
+  .count-flash {
+    animation: count-flash 0.9s ease-out;
+  }
+
+  /* Rows re-sorting on the fandom board glide from their old slot to the new one
+     (FLIP: the transform is set in JS, the easing lives here). */
+  .row-slide {
+    transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+}
+
+/* Tailwind's animation utilities sit outside the prefers-reduced-motion block above, so
+   disable them explicitly — the loading skeleton must not pulse for someone who asked for
+   reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
   }
 }

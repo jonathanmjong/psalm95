@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Member } from '../types'
 import { formatBirthdate, zodiacFromDate } from '../lib/zodiac'
 import { birthdayStatus, birthdayLabel } from '../lib/birthdays'
+import { sized, sizedSrcSet } from '../lib/images'
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -23,7 +24,6 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
     member.birthdate ||
     zodiac ||
     member.heightCm ||
-    member.weightKg ||
     member.interests?.length ||
     member.favoriteFoods?.length ||
     member.favoriteAnimal
@@ -33,7 +33,13 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
       <div className="flex items-center gap-3">
         {photoUrl && imgOk ? (
           <img
-            src={photoUrl}
+            src={sized(photoUrl, 120)}
+            srcSet={sizedSrcSet(photoUrl, 120, 250)}
+            sizes="44px"
+            width={44}
+            height={44}
+            loading="lazy"
+            decoding="async"
             alt={member.name}
             onError={() => setImgOk(false)}
             className="h-11 w-11 shrink-0 rounded-full object-cover"
@@ -47,9 +53,15 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
           </span>
         )}
         <div className="min-w-0">
-          <h3 className="truncate font-semibold">{member.name}</h3>
+          <h3 className="truncate font-semibold" title={member.name}>
+            {member.name}
+          </h3>
+          {/* Positions like "Main Vocalist, Lead Dancer" clip to a few characters on a
+              390px card; the title puts the whole line back within reach. */}
           {member.position && (
-            <p className="truncate text-xs font-medium text-[var(--color-accent)]">{member.position}</p>
+            <p className="truncate text-xs font-medium text-[var(--color-accent)]" title={member.position}>
+              {member.position}
+            </p>
           )}
         </div>
       </div>
@@ -57,7 +69,7 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
         <p
           className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
             bday.isToday
-              ? 'bg-[var(--color-accent)] text-white'
+              ? 'bg-[var(--color-accent-strong)] text-white'
               : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink)] dark:bg-[var(--color-surface-sunken-dark)] dark:text-[var(--color-ink-dark)]'
           }`}
         >
@@ -69,7 +81,9 @@ export function MemberCard({ member, photoUrl }: { member: Member; photoUrl?: st
           {member.birthdate && <Field label="Birthdate" value={formatBirthdate(member.birthdate)} />}
           {zodiac && <Field label="Sign" value={zodiac} />}
           {member.heightCm && <Field label="Height" value={`${member.heightCm} cm`} />}
-          {member.weightKg && <Field label="Weight" value={`${member.weightKg} kg`} />}
+          {/* `member.weightKg` is deliberately never rendered. Publishing idol weights is
+              widely criticised in fandom, and the stat adds nothing to a profile card. The
+              field stays in Firestore and in the Member type; it just has no UI. */}
           {member.favoriteAnimal && <Field label="Favorite animal" value={member.favoriteAnimal} />}
           {member.favoriteFoods && member.favoriteFoods.length > 0 && (
             <Field label="Favorite foods" value={member.favoriteFoods.join(', ')} />
