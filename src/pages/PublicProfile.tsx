@@ -84,6 +84,11 @@ export function PublicProfile() {
       ? `@${profile.handle}${profile.fandomName ? ` · ${profile.fandomName}` : ''} — ${profile.currentStreak}-day streak and ${profile.totalVotes} votes cast on PsalmTune.`
       : 'Fan profiles on PsalmTune — streaks, badges and fandoms.',
     path: `/u/${handle}`,
+    // Every unclaimed handle is a distinct, indexable-by-default URL with no real content —
+    // "@whatever isn't taken" has nothing to say to a search result and nothing to
+    // canonicalize to (it isn't a duplicate of any other page), so noindex is the correct
+    // signal rather than leaving it indexable.
+    noindex: !loading && !profile,
   })
 
   if (loading) {

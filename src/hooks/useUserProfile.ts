@@ -19,6 +19,9 @@ export interface UserProfile {
   /** Claimed public handle, or undefined while the account has no public page at all. */
   handle?: string
   weeklyArtistVotes: Record<string, string[]>
+  /** artistId → picture votes already spent on that artist (see PICTURE_VOTES_PER_ARTIST).
+   * Never reset, so a missing key simply means the full allowance is untouched. */
+  pictureVotesByArtist: Record<string, number>
   /** Per-type email opt-outs. A missing map or key means opted in — see `EmailPrefs`. */
   emailPrefs: EmailPrefs
   uid: string
@@ -79,6 +82,7 @@ function subscribe(user: User, listener: SnapshotListener): () => void {
           biasArtistId: d.biasArtistId ?? null,
           handle: d.handle ?? undefined,
           weeklyArtistVotes: d.weeklyArtistVotes ?? {},
+          pictureVotesByArtist: d.pictureVotesByArtist ?? {},
           emailPrefs: {
             streakReminders: d.emailPrefs?.streakReminders !== false,
             weeklyReset: d.emailPrefs?.weeklyReset !== false,
