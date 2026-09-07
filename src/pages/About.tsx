@@ -36,10 +36,11 @@ export function About() {
         <p>Every artist&rsquo;s score is three things, weighted equally at a third each:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <strong>Online popularity</strong> — listener and fan counts pulled from public music-service
-            data. Today that figure comes from Deezer, which is patchy for Asian artists, so this factor
-            is the weakest part of the ranking and it is why some placements look wrong. Improving the
-            source is the top item on the list.
+            <strong>Online popularity</strong> — how many people looked an artist up on Wikipedia over
+            the last 30 days, across the English article and the artist&rsquo;s own-language one. It
+            measures attention right now rather than a lifetime follower total, which is why a group
+            that stopped promoting years ago no longer outranks one that is active. Artists we
+            can&rsquo;t match to a verified Wikipedia entry fall back to Deezer fan counts.
           </li>
           <li>
             <strong>Weekly fan votes</strong> — cast here. Everyone gets 3 votes a week, one per artist,

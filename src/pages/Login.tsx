@@ -1,7 +1,20 @@
 import { useAuth } from '../contexts/AuthContext'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export function Login() {
   const { signInWithGoogle } = useAuth()
+  // No usePageMeta call here previously meant this page just kept whatever <head> the
+  // last route had set — usually index.html's static defaults, canonical /. Google then
+  // read a real, reachable /login as "duplicate of the homepage, canonical points there",
+  // which is a genuine misuse: this page isn't a duplicate of anything, it just has no
+  // content worth indexing on its own. noindex is the correct instruction, not a foreign
+  // canonical.
+  usePageMeta({
+    title: 'Sign in | PsalmTune',
+    description: 'Sign in with Google to vote, join a fandom and upload pictures on PsalmTune.',
+    path: '/login',
+    noindex: true,
+  })
 
   return (
     <div className="flex flex-col items-center gap-4 py-24 text-center">

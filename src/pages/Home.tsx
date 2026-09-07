@@ -21,7 +21,7 @@ export function Home() {
   const { artists: allArtists, loading: allLoading } = useArtistIndex()
 
   usePageMeta({
-    title: 'PsalmTune — Rank & explore K-pop, C-pop & J-pop artists',
+    title: 'PsalmTune — fan-voted K-pop, C-pop & J-pop rankings',
     description:
       'Vote for the K-pop, C-pop and J-pop artists and bands you love and watch them climb the board. Explore member profiles and live popularity rankings on a fan-driven platform.',
     path: '/',
@@ -72,13 +72,23 @@ export function Home() {
       {/* Deliberately short: on a 390px phone every pixel here is a pixel the ranking — the
           actual product — is pushed below the fold. The roster size is read live rather than
           written in, so the claim can't go stale. */}
-      <section className="hero-glow -mx-6 rounded-3xl px-6 py-6 text-center sm:py-10">
+      <section className="hero-glow -mx-6 rounded-3xl px-6 py-5 text-center sm:py-9">
+        {/* The two things that make this board different from a poll: fan votes are two of
+            the three equally-weighted factors, and the third measures attention right now
+            rather than a lifetime follower total. Stated as a claim rather than a slogan
+            because a stranger's first question is "why should I trust this ranking". */}
         <h1 className="text-gradient text-3xl font-extrabold tracking-tight sm:text-5xl">
-          K-pop, C-pop &amp; J-pop, ranked by fans.
+          Two thirds of this ranking is fan votes.
         </h1>
-        <p className="mx-auto mt-2 max-w-xl text-base text-[var(--color-ink-soft)] sm:mt-4 sm:text-lg dark:text-[var(--color-ink-soft-dark)]">
-          {allArtists.length > 0 ? allArtists.length : 'Over 100'} artists on the board. You get 3 votes a
-          week — they reset every Monday.
+        <p className="mx-auto mt-2 max-w-xl text-sm text-[var(--color-ink-soft)] sm:mt-3 sm:text-lg dark:text-[var(--color-ink-soft-dark)]">
+          The rest is who people are looking up right now — not lifetime follower counts. Everyone
+          gets the same three votes a week, and no way to buy more.
+        </p>
+        {/* One compact line: the roster and the reset are useful, but the fold on a 667px-tall
+            phone is only wide enough for the claim plus this. */}
+        <p className="mx-auto mt-1.5 text-xs text-[var(--color-ink-soft)] sm:text-sm dark:text-[var(--color-ink-soft-dark)]">
+          {allArtists.length > 0 ? allArtists.length : '100+'} artists · K-pop, C-pop &amp; J-pop ·
+          votes reset Monday
         </p>
       </section>
 

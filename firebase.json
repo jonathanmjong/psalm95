@@ -25,7 +25,7 @@
         ]
       },
       {
-        "//": "Rollup content-hashes everything under /assets, so a given filename can only ever hold one set of bytes — safe to cache forever, and it matches how sw.js serves them (cache-first, dropped wholesale when BUILD_ID changes). Hosting's default here is only max-age=3600, which made a return visit an hour later re-download the whole ~1 MB bundle.",
+        "//": "Rollup content-hashes everything under /assets, so a given filename can only ever hold one set of bytes \u2014 safe to cache forever, and it matches how sw.js serves them (cache-first, dropped wholesale when BUILD_ID changes). Hosting's default here is only max-age=3600, which made a return visit an hour later re-download the whole ~1 MB bundle.",
         "source": "/assets/**",
         "headers": [
           {
@@ -35,7 +35,7 @@
         ]
       },
       {
-        "//": "Prerendered shells (dist/artist/*.html, dist/fandoms.html, dist/hall-of-fame.html) embed hourly rank data and reference hashed assets — always revalidate so a deploy or rank refresh is picked up immediately. Header globs match the REQUEST path, so the cleanUrls forms are listed alongside **/*.html.",
+        "//": "Prerendered shells (dist/artist/*.html, dist/fandoms.html, dist/hall-of-fame.html) embed hourly rank data and reference hashed assets \u2014 always revalidate so a deploy or rank refresh is picked up immediately. Header globs match the REQUEST path, so the cleanUrls forms are listed alongside **/*.html.",
         "source": "**/*.html",
         "headers": [
           {
@@ -79,6 +79,39 @@
             "value": "public, max-age=3600"
           }
         ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/fandoms/",
+        "destination": "/fandoms",
+        "type": 301,
+        "//": "Strips a trailing slash from the six fixed routes, which otherwise fell through the ** SPA rewrite to the plain index.html shell (its title/canonical, not the real route's) since no prerendered file matches a directory-style path. Deliberately NOT attempted for /artist/:id/ and /u/:handle/: Firebase Hosting's named :param capture treats a trailing slash in the source as optional, so that pattern matched the bare path too and 301'd it to itself \u2014 an infinite loop, caught only by testing against the hosting emulator before deploy, never in production. A ** wildcard source avoided the loop but its capture couldn't be referenced in the destination (:0 silently failed to match rather than substitute). Rather than guess further at unverified syntax in a config that fails by taking down every artist page, those two routes rely on the client-side canonical self-correction verified in Chrome: both title and <link rel=canonical> resolve correctly once React hydrates."
+      },
+      {
+        "source": "/hall-of-fame/",
+        "destination": "/hall-of-fame",
+        "type": 301
+      },
+      {
+        "source": "/privacy/",
+        "destination": "/privacy",
+        "type": 301
+      },
+      {
+        "source": "/profile/",
+        "destination": "/profile",
+        "type": 301
+      },
+      {
+        "source": "/login/",
+        "destination": "/login",
+        "type": 301
+      },
+      {
+        "source": "/about/",
+        "destination": "/about",
+        "type": 301
       }
     ]
   },

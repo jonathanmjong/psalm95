@@ -6,6 +6,7 @@ import { useTopPictures } from '../hooks/useTopPictures'
 import { useLatestPictures } from '../hooks/useLatestPictures'
 import type { ArtistPicture } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { MemberFilter } from '../components/MemberFilter'
 import { SortControl } from '../components/SortControl'
 import { PictureGrid } from '../components/PictureGrid'
@@ -20,11 +21,13 @@ import { Comments } from '../components/Comments'
 import { ShareButton } from '../components/ShareButton'
 import { JoinFandomButton } from '../components/JoinFandomButton'
 import { VoteButton } from '../components/VoteButton'
+import { HoverTip } from '../components/HoverTip'
 import { NotFound } from './NotFound'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { birthdayStatus } from '../lib/birthdays'
 import { sized, sizedSrcSet } from '../lib/images'
 import { uploadCtaLabel } from '../lib/labels'
+import { picturesVotesLeft, pictureVotesRuleText } from '../lib/pictureVotes'
 
 const REGION_LABEL: Record<'KR' | 'CN' | 'JP', string> = {
   KR: 'K-pop',
@@ -36,6 +39,7 @@ export function ArtistPage() {
   const { artistId } = useParams()
   const { artist, loading: artistLoading, error: artistError } = useArtist(artistId)
   const { user, signInWithGoogle } = useAuth()
+  const { profile } = useUserProfile()
   const [sort, setSort] = useState<PictureSort>('date')
   const [memberId, setMemberId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -151,31 +155,102 @@ export function ArtistPage() {
 
       <header className="flex flex-col gap-5 sm:flex-row sm:items-start">
         {heroPicture && (
-          <button
-            type="button"
-            onClick={() => setLightboxPic(heroPicture)}
-            className="group relative mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-3xl border border-[var(--color-hairline)] sm:mx-0 dark:border-[var(--color-hairline-dark)]"
-            aria-label={`Open ${artist.name}'s most-loved picture`}
+          /* A container, not one big button: the upload affordance has to be a sibling of the
+             view button rather than nested inside it. The image itself is the most-voted photo
+             of this artist (useTopPictures orders by voteCount), so hearting a photo in the
+             gallery is what promotes it to here. */
+          <HoverTip
+            width="w-56"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  {artist.name}&rsquo;s most-loved photo
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  Chosen by fan hearts — whichever photo has the most takes this spot. Tap to view it
+                  full size, or {user ? 'add one of your own' : 'sign in to add one of your own'}.
+                </p>
+              </>
+            }
           >
-            <img
-              src={sized(heroPicture.url, 250)}
-              srcSet={sizedSrcSet(heroPicture.url, 250, 500)}
-              sizes="176px"
-              width={176}
-              height={176}
-              decoding="async"
-              alt={`${artist.name} — fan favorite`}
-              className="h-full w-full object-cover transition group-hover:scale-105"
-            />
-            {heroPicture.voteCount > 0 && (
-              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums">
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                {heroPicture.voteCount}
+            <div className="group relative mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-3xl border border-[var(--color-hairline)] sm:mx-0 dark:border-[var(--color-hairline-dark)]">
+              <button
+                type="button"
+                onClick={() => setLightboxPic(heroPicture)}
+                className="block h-full w-full"
+                aria-label={`Open ${artist.name}'s most-loved picture`}
+              >
+                <img
+                  src={sized(heroPicture.url, 250)}
+                  srcSet={sizedSrcSet(heroPicture.url, 250, 500)}
+                  sizes="176px"
+                  width={176}
+                  height={176}
+                  decoding="async"
+                  alt={`${artist.name} — fan favorite`}
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                />
+              </button>
+              {heroPicture.voteCount > 0 && (
+                <span className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums">
+                  <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {heroPicture.voteCount}
+                </span>
+              )}
+              {/* Adding a picture used to mean opening the photo, then finding the CTA inside the
+                  lightbox. It belongs on the picture itself. */}
+              <button
+                type="button"
+                onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
+                aria-label={
+                  user ? `Upload a picture of ${artist.name}` : `Sign in to upload a picture of ${artist.name}`
+                }
+                className="absolute bottom-2 left-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-base text-white opacity-100 transition hover:bg-black/80 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+              >
+                <span aria-hidden>📷</span>
+              </button>
+            </div>
+          </HoverTip>
+        )}
+        {/* Four artists currently have no freely-licensed photo at all, and this slot used to
+            render nothing — so the one page where a fan could fix that offered no hint they
+            could. The placeholder occupies the same 176px square and opens the uploader. */}
+        {!heroPicture && (
+          <HoverTip
+            width="w-56"
+            tip={
+              <>
+                <p className="font-semibold text-[var(--color-ink)] dark:text-[var(--color-ink-dark)]">
+                  No picture of {artist.name} yet
+                </p>
+                <p className="mt-1 text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                  {user
+                    ? 'Add the first one — the most-loved photo becomes their picture across the site.'
+                    : 'Sign in to add the first one — the most-loved photo becomes their picture across the site.'}
+                </p>
+              </>
+            }
+          >
+            <button
+              type="button"
+              onClick={() => (user ? setUploadOpen(true) : signInWithGoogle())}
+              aria-label={
+                user
+                  ? `Add the first picture of ${artist.name}`
+                  : `Sign in to add the first picture of ${artist.name}`
+              }
+              className="group mx-auto flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-[var(--color-hairline)] text-center transition hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 sm:mx-0 dark:border-[var(--color-hairline-dark)]"
+            >
+              <span className="text-3xl" aria-hidden>
+                📷
               </span>
-            )}
-          </button>
+              <span className="px-3 text-xs font-semibold text-[var(--color-ink-soft)] transition group-hover:text-[var(--color-accent)] dark:text-[var(--color-ink-soft-dark)]">
+                {user ? 'Add the first picture' : 'Sign in to add a picture'}
+              </span>
+            </button>
+          </HoverTip>
         )}
         <div className="min-w-0 flex-1 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -291,6 +366,13 @@ export function ArtistPage() {
             </button>
           </div>
         </div>
+
+        {/* Plain visible copy, deliberately not a tooltip: picture hearts are the one action
+            on this page with a hard, non-resetting budget, and a hover-only rule is invisible
+            to the phone visitor who is about to spend it. */}
+        <p className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+          {pictureVotesRuleText(artist.name, picturesVotesLeft(profile, artist.id), !!user)}
+        </p>
 
         {/* Loading copy only when the grid is genuinely empty — a cached page paints
             immediately, and a post-vote refresh keeps the photos up while it re-reads. */}
