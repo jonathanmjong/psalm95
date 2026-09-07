@@ -508,4 +508,33 @@ await callFn('deletePicture', { artistId: A.aurora, pictureId: r.data.pictureId 
 p = await profileDoc()
 checkEq('projection activeUploadCount tracks deletes', p?.activeUploadCount, (await userDoc()).activeUploadCount)
 
+/* ================================================================= 7. VISIT ATTRIBUTION */
+console.log('\n--- Flow 7: visit attribution ---')
+// Regression guard. recordVisit originally wrote `{ ['bySource.' + source]: increment(1) }`
+// through set({merge:true}), which Firestore stores as a field literally NAMED
+// "bySource.direct" rather than nesting it — only update() reads dots as a path. Every source
+// therefore read back empty while visits kept counting, so the launch dashboard showed
+// traffic with no attribution at all. Assert the nested shape, not just the total.
+// Mirrors currentDayIdKST in functions/src/dates.ts, duplicated so the expectation is
+// independent of the implementation under test.
+const today = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10)
+await db.doc(`analytics/${today}`).delete().catch(() => {})
+
+await callFn('recordVisit', { source: 'reddit.com', landing: '/artist/aurora' })
+await callFn('recordVisit', { source: 'reddit.com', landing: '/' })
+await callFn('recordVisit', { source: undefined, landing: '/' })
+
+const analytics = (await db.doc(`analytics/${today}`).get()).data() ?? {}
+checkEq('visits counted', analytics.visits, 3)
+check(
+  'bySource is a nested map, not a dotted field name',
+  typeof analytics.bySource === 'object' && analytics.bySource !== null,
+  JSON.stringify(Object.keys(analytics)),
+)
+check('no dotted keys leaked into the document', !Object.keys(analytics).some((k) => k.includes('.')), JSON.stringify(Object.keys(analytics)))
+checkEq('referrer host folded into a known bucket', analytics.bySource?.reddit, 2)
+checkEq('a visit with no referrer counts as direct', analytics.bySource?.direct, 1)
+checkEq('landing paths bucket by route shape', analytics.byLanding?.artist, 1)
+checkEq('home landings counted separately', analytics.byLanding?.home, 2)
+
 process.exit(summary('callable flows') === 0 ? 0 : 1)

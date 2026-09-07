@@ -80,6 +80,39 @@
           }
         ]
       }
+    ],
+    "redirects": [
+      {
+        "source": "/fandoms/",
+        "destination": "/fandoms",
+        "type": 301,
+        "//": "Strips a trailing slash from the six fixed routes, which otherwise fell through the ** SPA rewrite to the plain index.html shell (its title/canonical, not the real route's) since no prerendered file matches a directory-style path. Deliberately NOT attempted for /artist/:id/ and /u/:handle/: Firebase Hosting's named :param capture treats a trailing slash in the source as optional, so that pattern matched the bare path too and 301'd it to itself \u2014 an infinite loop, caught only by testing against the hosting emulator before deploy, never in production. A ** wildcard source avoided the loop but its capture couldn't be referenced in the destination (:0 silently failed to match rather than substitute). Rather than guess further at unverified syntax in a config that fails by taking down every artist page, those two routes rely on the client-side canonical self-correction verified in Chrome: both title and <link rel=canonical> resolve correctly once React hydrates."
+      },
+      {
+        "source": "/hall-of-fame/",
+        "destination": "/hall-of-fame",
+        "type": 301
+      },
+      {
+        "source": "/privacy/",
+        "destination": "/privacy",
+        "type": 301
+      },
+      {
+        "source": "/profile/",
+        "destination": "/profile",
+        "type": 301
+      },
+      {
+        "source": "/login/",
+        "destination": "/login",
+        "type": 301
+      },
+      {
+        "source": "/about/",
+        "destination": "/about",
+        "type": 301
+      }
     ]
   },
   "firestore": {
