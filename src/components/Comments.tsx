@@ -21,6 +21,10 @@ export function Comments({ artistId }: { artistId: string }) {
   const { comments, loading } = useComments(artistId)
   const [text, setText] = useState('')
   const [posting, setPosting] = useState(false)
+  /** Which comment (by id) has its inline "Delete this comment?" confirm open — a fat-tap on
+   *  "Delete" used to remove it immediately, with no undo. */
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const submit = async () => {
     const trimmed = text.trim()
@@ -39,6 +43,19 @@ export function Comments({ artistId }: { artistId: string }) {
       // create rejected (e.g. offline) — leave the text so the user can retry
     } finally {
       setPosting(false)
+    }
+  }
+
+  const removeComment = async (commentId: string) => {
+    if (deleting) return
+    setDeleting(true)
+    try {
+      await deleteDoc(doc(db, 'artists', artistId, 'comments', commentId))
+    } catch {
+      // delete rejected (e.g. offline) — leave the confirm open so the user can retry
+    } finally {
+      setDeleting(false)
+      setConfirmingId(null)
     }
   }
 
@@ -98,14 +115,35 @@ export function Comments({ artistId }: { artistId: string }) {
                   <span className="text-xs text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
                     {c.createdAt ? timeAgo(c.createdAt.toMillis()) : ''}
                   </span>
-                  {user?.uid === c.uid && (
-                    <button
-                      onClick={() => deleteDoc(doc(db, 'artists', artistId, 'comments', c.id))}
-                      className="ml-auto text-xs text-[var(--color-ink-soft)] hover:text-[var(--color-accent)] dark:text-[var(--color-ink-soft-dark)]"
-                    >
-                      Delete
-                    </button>
-                  )}
+                  {user?.uid === c.uid &&
+                    (confirmingId === c.id ? (
+                      <span className="ml-auto flex items-center gap-2 text-xs">
+                        <span className="text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
+                          Delete?
+                        </span>
+                        <button
+                          onClick={() => removeComment(c.id)}
+                          disabled={deleting}
+                          className="font-semibold text-red-500 hover:opacity-80 disabled:opacity-50"
+                        >
+                          {deleting ? 'Deleting…' : 'Delete'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmingId(null)}
+                          disabled={deleting}
+                          className="text-[var(--color-ink-soft)] hover:text-[var(--color-accent)] disabled:opacity-50 dark:text-[var(--color-ink-soft-dark)]"
+                        >
+                          Cancel
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingId(c.id)}
+                        className="ml-auto text-xs text-[var(--color-ink-soft)] hover:text-[var(--color-accent)] dark:text-[var(--color-ink-soft-dark)]"
+                      >
+                        Delete
+                      </button>
+                    ))}
                 </div>
                 <p className="whitespace-pre-wrap break-words text-sm">{c.text}</p>
               </div>
