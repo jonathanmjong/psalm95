@@ -29,10 +29,11 @@ service cloud.firestore {
     }
     match /battleVotes/{voteId} {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid
-        && voteId == request.auth.uid + '_' + request.resource.data.weekId;
-      allow update, delete: if false;
+      // Only voteBattle (Admin SDK, bypasses rules) ever writes these — a client `create`
+      // would let a signed-in user pre-plant the {uid}_{weekId} doc directly, which the
+      // callable then reads as "already voted" and permanently locks them out of that
+      // week's battle with no vote actually cast.
+      allow create, update, delete: if false;
     }
 
     // Each week's closing fandom-heart totals, written by the weekly reset before it zeroes
@@ -128,10 +129,10 @@ service cloud.firestore {
 
     match /pictureVotes/{voteId} {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid
-        && voteId == request.auth.uid + '_' + request.resource.data.pictureId;
-      allow update, delete: if false;
+      // Only votePicture (Admin SDK, bypasses rules) ever writes these — see the matching
+      // comment on battleVotes above for why a client `create` is dangerous, not just
+      // redundant: it lets a user permanently self-brick voting on any picture.
+      allow create, update, delete: if false;
     }
   }
 }

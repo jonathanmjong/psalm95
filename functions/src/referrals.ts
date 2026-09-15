@@ -1,5 +1,10 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
-import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
+
+/** Only the client's own signup flow (AuthContext.ensureUserProfile) ever calls this, right
+ * after creating the profile doc — this window just keeps a signed-in user from calling the
+ * callable directly, months later, to hand an arbitrary account a free referral credit. */
+const SIGNUP_WINDOW_MS = 10 * 60_000
 
 /** Credits a referrer when a newly-created user arrived via their invite link.
  * Idempotent: a user can only ever be referred once, and can't refer themselves. */
@@ -18,6 +23,8 @@ export const claimReferral = onCall<{ refUid: string }>(async (request) => {
     if (!meSnap.exists) throw new HttpsError('failed-precondition', 'Profile not found.')
     if (meSnap.data()?.referredBy) return { ok: false } // already referred
     if (!refSnap.exists) return { ok: false } // referrer isn't a real user
+    const createdAt = meSnap.data()?.createdAt as Timestamp | undefined
+    if (!createdAt || Date.now() - createdAt.toMillis() > SIGNUP_WINDOW_MS) return { ok: false }
 
     tx.set(meRef, { referredBy: refUid }, { merge: true })
     tx.set(refRef, { referralCount: FieldValue.increment(1) }, { merge: true })
