@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import type { Artist } from '../types'
 import { useTopPictures } from '../hooks/useTopPictures'
@@ -31,6 +32,50 @@ interface Props {
   onPicturesToggle?: (open: boolean) => void
 }
 
+/** Popularity ranking trend that follows the cursor (desktop only; mobile users expand the
+ *  row). Split out from the row itself: the mouse position updates on every pixel of movement,
+ *  and keeping that state on the row re-rendered the whole subtree (avatar, score bar, vote
+ *  button, both tooltips) dozens of times a second while hovering. A native listener on the
+ *  row's own DOM node, scoped to this small component, confines the re-render to just the
+ *  floating graph. */
+function RowHoverGraph({
+  artist,
+  containerRef,
+  disabled,
+}: {
+  artist: Artist
+  containerRef: RefObject<HTMLDivElement | null>
+  disabled: boolean
+}) {
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const onMove = (e: MouseEvent) => setCursor({ x: e.clientX, y: e.clientY })
+    const onLeave = () => setCursor(null)
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+    }
+  }, [containerRef])
+
+  if (disabled || !cursor) return null
+  return (
+    <div
+      className="pointer-events-none fixed z-50 hidden md:block"
+      style={{
+        left: Math.min(cursor.x + 18, window.innerWidth - 252),
+        top: Math.min(cursor.y + 18, window.innerHeight - 168),
+      }}
+    >
+      <ArtistMiniGraph artist={artist} />
+    </div>
+  )
+}
+
 export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Props) {
   const [localPicturesOpen, setLocalPicturesOpen] = useState(false)
   /** A dead image host used to render a broken-image glyph with the alt text spilling out of
@@ -40,7 +85,7 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
    *  Firestore read inside it — is mounted only from then on, so the 12 rows on a Home
    *  page cost nothing extra until someone actually asks for pictures. */
   const [picturesMounted, setPicturesMounted] = useState(false)
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
+  const rowRef = useRef<HTMLDivElement>(null)
   // Thumbnails come from the hourly-denormalized topPictureUrls when present (zero reads);
   // the per-row pictures query only runs for docs that predate that field.
   const { pictures } = useTopPictures(artist.id, 5, 0, !artist.topPictureUrls)
@@ -63,24 +108,11 @@ export function ArtistRow({ artist, rank, picturesOpen, onPicturesToggle }: Prop
 
   return (
     <div
+      ref={rowRef}
       data-artist-row={artist.id}
       className="relative rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] transition-shadow duration-200 hover:shadow-md dark:border-[var(--color-hairline-dark)] dark:bg-[var(--color-surface-dark)]"
-      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
-      onMouseLeave={() => setCursor(null)}
     >
-      {/* Popularity ranking trend that follows the cursor (desktop only; mobile users expand
-          the row). position:fixed + high z keeps it above everything, instantly. */}
-      {!picsOpen && cursor && (
-        <div
-          className="pointer-events-none fixed z-50 hidden md:block"
-          style={{
-            left: Math.min(cursor.x + 18, window.innerWidth - 252),
-            top: Math.min(cursor.y + 18, window.innerHeight - 168),
-          }}
-        >
-          <ArtistMiniGraph artist={artist} />
-        </div>
-      )}
+      <RowHoverGraph artist={artist} containerRef={rowRef} disabled={picsOpen} />
       {/* The row header is a flex container, not one big <button>: the primary actions live
           here now, and interactive elements can't legally nest inside a button. */}
       <div className="flex items-center gap-3 px-4 py-3">
