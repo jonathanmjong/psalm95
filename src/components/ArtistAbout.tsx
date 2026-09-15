@@ -2,6 +2,7 @@ import type { Artist } from '../types'
 import { MemberCard } from './MemberCard'
 import { formatBirthdate } from '../lib/zodiac'
 import { useMemberPhotos } from '../hooks/useMemberPhotos'
+import { artistBioParagraph } from '../lib/artistBio'
 
 export function ArtistAbout({ artist }: { artist: Artist }) {
   const { byMember } = useMemberPhotos(artist.id, artist)
@@ -10,6 +11,8 @@ export function ArtistAbout({ artist }: { artist: Artist }) {
 
   return (
     <section className="space-y-4">
+      <p className="text-sm leading-relaxed">{artistBioParagraph(artist)}</p>
+
       {hasFacts && (
         <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
           {artist.debutDate && (
