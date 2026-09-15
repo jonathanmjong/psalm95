@@ -52,6 +52,13 @@ export function Home() {
   const query = search.trim().toLowerCase()
   const searching = query.length > 0
 
+  // A short/common query (a single letter, say) can match dozens of artists. Each match
+  // mounts a full row — avatar, score bar, vote button, mini-graph listener, two tooltips —
+  // and rows missing the denormalized thumbnail field also fire their own Firestore read, so
+  // rendering all of them on every keystroke visibly janks. Capped well above what a genuine
+  // search is trying to find, with a hint to narrow the query further.
+  const MAX_SEARCH_RESULTS = 40
+
   /** Row index the battle / daily-heart cards are slotted in after — the third row normally,
    *  the last one on a short page so the cards never fall off the list entirely. */
   const cardSlotIndex = Math.min(2, artists.length - 1)
@@ -118,8 +125,10 @@ export function Home() {
           <div className="space-y-2">
             <p className="text-sm break-words text-[var(--color-ink-soft)] dark:text-[var(--color-ink-soft-dark)]">
               {results.length} result{results.length === 1 ? '' : 's'} for “{search.trim().slice(0, 80)}”
+              {results.length > MAX_SEARCH_RESULTS &&
+                ` — showing the first ${MAX_SEARCH_RESULTS}. Keep typing to narrow it down.`}
             </p>
-            {results.map((artist) => (
+            {results.slice(0, MAX_SEARCH_RESULTS).map((artist) => (
               <ArtistRow
                 key={artist.id}
                 artist={artist}
