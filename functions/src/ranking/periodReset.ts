@@ -9,7 +9,13 @@ export async function resetField(field: 'weeklyVotes' | 'monthlyVotes' | 'yearly
   const snap = await db.collection('artists').get()
   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
     const batch = db.batch()
-    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => batch.update(doc.ref, { [field]: 0 }))
+    // Subtracting the value read just above (not writing a flat 0) means a vote that lands
+    // between this read and the batch commit is carried into the new period instead of
+    // silently discarded — FieldValue.increment is atomic per document even inside a batch.
+    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => {
+      const value = (doc.data()[field] as number) ?? 0
+      batch.update(doc.ref, { [field]: FieldValue.increment(-value) })
+    })
     await batch.commit()
   }
   console.log(`Reset ${field} to 0 for ${snap.size} artists.`)
@@ -67,7 +73,12 @@ export async function resetFandomHearts(now: Date = new Date()) {
   const snap = await db.collection('fandomStats').get()
   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
     const batch = db.batch()
-    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => batch.set(doc.ref, { weeklyHearts: 0 }, { merge: true }))
+    // Same atomic-decrement reasoning as resetField above: a heart claimed between this read
+    // and the batch commit gets carried forward instead of discarded by an overwritten 0.
+    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => {
+      const value = (doc.data().weeklyHearts as number) ?? 0
+      batch.set(doc.ref, { weeklyHearts: FieldValue.increment(-value) }, { merge: true })
+    })
     await batch.commit()
   }
   console.log(`Reset weeklyHearts to 0 for ${snap.size} fandoms.`)

@@ -41,12 +41,14 @@ export const voteBattle = onCall<{ choiceArtistId: string }>(async (request) => 
 })
 
 /** Copies the outgoing battle to battleArchive/{weekId} before it is overwritten, so past
- * matchups and their final tallies survive the Monday rollover (the battleVotes docs already do). */
-export async function archiveCurrentBattle() {
-  const db = getFirestore()
-  const snap = await db.doc(CURRENT).get()
-  if (!snap.exists) return
-  const battle = snap.data()!
+ * matchups and their final tallies survive the Monday rollover (the battleVotes docs already do).
+ * Runs inside the caller's transaction so the guard-check, archive, and rollover below commit
+ * atomically — see createWeeklyBattleNow for why that matters. */
+function archiveCurrentBattleTx(
+  tx: FirebaseFirestore.Transaction,
+  db: FirebaseFirestore.Firestore,
+  battle: FirebaseFirestore.DocumentData,
+) {
   const weekId = battle.weekId as string | undefined
   if (!weekId) {
     console.log('Outgoing battle has no weekId — skipping archive.')
@@ -55,7 +57,7 @@ export async function archiveCurrentBattle() {
   const aVotes = (battle.aVotes as number) ?? 0
   const bVotes = (battle.bVotes as number) ?? 0
   const winner = aVotes === bVotes ? 'tie' : aVotes > bVotes ? 'a' : 'b'
-  await db.doc(`battleArchive/${weekId}`).set({
+  tx.set(db.doc(`battleArchive/${weekId}`), {
     ...battle,
     winner,
     archivedAt: FieldValue.serverTimestamp(),
@@ -67,17 +69,7 @@ export async function archiveCurrentBattle() {
  * (after the weekly reset + hall-of-fame capture). */
 export async function createWeeklyBattleNow(now: Date = new Date()) {
   const db = getFirestore()
-
-  // Running twice inside one week is destructive, so it's a no-op instead. The archive is
-  // keyed by the outgoing battle's weekId: a re-run would file the *live* matchup under the
-  // week that is still current, then replace it with a different pair carrying that same
-  // weekId — and everyone who already voted stays locked out, because battleVotes is keyed
-  // {uid}_{weekId} and cannot tell the two matchups apart.
-  const current = await db.doc(CURRENT).get()
-  if (current.exists && current.data()?.weekId === currentWeekId(now)) {
-    console.log(`Battle for ${currentWeekId(now)} already exists — skipping.`)
-    return
-  }
+  const weekId = currentWeekId(now)
 
   const top = await db.collection('artists').orderBy('compositeScore', 'desc').limit(12).get()
   if (top.size < 2) {
@@ -91,19 +83,40 @@ export async function createWeeklyBattleNow(now: Date = new Date()) {
     ;[docs[i], docs[j]] = [docs[j], docs[i]]
   }
   const [a, b] = docs
-  await archiveCurrentBattle()
-  await db.doc(CURRENT).set({
-    weekId: currentWeekId(now),
-    aArtistId: a.id,
-    aName: a.data().name,
-    aRegion: a.data().region,
-    bArtistId: b.id,
-    bName: b.data().name,
-    bRegion: b.data().region,
-    aVotes: 0,
-    bVotes: 0,
-    createdAt: FieldValue.serverTimestamp(),
+
+  const currentRef = db.doc(CURRENT)
+  // The guard-check, archive, and rollover all happen inside one transaction: Cloud
+  // Scheduler delivers at-least-once, so a retried/duplicate invocation can otherwise read
+  // the same outgoing battle before either has written, and both archive + overwrite it —
+  // the second archive stomping the first with a fresh 0-0 matchup and orphaning any votes
+  // already cast. Firestore's optimistic concurrency means a second transaction that reads
+  // the same current-battle version conflicts with the first's write and retries, at which
+  // point it sees the just-committed weekId and takes the no-op path below instead.
+  const created = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(currentRef)
+    if (snap.exists && snap.data()?.weekId === weekId) {
+      return false
+    }
+    if (snap.exists) archiveCurrentBattleTx(tx, db, snap.data()!)
+    tx.set(currentRef, {
+      weekId,
+      aArtistId: a.id,
+      aName: a.data().name,
+      aRegion: a.data().region,
+      bArtistId: b.id,
+      bName: b.data().name,
+      bRegion: b.data().region,
+      aVotes: 0,
+      bVotes: 0,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+    return true
   })
+
+  if (!created) {
+    console.log(`Battle for ${weekId} already exists — skipping.`)
+    return
+  }
   console.log(`New battle: ${a.data().name} vs ${b.data().name}.`)
 }
 
