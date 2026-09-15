@@ -10,6 +10,16 @@ import { createPictureDoc } from '../lib/callables'
 const MAX_ACTIVE_UPLOADS = 3
 const LIMIT_HINT = `You already have ${MAX_ACTIVE_UPLOADS} active uploads — the maximum. Open one of your own pictures in the gallery and hit Delete to free a slot.`
 
+/** Mirrors the `request.resource.size` / `contentType` checks in storage.rules. Checking here
+ *  too means someone on mobile data with an oversized photo finds out before the upload runs,
+ *  not after watching a spinner for one that Storage was always going to reject. */
+const MAX_FILE_BYTES = 10 * 1024 * 1024
+function fileError(file: File): string | null {
+  if (!file.type.startsWith('image/')) return 'That file isn’t an image.'
+  if (file.size > MAX_FILE_BYTES) return 'That photo is over 10 MB — pick a smaller one.'
+  return null
+}
+
 interface Props {
   artistId: string
   members: Member[]
@@ -21,6 +31,7 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
   const { user } = useAuth()
   const { profile } = useUserProfile()
   const [file, setFile] = useState<File | null>(null)
+  const [fileWarning, setFileWarning] = useState<string | null>(null)
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [confirmedRights, setConfirmedRights] = useState(false)
   const [credit, setCredit] = useState('')
@@ -33,6 +44,12 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
     setSelectedMembers((prev) =>
       prev.includes(memberId) ? prev.filter((m) => m !== memberId) : [...prev, memberId],
     )
+  }
+
+  const handleFileChange = (picked: File | null) => {
+    const problem = picked ? fileError(picked) : null
+    setFile(problem ? null : picked)
+    setFileWarning(problem)
   }
 
   const handleSubmit = async () => {
@@ -79,9 +96,10 @@ export function UploadModal({ artistId, members, onClose, onUploaded }: Props) {
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
         className="block w-full text-sm"
       />
+      {fileWarning && <p className="text-sm text-red-500">{fileWarning}</p>}
 
       {members.length > 0 && (
         <div>
