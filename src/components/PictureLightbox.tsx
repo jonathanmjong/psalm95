@@ -89,11 +89,15 @@ export function PictureLightbox({ picture, artistName, onClose, onUploadClick, o
       backdropClassName="z-[60] bg-black/70"
       panelClassName="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)]"
     >
+      {/* No stored width/height to size this exactly, but a min-height stops the panel from
+          collapsing to 0 while the full-size image loads — the buttons below used to jump
+          down the moment it finished, a layout shift inside a modal the visitor is looking
+          straight at. */}
       <img
         src={sized(picture.url, 1280)}
         alt={`${artistName} fan photo`}
         decoding="async"
-        className="max-h-[60vh] w-full bg-black object-contain"
+        className="max-h-[60vh] min-h-[45vh] w-full bg-black object-contain"
       />
       <div className="flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
