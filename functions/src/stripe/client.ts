@@ -19,8 +19,11 @@ let cachedClient: Stripe | null = null
  */
 const API_VERSION = '2026-09-30.endive'
 
-/** Reached from the footer's "Support PsalmTune" modal via the createCheckoutSession callable.
- * Whether it moves real money depends only on which STRIPE_SECRET_KEY is configured. */
+/** Reached from the footer's "Support PsalmTune" modal via the createCheckoutSession callable —
+ * but the button itself only renders when the frontend is built with VITE_SUPPORT_ENABLED=true
+ * (src/components/Footer.tsx), and the deploy workflow doesn't currently set that var. So this
+ * callable is deployed but unreachable from production today; whichever STRIPE_SECRET_KEY is
+ * configured decides test-vs-live only once that build flag is actually turned on. */
 export function getStripeClient(): Stripe {
   if (!cachedClient) {
     cachedClient = new Stripe(stripeSecretKey.value(), { apiVersion: API_VERSION })
