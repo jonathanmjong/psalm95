@@ -67,6 +67,9 @@ export const createPictureDoc = onCall<CreatePictureData>(async (request) => {
       tx.set(userRef, { activeUploadCount: FieldValue.increment(1) }, { merge: true })
       // Public projection (handle-holders only) — drives the Photographer badge.
       syncPublicProfile(tx, db, uid, userData, { activeUploadCount: FieldValue.increment(1) })
+      // Tells the next recomputeRankings run this artist's pictures need re-scanning — see the
+      // comment on picturesDirty in ranking/recompute.ts for why that matters.
+      tx.set(db.doc(`artists/${artistId}`), { picturesDirty: true }, { merge: true })
     })
   } catch (err) {
     // Clean up the just-uploaded Storage object if we're rejecting the doc creation.
@@ -101,6 +104,9 @@ export const deletePicture = onCall<{ artistId: string; pictureId: string }>(asy
     syncPublicProfile(tx, db, uid, userSnap.data() ?? {}, {
       activeUploadCount: FieldValue.increment(-1),
     })
+    // Tells the next recomputeRankings run this artist's pictures need re-scanning — see the
+    // comment on picturesDirty in ranking/recompute.ts for why that matters.
+    tx.set(db.doc(`artists/${artistId}`), { picturesDirty: true }, { merge: true })
     return data.storagePath as string | null
   })
 

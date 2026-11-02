@@ -70,6 +70,9 @@ export const votePicture = onCall<{ pictureId: string; artistId: string }>(async
 
     tx.set(voteRef, { uid, pictureId, artistId, createdAt: FieldValue.serverTimestamp() })
     tx.update(pictureRef, { voteCount: FieldValue.increment(1) })
+    // Tells the next recomputeRankings run this artist's pictures need re-scanning — see the
+    // comment on picturesDirty in ranking/recompute.ts for why that matters.
+    tx.set(db.doc(`artists/${artistId}`), { picturesDirty: true }, { merge: true })
     // merge:true deep-merges the nested map, so only this artist's key is touched.
     tx.set(
       userRef,

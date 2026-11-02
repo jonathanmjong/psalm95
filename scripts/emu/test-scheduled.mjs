@@ -308,6 +308,32 @@ check('artistIndex omits fandom branding when absent', !('fandomName' in idxOthe
 check('artistIndex does NOT carry memberPhotoUrls (artist doc only)', !('memberPhotoUrls' in idxPics))
 check('artistIndex has an updatedAt', !!index.updatedAt)
 
+/* -- 1i. picturesDirty gates the re-scan ----------------------------------------------------- */
+console.log('\n--- 1i. picturesDirty gates the re-scan ---')
+checkEq('a freshly scanned artist is marked clean', (await artistDoc('pics')).picturesDirty, false)
+
+// Delete every picture out from under 'pics' without touching picturesDirty — if the next
+// recompute incorrectly re-scans anyway, topPictureUrls/memberPhotoUrls would both go empty.
+await db.recursiveDelete(db.collection('artists/pics/pictures'))
+await recomputeRankingsNow()
+const stillCached = await artistDoc('pics')
+checkEq(
+  'clean artist keeps its denormalized values even after its pictures vanish (scan skipped)',
+  [stillCached.topPictureUrls, stillCached.memberPhotoUrls],
+  [picsDoc.topPictureUrls, picsDoc.memberPhotoUrls],
+)
+
+// Now simulate what votePicture/createPictureDoc/deletePicture actually do.
+await db.doc('artists/pics').set({ picturesDirty: true }, { merge: true })
+await recomputeRankingsNow()
+const rescanned = await artistDoc('pics')
+checkEq(
+  'dirty artist is re-scanned — pictures are really gone now, so the cache catches up to empty',
+  [rescanned.topPictureUrls, rescanned.memberPhotoUrls],
+  [[], {}],
+)
+checkEq('re-scanned artist is marked clean again', rescanned.picturesDirty, false)
+
 /* ================================================================= 2. resetWeeklyVotes */
 console.log('\n=== 2. resetWeeklyVotes ===')
 const MONDAY = new Date('2026-08-17T00:00:00Z')

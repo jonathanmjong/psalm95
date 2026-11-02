@@ -128,12 +128,30 @@ export async function recomputeRankingsNow(): Promise<void> {
     .sort((a, b) => b.compositeScore - a.compositeScore || a.name.localeCompare(b.name))
 
   // Top-voted picture URLs per artist, denormalized so list rows need zero picture queries.
-  // Chunked so ~107 subcollection queries don't all fire at once.
+  //
+  // This used to re-scan every artist's pictures on every hourly run regardless of whether
+  // anything had changed — at ~13 pictures/artist average across 107 artists that alone was
+  // ~33,500 Firestore reads/day, around two-thirds of the daily free-tier read quota, for a
+  // site getting a few dozen real visits a day. votePicture/createPictureDoc/deletePicture now
+  // set `picturesDirty: true` on the artist doc when something that could change these two
+  // fields actually happens, so only artists with real activity since the last run pay for a
+  // scan; everyone else keeps their already-correct denormalized values at zero extra cost.
+  // A doc with no `picturesDirty` field at all (every artist before this shipped, or a
+  // brand-new one) is treated as dirty, so the very next run still scans it at least once.
+  const dirty = ranked.filter(({ doc }) => doc.data().picturesDirty !== false)
+  const clean = ranked.filter(({ doc }) => doc.data().picturesDirty === false)
+
   const topPictureUrls = new Map<string, string[]>()
   const memberPhotoUrls = new Map<string, Record<string, string>>()
-  for (let i = 0; i < ranked.length; i += PICTURE_QUERY_CHUNK) {
+  for (const { doc } of clean) {
+    topPictureUrls.set(doc.id, (doc.data().topPictureUrls as string[] | undefined) ?? [])
+    memberPhotoUrls.set(doc.id, (doc.data().memberPhotoUrls as Record<string, string> | undefined) ?? {})
+  }
+
+  // Chunked so the dirty subset's subcollection queries don't all fire at once.
+  for (let i = 0; i < dirty.length; i += PICTURE_QUERY_CHUNK) {
     await Promise.all(
-      ranked.slice(i, i + PICTURE_QUERY_CHUNK).map(async ({ doc }) => {
+      dirty.slice(i, i + PICTURE_QUERY_CHUNK).map(async ({ doc }) => {
         try {
           const pics = await doc.ref
             .collection('pictures')
@@ -163,6 +181,7 @@ export async function recomputeRankingsNow(): Promise<void> {
     )
   }
 
+  const scannedIds = new Set(dirty.map(({ doc }) => doc.id))
   for (let i = 0; i < ranked.length; i += BATCH_SIZE) {
     const batch = db.batch()
     ranked.slice(i, i + BATCH_SIZE).forEach(({ doc, compositeScore, factors }, offset) => {
@@ -172,6 +191,13 @@ export async function recomputeRankingsNow(): Promise<void> {
         rank: i + offset + 1,
         topPictureUrls: topPictureUrls.get(doc.id) ?? [],
         memberPhotoUrls: memberPhotoUrls.get(doc.id) ?? {},
+        // Only an artist actually scanned this run is marked clean. There's a narrow window
+        // per artist — between its own picture scan finishing and this batch commit, while
+        // later chunks are still being scanned — where a vote/upload could still land and get
+        // marked clean without being reflected. Accepted: the picture doc's own voteCount is
+        // never affected, so the only cost is one extra hourly cycle before the denormalized
+        // thumbnail catches up, and the very next vote/upload re-dirties it regardless.
+        ...(scannedIds.has(doc.id) ? { picturesDirty: false } : {}),
       })
     })
     await batch.commit()
