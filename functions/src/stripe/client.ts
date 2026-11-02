@@ -17,7 +17,7 @@ let cachedClient: Stripe | null = null
  * that is the point. A major bump now fails to compile until someone edits this line, which
  * turns "the wire format changed" into a reviewable decision instead of a side effect.
  */
-const API_VERSION = '2026-09-30.endive'
+const API_VERSION = '2026-10-28.endive'
 
 /** Reached from the footer's "Support PsalmTune" modal via the createCheckoutSession callable —
  * but the button itself only renders when the frontend is built with VITE_SUPPORT_ENABLED=true
