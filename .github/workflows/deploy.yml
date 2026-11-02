@@ -14,6 +14,17 @@ on:
   schedule:
     - cron: '0 18 * * *'
 
+# Firebase's deploy step calls cloudfunctions.googleapis.com several times per run (one of
+# them to generate an upload URL), against a per-minute mutation quota that one run alone
+# doesn't get close to. Several merges landing within the same minute used to queue that many
+# concurrent `firebase deploy` runs with no serialization at all, and they raced each other
+# into a 429 on that quota. Queuing runs one at a time (never canceling a run in favor of a
+# newer commit — every commit's deploy should actually happen, in order) fixes that, and costs
+# nothing when pushes are naturally spaced out, which is the common case.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
